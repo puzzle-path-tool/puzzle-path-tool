@@ -1,4 +1,4 @@
-name: 'Testing'
+name: "Testing"
 
 on:
   push:
@@ -7,21 +7,32 @@ permissions:
   contents: read
   pull-requests: read
 
-env: 
+env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build_and_test:
-    name: Rust project - latest
-    runs-on: ubuntu-latest
+    name: "Rust Test: [Rust ${{ matrix.toolchain }}] [${{ matrix.toolchain }}]"
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
         toolchain:
           - stable
           - beta
           - nightly
     steps:
       - uses: actions/checkout@v4
-      - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-      - run: cargo build --verbose
-      - run: cargo test --verbose
+      - name: Install
+        run: |
+          rustup update ${{ matrix.toolchain }}
+          rustup default ${{ matrix.toolchain }}
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Test
+        run: cargo test --verbose
