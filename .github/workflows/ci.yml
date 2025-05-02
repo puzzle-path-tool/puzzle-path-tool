@@ -16,14 +16,14 @@ jobs:
     runs-on: "${{ matrix.os }}-latest"
     strategy:
       matrix:
-        toolchain:
-          - stable
-          - beta
-          - nightly
         os:
           - ubuntu
           - windows
           - macos
+        toolchain:
+          - stable
+          - beta
+          - nightly
     steps:
       - uses: actions/checkout@v4
       - name: Install
