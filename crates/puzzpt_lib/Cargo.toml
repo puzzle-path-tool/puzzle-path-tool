@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+common = { version = "0.1.0", path = "../common" }
+common-macros = { version = "0.1.0", path = "../common_macros" }
+puzzle-formats = { version = "0.1.0", path = "../puzzfmt_lib" }

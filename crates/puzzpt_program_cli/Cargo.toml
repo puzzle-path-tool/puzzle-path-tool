@@ -3,4 +3,12 @@ name = "puzzle-path-tool-cli"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "puzzpt"
+path = "src/main.rs"
+
 [dependencies]
+common = { version = "0.1.0", path = "../common" }
+common-macros = { version = "0.1.0", path = "../common_macros" }
+puzzle-formats = { version = "0.1.0", path = "../puzzfmt_lib" }
+puzzle-path-tool = { version = "0.1.0", path = "../puzzpt_lib" }
