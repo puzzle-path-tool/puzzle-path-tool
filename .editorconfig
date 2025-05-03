@@ -1,0 +1,13 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*.{lua,js,ts,rs}]
+indent_style = space
+indent_size = 4
+
+[*.{json,yml}]
+indent_style = space
+indent_size = 2

@@ -34,3 +34,27 @@ jobs:
 
       - name: Test
         run: cargo test --verbose
+  check_lua:
+    name: "Check Lua Style"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl jq
+
+          LATEST=$(curl -s https://api.github.com/repos/LuaLS/lua-language-server/releases/latest | jq -r .tag_name)
+
+          curl -L -o lls.tar.gz https://github.com/LuaLS/lua-language-server/releases/download/$LATEST/lua-language-server-$LATEST-linux-x64.tar.gz
+          mkdir -p ~/.local/lua-language-server
+          tar -xzf lls.tar.gz -C ~/.local/lua-language-server --strip-components=1
+
+          echo "$HOME/.local/lua-language-server/bin" >> $GITHUB_PATH
+
+      - name: Generate Typedefs
+        run: 'echo "TODO: Generate Typedefs"'
+
+      - name: Check
+        run: lua-language-server --check=.
+
+
