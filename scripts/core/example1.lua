@@ -9,10 +9,10 @@ local y = { a = "" }
 local y = { b = "" }
 
 ---@type Z
-local y2 = { a = "" }
+local y2 = {a = "" }
 
 
 print(y.a)
 print(y.a)
-print(y:a)
+print(y.a)
 print(y.c)
