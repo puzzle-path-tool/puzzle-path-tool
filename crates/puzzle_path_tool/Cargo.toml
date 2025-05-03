@@ -7,6 +7,6 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-puzzle-base = { version = "0.1.0", path = "../puzzle_base" }
-puzzle-base-macros = { version = "0.1.0", path = "../puzzle_base_macros" }
-puzzle-formats = { version = "0.1.0", path = "../puzzle_formats" }
+puzzle-base = { workspace = true }
+puzzle-base-macros = { workspace = true }
+puzzle-formats = { workspace = true }

@@ -10,4 +10,4 @@ proc-macro = true
 workspace = true
 
 [dependencies]
-puzzle-base = { version = "0.1.0", path = "../puzzle_base" }
+puzzle-base = { workspace = true }

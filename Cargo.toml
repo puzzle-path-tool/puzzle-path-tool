@@ -4,3 +4,10 @@ resolver = "3"
 
 [workspace.lints.clippy]
 pedantic = "warn"
+
+[workspace.dependencies]
+puzzle-base = { version = "0.1.0", path = "crates/puzzle_base" }
+puzzle-base-build = { version = "0.1.0", path = "crates/puzzle_base_build" }
+puzzle-base-macros = { version = "0.1.0", path = "crates/puzzle_base_macros" }
+puzzle-formats = { version = "0.1.0", path = "crates/puzzle_formats" }
+puzzle-path-tool = { version = "0.1.0", path = "crates/puzzle_path_tool" }

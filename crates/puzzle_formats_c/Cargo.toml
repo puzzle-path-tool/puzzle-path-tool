@@ -10,8 +10,8 @@ crate-type = ["staticlib", "cdylib"]
 workspace = true
 
 [dependencies]
-puzzle-formats = { version = "0.1.0", path = "../puzzle_formats" }
+puzzle-formats = { workspace = true }
 
 [build-dependencies]
 cbindgen = "0.28.0"
-puzzle-base-build = { version = "0.1.0", path = "../puzzle_base_build" }
+puzzle-base-build = { workspace = true }
