@@ -95,8 +95,9 @@ jobs:
       - name: Run Clippy
         run: |
           cargo clippy --all-targets --all-features --color=always 2> >(tee -a clippy_output.txt)
+          sed -e 's/\x1b\[[0-9;]*m//g' clippy_output.txt > clippy_output_raw.txt
 
-          if grep -q -F "[38;5;11mwarning" clippy_output.txt; then
+          if grep -q -F "warning: " clippy_output_raw.txt; then
             echo "Clippy warnings found. Failing the job."
             exit 1
           else
