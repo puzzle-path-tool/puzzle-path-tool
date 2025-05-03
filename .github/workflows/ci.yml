@@ -43,11 +43,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl jq
 
+          echo "A"
+
           LATEST=$(curl -s https://api.github.com/repos/LuaLS/lua-language-server/releases/latest | jq -r .tag_name)
+
+          echo "B"
 
           curl -L -o lls.tar.gz https://github.com/LuaLS/lua-language-server/releases/download/$LATEST/lua-language-server-$LATEST-linux-x64.tar.gz
           mkdir -p ~/.local/lua-language-server
           tar -xzf lls.tar.gz -C ~/.local/lua-language-server --strip-components=1
+
+          echo "C"
 
           echo "$HOME/.local/lua-language-server/bin" >> $GITHUB_PATH
 
