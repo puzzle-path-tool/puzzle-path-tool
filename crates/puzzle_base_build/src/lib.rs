@@ -73,7 +73,7 @@ fn string_from_env_var(var: &str) -> Result<String, BuildEnvError> {
 }
 
 fn dir_from_env_var(var: &str) -> Result<PathBuf, BuildEnvError> {
-    string_from_env_var(var).map(|v| PathBuf::from(v))
+    string_from_env_var(var).map(PathBuf::from)
 }
 
 pub fn rerun_if_changed_any() {
