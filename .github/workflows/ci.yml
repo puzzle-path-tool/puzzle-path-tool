@@ -57,7 +57,7 @@ jobs:
           ls -las ~/.local/lua-language-server
           which lua-language-server
 
-          echo "$HOME/.local/lua-language-server/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/lua-language-server" >> $GITHUB_PATH
 
       - name: Generate Typedefs
         run: 'echo "TODO: Generate Typedefs"'
