@@ -26,6 +26,7 @@ jobs:
         with:
           max_attempts: 5
           retry_wait_seconds: 10
+          timeout_seconds: 60
           retry_on: error
           command: |
             sudo apt-get update
@@ -56,6 +57,7 @@ jobs:
         with:
           max_attempts: 5
           retry_wait_seconds: 10
+          timeout_seconds: 60
           retry_on: error
           command: |
             sudo apt-get update
