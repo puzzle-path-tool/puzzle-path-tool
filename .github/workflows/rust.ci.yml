@@ -69,8 +69,8 @@ jobs:
       - name: Install
         run: |
           rustup update ${{ matrix.toolchain.name }} && \
-          rustup default ${{ matrix.toolchain.name }} && \
-          rustup target add ${{ matrix.arch.target }}
+            rustup default ${{ matrix.toolchain.name }} && \
+            rustup target add ${{ matrix.arch.target }}
 
       - name: Build
         run: cargo build --verbose --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
@@ -91,8 +91,8 @@ jobs:
       - name: Install
         run: |
           rustup update stable && \
-          rustup default stable && \
-          rustup component add clippy
+            rustup default stable && \
+            rustup component add clippy
 
       - name: Run Clippy
         run: cargo clippy --all-targets --all-features
@@ -105,8 +105,8 @@ jobs:
       - name: Install
         run: |
           rustup update stable && \
-          rustup default stable && \ 
-          rustup component add rustfmt
+            rustup default stable && \ 
+            rustup component add rustfmt
 
       - name: Run Format
         run: cargo fmt --check
