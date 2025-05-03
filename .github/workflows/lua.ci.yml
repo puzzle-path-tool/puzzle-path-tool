@@ -15,8 +15,8 @@ env:
   EMMY_LUA_CS_INSTALL_DIR_R: .local/emmy-lua-code-style
 
 jobs:
-  lua_lint:
-    name: "Lua Lint"
+  luals:
+    name: "Lua LS"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
       - name: Check
         run: lua-language-server --check=.
 
-  lua_format:
+  format:
     name: "Lua Format"
     runs-on: ubuntu-latest
     steps:
