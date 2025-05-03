@@ -96,9 +96,11 @@ jobs:
         run: |
           cargo clippy --all-targets --all-features | tee clippy_output.txt
 
-          if grep -q "warning:" clippy_output.txt; then
+          if grep -q 'warning:' "clippy_output.txt"; then
             echo "Clippy warnings found. Failing the job."
             exit 1
+          else
+            echo "No Clippy warnings found."
           fi
 
   format:
