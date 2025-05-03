@@ -50,7 +50,7 @@ jobs:
           mkdir -p ~/.local/lua-language-server
           tar -xzf lls.tar.gz -C ~/.local/lua-language-server
 
-          echo "$HOME/.local/lua-language-server" >> $GITHUB_PATH
+          echo "$HOME/.local/lua-language-server/bin" >> $GITHUB_PATH
 
       - name: Generate Typedefs
         run: 'echo "TODO: Generate Typedefs"'
