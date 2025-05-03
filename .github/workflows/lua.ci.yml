@@ -36,9 +36,7 @@ jobs:
 
             curl -L -o lls.tar.gz https://github.com/LuaLS/lua-language-server/releases/download/$LATEST/lua-language-server-$LATEST-linux-x64.tar.g
             mkdir -p ~/$LUA_LS_INSTALL_DIR_R
-            tar -xzf lls.tar.gz -C ~/$LUA_LS_INSTALL_DIR_R
-
-            echo "$HOME/$LUA_LS_INSTALL_DIR_R/bin" >> $GITHUB_PATH
+            tar -xzf lls.tar.gz -C ~/$LUA_LS_INSTALL_DIR_R && echo "$HOME/$LUA_LS_INSTALL_DIR_R/bin" >> $GITHUB_PATH
 
       - name: Generate Typedefs
         run: 'echo "TODO: Generate Typedefs"'
@@ -68,9 +66,7 @@ jobs:
             curl -L -o elcs.tar.gz https://github.com/CppCXY/EmmyLuaCodeStyle/releases/download/$LATEST/linux-x64.tar.gz
             mkdir -p ~/$EMMY_LUA_CS_INSTALL_DIR_R
             file elcs.tar.gz
-            tar -xzf elcs.tar.gz -C ~/$EMMY_LUA_CS_INSTALL_DIR_R --strip-components=1
-
-            echo "$HOME/$EMMY_LUA_CS_INSTALL_DIR_R/bin" >> $GITHUB_PATH
+            tar -xzf elcs.tar.gz -C ~/$EMMY_LUA_CS_INSTALL_DIR_R --strip-components=1 && echo "$HOME/$EMMY_LUA_CS_INSTALL_DIR_R/bin" >> $GITHUB_PATH
 
       - name: Check Format
         run: |
