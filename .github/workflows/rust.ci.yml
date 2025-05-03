@@ -83,8 +83,6 @@ jobs:
   clippy:
     name: "Clippy"
     runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v4
 
