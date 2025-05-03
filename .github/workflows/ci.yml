@@ -11,19 +11,23 @@ env:
   CARGO_TERM_COLOR: always
   PUZZLE_SCRIPTS_DIR: crates/puzzle_path_tool/scripts/core
   DIFF_SCRIPTS_DIR_R: .local/diff-scripts
-  LUA_LS_INSTALL_DIR_R: .local/lua-language-server 
+  LUA_LS_INSTALL_DIR_R: .local/lua-language-server
   EMMY_LUA_CS_INSTALL_DIR_R: .local/emmy-lua-code-style
 
 jobs:
   rust_test:
-    name: "Rust Test: [${{ matrix.os }}] [${{ matrix.toolchain }}]"
-    runs-on: "${{ matrix.os }}-latest"
+    name: "Rust Test: [${{ matrix.arch.os }}/${{ matrix.arch.target }}] [${{ matrix.toolchain }}]"
+    runs-on: "${{ matrix.arch.os }}-latest"
     strategy:
       matrix:
-        os:
+        arch:
           - ubuntu
-          - windows
-          - macos
+          - { os: ubuntu, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu, target: x86_64-unknown-linux-musl }
+          - { os: ubuntu, target: aarch64-unknown-linux-gnu }
+          - { os: windows, target: x86_64-pc-windows-msvc }
+          - { os: macos, target: x86_64-apple-darwin }
+          - { os: macos, target: aarch64-apple-darwin }
         toolchain:
           - stable
           - beta
@@ -35,7 +39,9 @@ jobs:
         run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
       - name: Build
-        run: cargo build --verbose
+        run: |
+          cargo build --verbose --target ${{ matrix.arch.target }}
+          tree target/
 
       - name: Test
         run: cargo test --verbose
