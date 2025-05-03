@@ -41,7 +41,7 @@ pub fn target_dir() -> Result<PathBuf, BuildEnvError> {
         .ancestors()
         .nth(3)
         .map(PathBuf::from)
-        .ok_or_else(|| BuildEnvError::InvalidDirStructure(out_dir))
+        .ok_or(BuildEnvError::InvalidDirStructure(out_dir))
 }
 
 pub fn target_file_name() -> Result<String, BuildEnvError> {

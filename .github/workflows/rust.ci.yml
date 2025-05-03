@@ -75,3 +75,27 @@ jobs:
 
       - name: Test
         run: cargo test --verbose ${{ matrix.mode.flag }}
+  clippy:
+    name: "Clippy: [${{ matrix.toolchain.short-name }}]"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          - name: "stable"
+            short-name: "sbl"
+
+          - name: "beta"
+            short-name: "b"
+
+          - name: "nightly"
+            short-name: "ngt"
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install
+        run: rustup update ${{ matrix.toolchain.name }} && rustup default ${{ matrix.toolchain.name }}
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features
