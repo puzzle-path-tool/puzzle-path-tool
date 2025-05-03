@@ -71,7 +71,8 @@ jobs:
 
             curl -L -o elcs.tar.gz https://github.com/CppCXY/EmmyLuaCodeStyle/releases/download/$LATEST/linux-x64.tar.gz
             mkdir -p ~/.local/emmy-lua-code-style
-            tar -xzf elcs.tar.gz -C ~/.local/emmy-lua-code-style
+            file elcs.tar.gz
+            tar -xzf elcs.tar.gz -C ~/.local/emmy-lua-code-style --strip-components=1
 
             echo "$HOME/.local/emmy-lua-code-style/bin" >> $GITHUB_PATH
 
