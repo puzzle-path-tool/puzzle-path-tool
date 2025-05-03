@@ -12,19 +12,23 @@ fn main() {
         .nth(3)
         .expect("Failed to retrieve target dir");
 
-    let package_name =
-        PathBuf::from(env::var("CARGO_PKG_NAME").expect("CARGO_PKG_NAME env var is not defined"));
+    let package_name = env::var("CARGO_PKG_NAME").expect("CARGO_PKG_NAME env var is not defined");
 
     let config = cbindgen::Config::from_file("cbindgen.toml")
         .expect("Unable to find cbindgen.toml configuration file");
 
-    let filename = format!(
-        "{}.h",
-        package_name
-            .to_str()
-            .expect("Invalid Package name")
-            .replace("-", "_")
-    );
+    let target_os =
+        env::var("CARGO_CFG_TARGET_OS").expect("CARGO_CFG_TARGET_OS env var is not defined");
+    let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
+
+    let file_prefix = match target_os.as_str() {
+        "windows" => "",
+        _ => "lib",
+    };
+
+    println!("cargo:warning=Target OS: {target_os}, env: {target_env}");
+
+    let filename = format!("{}{}.h", file_prefix, package_name.replace("-", "_"));
 
     cbindgen::generate_with_config(&crate_dir, config)
         .expect("Unable to generate bindings")
