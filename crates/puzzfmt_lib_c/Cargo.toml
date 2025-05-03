@@ -1,5 +1,5 @@
 [package]
-name = "puzzle-formats-c-bindings"
+name = "puzzle-formats-c"
 version = "0.1.0"
 edition = "2024"
 
@@ -11,3 +11,4 @@ puzzle-formats = { version = "0.1.0", path = "../puzzfmt_lib" }
 
 [build-dependencies]
 cbindgen = "0.28.0"
+puzzle-base-build = { version = "0.1.0", path = "../base_build" }

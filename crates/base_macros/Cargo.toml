@@ -1,5 +1,5 @@
 [package]
-name = "common-macros"
+name = "puzzle-base-macros"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,4 +7,4 @@ edition = "2024"
 proc-macro = true
 
 [dependencies]
-common = { version = "0.1.0", path = "../common" }
+puzzle-base = { version = "0.1.0", path = "../base" }

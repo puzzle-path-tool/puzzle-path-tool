@@ -117,17 +117,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
-name = "common"
-version = "0.1.0"
-
-[[package]]
-name = "common-macros"
-version = "0.1.0"
-dependencies = [
- "common",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -235,25 +224,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "puzzle-base"
+version = "0.1.0"
+
+[[package]]
+name = "puzzle-base-build"
+version = "0.1.0"
+
+[[package]]
+name = "puzzle-base-macros"
+version = "0.1.0"
+dependencies = [
+ "puzzle-base",
+]
+
+[[package]]
 name = "puzzle-formats"
 version = "0.1.0"
 dependencies = [
- "common",
- "common-macros",
+ "puzzle-base",
+ "puzzle-base-macros",
 ]
 
 [[package]]
-name = "puzzle-formats-c-bindings"
+name = "puzzle-formats-c"
 version = "0.1.0"
 dependencies = [
  "cbindgen",
- "puzzle-formats",
-]
-
-[[package]]
-name = "puzzle-formats-wasm-bindings"
-version = "0.1.0"
-dependencies = [
+ "puzzle-base-build",
  "puzzle-formats",
 ]
 
@@ -261,15 +259,16 @@ dependencies = [
 name = "puzzle-path-tool"
 version = "0.1.0"
 dependencies = [
- "common",
- "common-macros",
+ "puzzle-base",
+ "puzzle-base-macros",
  "puzzle-formats",
 ]
 
 [[package]]
-name = "puzzle-path-tool-c-bindings"
+name = "puzzle-path-tool-c"
 version = "0.1.0"
 dependencies = [
+ "puzzle-base-build",
  "puzzle-path-tool",
 ]
 
@@ -277,16 +276,9 @@ dependencies = [
 name = "puzzle-path-tool-cli"
 version = "0.1.0"
 dependencies = [
- "common",
- "common-macros",
+ "puzzle-base",
+ "puzzle-base-macros",
  "puzzle-formats",
- "puzzle-path-tool",
-]
-
-[[package]]
-name = "puzzle-path-tool-wasm-bindings"
-version = "0.1.0"
-dependencies = [
  "puzzle-path-tool",
 ]
 

@@ -8,7 +8,7 @@ name = "puzzpt"
 path = "src/main.rs"
 
 [dependencies]
-common = { version = "0.1.0", path = "../common" }
-common-macros = { version = "0.1.0", path = "../common_macros" }
+puzzle-base = { version = "0.1.0", path = "../base" }
+puzzle-base-macros = { version = "0.1.0", path = "../base_macros" }
 puzzle-formats = { version = "0.1.0", path = "../puzzfmt_lib" }
 puzzle-path-tool = { version = "0.1.0", path = "../puzzpt_lib" }

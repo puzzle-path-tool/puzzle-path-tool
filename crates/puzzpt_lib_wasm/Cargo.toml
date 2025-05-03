@@ -1,7 +1,0 @@
-[package]
-name = "puzzle-path-tool-wasm-bindings"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-puzzle-path-tool = { version = "0.1.0", path = "../puzzpt_lib" }
