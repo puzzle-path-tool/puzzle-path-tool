@@ -47,15 +47,14 @@ jobs:
           LATEST=$(curl -s https://api.github.com/repos/LuaLS/lua-language-server/releases/latest | jq -r .tag_name)
 
           curl -L -o lls.tar.gz https://github.com/LuaLS/lua-language-server/releases/download/$LATEST/lua-language-server-$LATEST-linux-x64.tar.gz
-          mkdir -p lls
-          tar -xzf lls.tar.gz -C lls --strip-components=1
+          mkdir -p .
+          tar -xzf lls.tar.gz -C . --strip-components=1
 
       - name: Generate Typedefs
         run: 'echo "TODO: Generate Typedefs"'
 
       - name: Check
         run: |
-          cd lls
-          ./lua-language-server --check=../
+          ./lua-language-server --check=.
 
 
