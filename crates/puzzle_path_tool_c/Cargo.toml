@@ -3,8 +3,12 @@ name = "puzzle-path-tool-c"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
 [dependencies]
 puzzle-path-tool = { version = "0.1.0", path = "../puzzle_path_tool" }
 
 [build-dependencies]
+cbindgen = "0.28.0"
 puzzle-base-build = { version = "0.1.0", path = "../puzzle_base_build" }
