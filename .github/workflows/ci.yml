@@ -51,6 +51,8 @@ jobs:
           tar -xzf lls.tar.gz -C ~/.local/lua-language-server --strip-components=1
 
           echo "$HOME/.local/lua-language-server" >> $GITHUB_PATH
+          which lua-language-server
+          realpath lua-language-server
 
       - name: Generate Typedefs
         run: 'echo "TODO: Generate Typedefs"'
