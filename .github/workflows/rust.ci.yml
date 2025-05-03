@@ -18,7 +18,6 @@ jobs:
       fail-fast: false
       matrix:
         arch:
-          - ubuntu
           - { os: ubuntu, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu, target: x86_64-unknown-linux-musl }
           - { os: ubuntu, target: aarch64-unknown-linux-gnu }
@@ -39,6 +38,19 @@ jobs:
         run: |
           cargo build --verbose --target ${{ matrix.arch.target }}
           tree target/
+
+      - name: Show Build Files (Ubuntu)
+        if: matrix.arch.os == 'ubuntu'
+        run: tree target/
+
+      - name: Show Build Files (Windows)
+        if: matrix.arch.os == 'windows'
+        run: tree /F /A target/
+
+      - name: Show Build Files (Mac)
+        if: matrix.arch.os == 'macos'
+        run: |
+          brew install tree && tree target/
 
       - name: Test
         run: cargo test --verbose
