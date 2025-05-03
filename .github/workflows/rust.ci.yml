@@ -12,24 +12,25 @@ env:
 
 jobs:
   test:
-    name: "Rust Test: [${{ matrix.arch.os }}/${{ matrix.arch.target }}] [${{ matrix.mode.name }}/${{ matrix.toolchain }}]"
+    name: "Rust Test: [${{ matrix.arch.short-name }}] [${{ matrix.mode.name }}/${{ matrix.toolchain }}]"
     runs-on: "${{ matrix.arch.os }}-latest"
     strategy:
-      fail-fast: false
       matrix:
         arch:
-          - { os: ubuntu, target: x86_64-unknown-linux-gnu }
-          - { os: ubuntu, target: x86_64-unknown-linux-musl }
-          - { os: windows, target: x86_64-pc-windows-msvc }
-          - { os: macos, target: x86_64-apple-darwin }
-          - { os: macos, target: aarch64-apple-darwin }
+          - { os: ubuntu, target: x86_64-unknown-linux-gnu, short-name: "linux/gnu" }
+          - { os: ubuntu, target: x86_64-unknown-linux-musl, short-name: "linux/musl" }
+          - { os: windows, target: x86_64-pc-windows-msvc, short-name: "win/msvc" }
+          - { os: macos, target: x86_64-apple-darwin, short-name: "mac/x86" }
+          - { os: macos, target: aarch64-apple-darwin, short-name: "mac/arm" }
         toolchain:
           - stable
           - beta
           - nightly
         mode:
-          - { name: dev, flag: "" }
-          - { name: release, flag: "--release" }
+          - { name: debug, flag: "", dir: "debug" }
+          - { name: release, flag: "--release", dir: "release" }
+    env:
+      PUZZLE_OUT_DIR: target/${{ matrix.arch.target }}/${{ matrix.mode.dir }}
     steps:
       - uses: actions/checkout@v4
 
@@ -39,18 +40,9 @@ jobs:
       - name: Build
         run: cargo build --verbose --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
 
-      - name: Show Build Files (Ubuntu)
-        if: matrix.arch.os == 'ubuntu'
-        run: tree target/
-
-      - name: Show Build Files (Windows)
-        if: matrix.arch.os == 'windows'
-        run: tree /F /A target/
-
-      - name: Show Build Files (Mac)
-        if: matrix.arch.os == 'macos'
-        run: |
-          brew install tree && tree target/
-
+      - name: Show Build Files
+        run: ls -lahs $PUZZLE_OUT_DIR
+        shell: bash
+        
       - name: Test
         run: cargo test --verbose ${{ matrix.mode.flag }}
