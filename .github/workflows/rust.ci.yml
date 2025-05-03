@@ -93,7 +93,14 @@ jobs:
           && rustup component add clippy
 
       - name: Run Clippy
-        run: cargo clippy --all-targets --all-features
+        run: |
+          cargo clippy --all-targets --all-features | tee clippy_output.txt
+
+          if grep -q "warning:" clippy_output.txt; then
+            echo "Clippy warnings found. Failing the job."
+            exit 1
+          fi
+
   format:
     name: "Format"
     runs-on: ubuntu-latest
