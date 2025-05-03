@@ -7,8 +7,8 @@ edition = "2024"
 crate-type = ["staticlib", "cdylib"]
 
 [dependencies]
-puzzle-formats = { version = "0.1.0", path = "../puzzfmt_lib" }
+puzzle-formats = { version = "0.1.0", path = "../puzzle_formats" }
 
 [build-dependencies]
 cbindgen = "0.28.0"
-puzzle-base-build = { version = "0.1.0", path = "../base_build" }
+puzzle-base-build = { version = "0.1.0", path = "../puzzle_base_build" }

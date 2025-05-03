@@ -9,6 +9,10 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  PUZZLE_SCRIPTS_DIR: crates\puzzle_path_tool\scripts\core
+  DIFF_SCRIPTS_DIR_R: .local/diff-scripts
+  LUA_LS_INSTALL_DIR_R: .local/lua-language-server 
+  EMMY_LUA_CS_INSTALL_DIR_R: .local/emmy-lua-code-style
 
 jobs:
   rust_test:
@@ -50,10 +54,10 @@ jobs:
           LATEST=$(curl -s https://api.github.com/repos/LuaLS/lua-language-server/releases/latest | jq -r .tag_name)
 
           curl -L -o lls.tar.gz https://github.com/LuaLS/lua-language-server/releases/download/$LATEST/lua-language-server-$LATEST-linux-x64.tar.gz
-          mkdir -p ~/.local/lua-language-server
-          tar -xzf lls.tar.gz -C ~/.local/lua-language-server
+          mkdir -p ~/$LUA_LS_INSTALL_DIR_R
+          tar -xzf lls.tar.gz -C ~/$LUA_LS_INSTALL_DIR_R
 
-          echo "$HOME/.local/lua-language-server/bin" >> $GITHUB_PATH
+          echo "$HOME/$LUA_LS_INSTALL_DIR_R/bin" >> $GITHUB_PATH
 
       - name: Generate Typedefs
         run: 'echo "TODO: Generate Typedefs"'
@@ -75,14 +79,14 @@ jobs:
           LATEST=$(curl -s https://api.github.com/repos/CppCXY/EmmyLuaCodeStyle/releases/latest | jq -r .tag_name)
 
           curl -L -o elcs.tar.gz https://github.com/CppCXY/EmmyLuaCodeStyle/releases/download/$LATEST/linux-x64.tar.gz
-          mkdir -p ~/.local/emmy-lua-code-style
+          mkdir -p ~/$EMMY_LUA_CS_INSTALL_DIR_R
           file elcs.tar.gz
-          tar -xzf elcs.tar.gz -C ~/.local/emmy-lua-code-style --strip-components=1
+          tar -xzf elcs.tar.gz -C ~/$EMMY_LUA_CS_INSTALL_DIR_R --strip-components=1
 
-          echo "$HOME/.local/emmy-lua-code-style/bin" >> $GITHUB_PATH
+          echo "$HOME/$EMMY_LUA_CS_INSTALL_DIR_R/bin" >> $GITHUB_PATH
 
       - name: Check Format
         run: |
-          cp -a scripts ~/.local/backup-scripts
+          cp -a $PUZZLE_SCRIPTS_DIR ~/$DIFF_SCRIPTS_DIR_R
           CodeFormat format -c .editorconfig -w .
-          git diff --no-index scripts/ ~/.local/backup-scripts/
+          git diff --no-index $PUZZLE_SCRIPTS_DIR/ ~/$DIFF_SCRIPTS_DIR_R/
