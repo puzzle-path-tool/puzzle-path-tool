@@ -2,6 +2,11 @@ pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }
 
+/// Does Star Magic
+pub fn star_operation(left: u64, right: u64) -> u64 {
+    (left + right) * left
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

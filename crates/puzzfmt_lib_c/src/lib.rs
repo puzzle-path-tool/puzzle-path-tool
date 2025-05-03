@@ -1,14 +1,15 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+
+
+///
+/// This Does some things
+/// 
+#[unsafe(no_mangle)]
+pub extern "C" fn star_operation(left: u64, right: u64) -> u64 {
+    puzzle_formats::star_operation(left, right)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+/// Does Wild Magic
+#[unsafe(no_mangle)]
+pub extern "C" fn star_operation23(left: u64, right: u64) -> u64 {
+    puzzle_formats::star_operation(left, right)
 }
