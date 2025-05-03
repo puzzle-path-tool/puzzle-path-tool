@@ -9,7 +9,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  PUZZLE_SCRIPTS_DIR: crates\puzzle_path_tool\scripts\core
+  PUZZLE_SCRIPTS_DIR: crates/puzzle_path_tool/scripts/core
   DIFF_SCRIPTS_DIR_R: .local/diff-scripts
   LUA_LS_INSTALL_DIR_R: .local/lua-language-server 
   EMMY_LUA_CS_INSTALL_DIR_R: .local/emmy-lua-code-style
