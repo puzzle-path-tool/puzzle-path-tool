@@ -6,13 +6,12 @@
 local y = { a = "" }
 
 ---@type Z
-local y = { b = "" }
+local y = { a = "" }
 
 ---@type Z
-local y2 = {a = "" }
+local y2 = { a = "" }
 
 
 print(y.a)
 print(y.a)
 print(y.a)
-print(y.c)

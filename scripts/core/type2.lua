@@ -3,4 +3,4 @@
 ---@class Y
 ---@field a string
 
-local y = 1  
+local y = 1
