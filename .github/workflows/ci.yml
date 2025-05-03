@@ -54,6 +54,8 @@ jobs:
           tar -xzf lls.tar.gz -C ~/.local/lua-language-server --strip-components=1
 
           echo "C"
+          ls -las ~/.local/lua-language-server
+          which lua-language-server
 
           echo "$HOME/.local/lua-language-server/bin" >> $GITHUB_PATH
 
