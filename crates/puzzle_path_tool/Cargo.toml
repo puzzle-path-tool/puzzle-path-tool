@@ -3,6 +3,9 @@ name = "puzzle-path-tool"
 version = "0.1.0"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 puzzle-base = { version = "0.1.0", path = "../puzzle_base" }
 puzzle-base-macros = { version = "0.1.0", path = "../puzzle_base_macros" }

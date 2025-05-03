@@ -6,6 +6,9 @@ edition = "2024"
 [lib]
 crate-type = ["staticlib", "cdylib"]
 
+[lints]
+workspace = true
+
 [dependencies]
 puzzle-path-tool = { version = "0.1.0", path = "../puzzle_path_tool" }
 
