@@ -54,6 +54,8 @@ jobs:
         run: 'echo "TODO: Generate Typedefs"'
 
       - name: Check
-        run: ./lls/lua-language-server --check=.
+        run: |
+          cd lls
+          ./lua-language-server --check=../
 
 
