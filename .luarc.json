@@ -13,9 +13,7 @@
     "target"
   ],
   "workspace.ignoreSubmodules": false,
-  "diagnostics.disable": [
-    "trailing-space"
-  ],
+  "diagnostics.disable": [],
   "diagnostics.neededFileStatus": {
     "codestyle-check": "Any",
     "name-style-check": "Any",

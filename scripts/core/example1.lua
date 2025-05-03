@@ -12,6 +12,8 @@ local y = { a = "" }
 local y2 = { a = "" }
 
 
+
+
 print(y.a)
 print(y.a)
 print(y.a)
