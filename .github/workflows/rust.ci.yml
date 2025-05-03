@@ -85,9 +85,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
-    defaults:
-      run:
-        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -102,9 +99,6 @@ jobs:
   format:
     name: "Format"
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
     steps:
       - uses: actions/checkout@v4
 
