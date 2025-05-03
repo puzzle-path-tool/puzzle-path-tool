@@ -67,7 +67,7 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y curl jq
 
-            LATEST=$(curl -s https://api.github.com/repos/LuaLS/lua-language-server/releases/latest | jq -r .tag_name)
+            LATEST=$(curl -s https://api.github.com/repos/CppCXY/EmmyLuaCodeStyle/releases/latest | jq -r .tag_name)
 
             curl -L -o elcs.tar.gz https://github.com/CppCXY/EmmyLuaCodeStyle/releases/download/$LATEST/linux-x64.tar.gz
             mkdir -p ~/.local/emmy-lua-code-style
