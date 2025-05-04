@@ -91,7 +91,7 @@ jobs:
         run: ls -lahs $PUZZLE_OUT_DIR
 
       - name: Test
-        run: cargo test --verbose ${{ matrix.mode.flag }}
+        run: cargo test --verbose --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
   clippy:
     name: "Clippy"
     runs-on: ubuntu-latest
