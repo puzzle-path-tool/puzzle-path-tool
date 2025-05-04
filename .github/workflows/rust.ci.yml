@@ -39,10 +39,10 @@ jobs:
 
         toolchain:
           - name: "stable"
-            short-name: "sbl"
+            short-name: "stb"
 
           - name: "beta"
-            short-name: "b"
+            short-name: "beta"
 
           - name: "nightly"
             short-name: "ngt"
