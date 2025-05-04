@@ -15,6 +15,7 @@ jobs:
     name: "Test: [${{ matrix.arch.short-name }}] [${{ matrix.mode.short-name }}/${{ matrix.toolchain.short-name }}]"
     runs-on: "${{ matrix.arch.os }}-latest"
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - os: "ubuntu"
@@ -76,13 +77,21 @@ jobs:
           && rustup default ${{ matrix.toolchain.name }}
           && rustup target add ${{ matrix.arch.target }}
 
-      - name: Install Arm Linker
+      - name: Install ARM Linker
         if: matrix.arch.target == 'aarch64-unknown-linux-gnu'
         run: |
-          sudo apt update
-          sudo apt install -y gcc-11-aarch64-linux-gnu
-
           echo CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc-11 >> ${GITHUB_ENV}
+
+          # https://github.com/mozilla/cbindgen/blob/master/.github/workflows/cbindgen.yml
+          sudo sed -i '/^Components/a Architectures: amd64' /etc/apt/sources.list.d/ubuntu.sources
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ $(lsb_release -sc) main multiverse universe" | sudo tee -a /etc/apt/sources.list.d/ports.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ $(lsb_release -sc)-security main multiverse universe" | sudo tee -a  /etc/apt/sources.list.d/ports.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ $(lsb_release -sc)-backports main multiverse universe" | sudo tee -a  /etc/apt/sources.list.d/ports.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ $(lsb_release -sc)-updates main multiverse universe" | sudo tee -a  /etc/apt/sources.list.d/ports.list
+
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y qemu-user gcc-11-aarch64-linux-gnu libc6:arm64
 
       - name: Build
         run: cargo build --verbose --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
