@@ -224,26 +224,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "puzzle-base"
+name = "puzzle-core"
 version = "0.1.0"
 
 [[package]]
-name = "puzzle-base-build"
+name = "puzzle-core-build"
 version = "0.1.0"
 
 [[package]]
-name = "puzzle-base-macros"
+name = "puzzle-core-macros"
 version = "0.1.0"
 dependencies = [
- "puzzle-base",
+ "puzzle-core",
 ]
 
 [[package]]
 name = "puzzle-formats"
 version = "0.1.0"
 dependencies = [
- "puzzle-base",
- "puzzle-base-macros",
+ "puzzle-core",
+ "puzzle-core-macros",
 ]
 
 [[package]]
@@ -251,7 +251,7 @@ name = "puzzle-formats-c"
 version = "0.1.0"
 dependencies = [
  "cbindgen",
- "puzzle-base-build",
+ "puzzle-core-build",
  "puzzle-formats",
 ]
 
@@ -259,8 +259,8 @@ dependencies = [
 name = "puzzle-path-tool"
 version = "0.1.0"
 dependencies = [
- "puzzle-base",
- "puzzle-base-macros",
+ "puzzle-core",
+ "puzzle-core-macros",
  "puzzle-formats",
 ]
 
@@ -269,7 +269,7 @@ name = "puzzle-path-tool-c"
 version = "0.1.0"
 dependencies = [
  "cbindgen",
- "puzzle-base-build",
+ "puzzle-core-build",
  "puzzle-path-tool",
 ]
 
@@ -277,8 +277,8 @@ dependencies = [
 name = "puzzle-path-tool-cli"
 version = "0.1.0"
 dependencies = [
- "puzzle-base",
- "puzzle-base-macros",
+ "puzzle-core",
+ "puzzle-core-macros",
  "puzzle-formats",
  "puzzle-path-tool",
 ]

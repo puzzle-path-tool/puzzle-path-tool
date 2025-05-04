@@ -26,8 +26,8 @@ cargo = { level = "warn", priority = -1 }
 
 
 [workspace.dependencies]
-puzzle-base = { version = "0.1.0", path = "crates/puzzle_base" }
-puzzle-base-build = { version = "0.1.0", path = "crates/puzzle_base_build" }
-puzzle-base-macros = { version = "0.1.0", path = "crates/puzzle_base_macros" }
+puzzle-core = { version = "0.1.0", path = "crates/puzzle_core" }
+puzzle-core-build = { version = "0.1.0", path = "crates/puzzle_core_build" }
+puzzle-core-macros = { version = "0.1.0", path = "crates/puzzle_core_macros" }
 puzzle-formats = { version = "0.1.0", path = "crates/puzzle_formats" }
 puzzle-path-tool = { version = "0.1.0", path = "crates/puzzle_path_tool" }

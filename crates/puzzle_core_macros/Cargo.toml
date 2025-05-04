@@ -1,5 +1,5 @@
 [package]
-name = "puzzle-base-build"
+name = "puzzle-core-macros"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -10,7 +10,11 @@ keywords.workspace = true
 categories.workspace = true
 description.workspace = true
 
+[lib]
+proc-macro = true
+
 [lints]
 workspace = true
 
 [dependencies]
+puzzle-core = { workspace = true }

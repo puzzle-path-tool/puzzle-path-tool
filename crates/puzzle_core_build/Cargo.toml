@@ -1,5 +1,5 @@
 [package]
-name = "puzzle-base"
+name = "puzzle-core-build"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

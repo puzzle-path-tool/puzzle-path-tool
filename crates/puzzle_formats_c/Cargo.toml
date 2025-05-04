@@ -21,4 +21,4 @@ puzzle-formats = { workspace = true }
 
 [build-dependencies]
 cbindgen = "0.28.0"
-puzzle-base-build = { workspace = true }
+puzzle-core-build = { workspace = true }

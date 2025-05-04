@@ -14,6 +14,6 @@ description.workspace = true
 workspace = true
 
 [dependencies]
-puzzle-base = { workspace = true }
-puzzle-base-macros = { workspace = true }
+puzzle-core = { workspace = true }
+puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
