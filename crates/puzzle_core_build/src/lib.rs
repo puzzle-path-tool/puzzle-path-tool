@@ -1,31 +1,17 @@
 use std::{
     env::{self, VarError},
-    error::Error,
-    fmt::Display,
     path::PathBuf,
 };
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+use thiserror::Error;
+
+#[derive(Error, Debug, PartialEq, Eq, Clone)]
 pub enum BuildEnvError {
+    #[error("Env var {0} is invalid: {1}")]
     InvalidEnvVar(VarError, String),
+    #[error("Dir Structure is invalid: {}", .0.to_str().unwrap_or_default())]
     InvalidDirStructure(PathBuf),
 }
-
-impl Display for BuildEnvError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BuildEnvError::InvalidEnvVar(err, var) => {
-                write!(f, "Env var {var} is invalid: {err}")
-            }
-            BuildEnvError::InvalidDirStructure(path) => write!(
-                f,
-                "Dir Structure is invalid: {}",
-                path.to_str().unwrap_or_default()
-            ),
-        }
-    }
-}
-impl Error for BuildEnvError {}
 
 /// TODO: Doc
 /// # Errors
