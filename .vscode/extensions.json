@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "rust-lang.rust-analyzer",
+    "tamasfe.even-better-toml",
+    "fill-labs.dependi",
+    "Gruntfuggly.todo-tree",
+    "usernamehw.errorlens",
+    "sumneko.lua",
+    "redhat.vscode-yaml",
+    "hediet.vscode-drawio",
+    "EditorConfig.EditorConfig"
+  ]
+}
