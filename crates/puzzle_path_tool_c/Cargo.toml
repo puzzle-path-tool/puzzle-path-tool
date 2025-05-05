@@ -20,5 +20,6 @@ workspace = true
 puzzle-path-tool = { workspace = true }
 
 [build-dependencies]
+anyhow = "1.0.98"
 cbindgen = "0.28.0"
 puzzle-core-build = { workspace = true }
