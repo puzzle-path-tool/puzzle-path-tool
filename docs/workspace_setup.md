@@ -5,15 +5,18 @@
 
 ### Recommended Extensions
 
-- [Rust Analyzer](vscode:extension/rust-lang.rust-analyzer)
-- [Even Better Toml](vscode:extension/tamasfe.even-better-toml)
-- [Dependi](vscode:extension/fill-labs.dependi)
+---
 - [Todo Tree](vscode:extension/Gruntfuggly.todo-tree)
 - [Error Lens](vscode:extension/usernamehw.errorlens)
+- [EditorConfig for VS Code](vscode:extension/EditorConfig.EditorConfig)
+---
+- [Rust Analyzer](vscode:extension/rust-lang.rust-analyzer)
+- [Even Better Toml](vscode:extension/tamasfe.even-better-toml)
+---
 - [Lua (by Sumneko)](vscode:extension/sumneko.lua)
 - [YAML (by Red Hat)](vscode:extension/redhat.vscode-yaml)
 - [Draw.io Integration (Henning Dieterichs)](vscode:extension/hediet.vscode-drawio)
-- [EditorConfig for VS Code](vscode:extension/EditorConfig.EditorConfig)
+---
 
 ### Recommended Settings
 
