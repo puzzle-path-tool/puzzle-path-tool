@@ -103,7 +103,7 @@ jobs:
         uses: taiki-e/install-action@nextest
 
       - name: Test
-        run: cargo nextest run --workspace --verbose --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
+        run: cargo nextest run --workspace --verbose --all-features --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
   clippy:
     name: "Clippy"
     runs-on: ubuntu-latest
@@ -118,7 +118,7 @@ jobs:
 
       - name: Run Clippy
         run: |
-          cargo clippy --all-targets --all-features --color=always 2> >(tee -a clippy_output.txt)
+          cargo clippy --workspace --all-targets --all-features --color=always 2> >(tee -a clippy_output.txt)
           sed -e 's/\x1b\[[0-9;]*m//g' clippy_output.txt > clippy_output_raw.txt
 
           if grep -q -F "warning: " clippy_output_raw.txt; then
@@ -141,4 +141,4 @@ jobs:
           && rustup component add rustfmt
 
       - name: Run Format
-        run: cargo fmt --check
+        run: cargo fmt --all --check

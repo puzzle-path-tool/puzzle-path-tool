@@ -1,6 +1,5 @@
 [workspace]
 members = ["crates/*"]
-default-members = ["crates/puzzle_path_tool_cli"]
 resolver = "3"
 
 
