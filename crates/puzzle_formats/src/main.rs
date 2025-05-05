@@ -18,5 +18,15 @@ fn main() -> std::io::Result<()> {
 
     println!("Files written");
 
+    // let client = reqwest::ClientBuilder::new()
+    //     .redirect(reqwest::redirect::Policy::none())
+    //     .build()
+    //     .unwrap();
+
+    // let response = client
+    //     .request(reqwest::Method::GET, "https://tinyurl.com/2b5dwuy3")
+    //     .send()
+    //     .;
+
     Ok(())
 }

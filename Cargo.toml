@@ -23,6 +23,7 @@ complexity = { level = "warn", priority = -1 }
 perf = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 cargo = { level = "warn", priority = -1 }
+multiple-crate-versions = "allow"
 
 
 [workspace.dependencies]

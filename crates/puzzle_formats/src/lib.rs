@@ -142,6 +142,29 @@ pub struct FPuzzlesFormat {
     cage: Option<Value>,
 }
 
+pub enum PuzzleUrl {
+    // https://[www].f-puzzles.com/?load=FPUZZLESID
+    FPuzzles(String),
+
+    // https://f-puzzles.com/?id=TINYURLID
+    // get the redirect from https://tinyurl.com/TINYURLID OR the url itself (f-puzzles does not do any safety check, for the redirect)
+    FPuzzlesTinyUrl(String),
+
+    // https://sudokupad.app/ANYTHING?puzzleid=ANYSUDOKUPADID
+    // https://sudokupad.app/sudoku/ANYSUDOKUPADID
+    // https://sudokupad.app/ANYSUDOKUPADID
+
+    // ANYSUDOKUPADID = SHORTID // (fpuz|fpuzzles)FPUZZLESID // (scl|ctc)SUDOKUPADID
+    SudokuPadUrl(String),
+    SudokuPadFPuzzles(String),
+
+    // get the correct id as text response from https://sudokupad.app/api/puzzle/SHORTID
+    SudokuPadShortURL(String),
+
+    // sudokumaker.app/?puzzle=SUDOKUMAKERID
+    SudokuMakerURL(String),
+}
+
 /// .
 ///
 /// # Panics
