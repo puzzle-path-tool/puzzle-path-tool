@@ -99,8 +99,11 @@ jobs:
       - name: Show Build Files
         run: ls -lahs $PUZZLE_OUT_DIR
 
+      - name: Install Nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Test
-        run: cargo test --verbose --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
+        run: cargo nextest run --workspace --verbose --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
   clippy:
     name: "Clippy"
     runs-on: ubuntu-latest
