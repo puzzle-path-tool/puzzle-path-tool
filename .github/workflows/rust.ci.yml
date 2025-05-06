@@ -101,19 +101,19 @@ jobs:
       - name: Show Build Files
         run: ls -lahs $PUZZLE_OUT_DIR
 
+      - name: Install Nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Test 1
         uses: houseabsolute/actions-rust-cross@v1
         with:
-          command: test
+          command: nextest
           target: ${{ matrix.arch.target }}
           toolchain: ${{ matrix.toolchain.name }}
           args: "--locked ${{ matrix.mode.flag }}"
 
-      # - name: Install Nextest
-      #   uses: taiki-e/install-action@nextest
-
-      - name: Test
-        run: cargo nextest run --workspace --verbose --all-features --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
+      # - name: Test
+      #   run: cargo nextest run --workspace --verbose --all-features --target ${{ matrix.arch.target }} ${{ matrix.mode.flag }}
   clippy:
     name: "Clippy"
     runs-on: ubuntu-latest
