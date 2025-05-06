@@ -82,13 +82,10 @@ jobs:
       - name: Show Build Files
         run: ls -lahs $PUZZLE_OUT_DIR
 
-      - name: Install Nextest
-        uses: taiki-e/install-action@nextest
-
-      - name: Test 1
+      - name: Test
         uses: houseabsolute/actions-rust-cross@v1
         with:
-          command: nextest run
+          command: test
           target: ${{ matrix.arch.target }}
           toolchain: ${{ matrix.toolchain.name }}
           args: "--locked ${{ matrix.mode.flag }}"
