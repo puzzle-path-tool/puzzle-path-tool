@@ -142,25 +142,41 @@ pub struct FPuzzlesFormat {
     cage: Option<Value>,
 }
 
-pub enum PuzzleUrl {
+pub enum FPuzzlesURL {
     // https://[www].f-puzzles.com/?load=FPUZZLESID
-    FPuzzles(String),
+    Normal(String),
 
     // https://f-puzzles.com/?id=TINYURLID
     // get the redirect from https://tinyurl.com/TINYURLID OR the url itself (f-puzzles does not do any safety check, for the redirect)
-    FPuzzlesTinyUrl(String),
+    Shortened(String),
+}
 
+pub enum SudokuPadUrl {
     // https://sudokupad.app/ANYTHING?puzzleid=ANYSUDOKUPADID
     // https://sudokupad.app/sudoku/ANYSUDOKUPADID
     // https://sudokupad.app/ANYSUDOKUPADID
 
     // ANYSUDOKUPADID = SHORTID // (fpuz|fpuzzles)FPUZZLESID // (scl|ctc)SUDOKUPADID
-    SudokuPadUrl(String),
-    SudokuPadFPuzzles(String),
+    Scl(String),
+    FPuz(String),
 
     // get the correct id as text response from https://sudokupad.app/api/puzzle/SHORTID
-    SudokuPadShortURL(String),
+    Shortened(String),
+}
 
+impl SudokuPadUrl {
+    fn from_full_id(full_id: &str) -> Self {
+        if full_id.len() > 20 {
+            SudokuPadUrl::Scl(String::new())
+        } else {
+            SudokuPadUrl::Shortened(String::new())
+        }
+    }
+}
+
+pub enum PuzzleUrl {
+    SudokuPad(SudokuPadUrl),
+    FPuzzles(FPuzzlesURL),
     // sudokumaker.app/?puzzle=SUDOKUMAKERID
     SudokuMakerURL(String),
 }
