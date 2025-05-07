@@ -127,3 +127,17 @@ jobs:
 
       - name: Run Format
         run: cargo fmt --all --check
+  deny:
+    name: "Deny"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install
+        run: >
+          rustup update stable
+          && rustup default stable
+          && cargo install cargo-deny
+
+      - name: Run Deny
+        run: cargo deny check
