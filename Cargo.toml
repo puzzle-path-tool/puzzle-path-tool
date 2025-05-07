@@ -6,13 +6,12 @@ resolver = "3"
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-authors = ["TODO"]
+authors = ["Rotne", "WiggelMc"]
+license = "MIT OR Apache-2.0"
+
 repository = "https://github.com/puzzle-path-tool/puzzle-path-tool"
+homepage = "https://github.com/puzzle-path-tool/puzzle-path-tool"
 readme = "README.md"
-license = "NOASSERTION"
-keywords = ["TODO"]
-categories = ["TODO"]
-description = "TODO: Do Description"
 
 
 [workspace.lints.clippy]

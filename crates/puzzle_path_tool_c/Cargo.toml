@@ -1,14 +1,24 @@
 [package]
 name = "puzzle-path-tool-c"
+
+description = "C bindings for the `puzzle-path-tool` crate."
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords = ["sudoku", "gamedev", "generator", "random", "tool"]
+categories = ["game-development", "development-tools"]
+
+include = [
+  "../LICENSE-APACHE",
+  "../LICENSE-MIT",
+  "**/*.rs",
+  "Cargo.toml"
+]
+
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-repository.workspace = true
-readme.workspace = true
 license.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description.workspace = true
 
 [lib]
 crate-type = ["staticlib", "cdylib"]

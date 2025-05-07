@@ -1,14 +1,24 @@
 [package]
 name = "puzzle-formats-c"
+
+description = "C bindings for the `puzzle-formats` crate."
+repository = "https://github.com/puzzle-path-tool/puzzle-path-tool/tree/main/crates/puzzle_formats"
+homepage = "https://github.com/puzzle-path-tool/puzzle-path-tool/tree/main/crates/puzzle_formats"
+readme = "../puzzle_formats/README.md"
+keywords = ["sudoku", "data"]
+categories = ["parser-implementations", "game-development", "development-tools"]
+
+include = [
+  "../LICENSE-APACHE",
+  "../LICENSE-MIT",
+  "**/*.rs",
+  "Cargo.toml"
+]
+
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-repository.workspace = true
-readme.workspace = true
 license.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description.workspace = true
 
 [lib]
 crate-type = ["staticlib", "cdylib"]
