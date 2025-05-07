@@ -51,8 +51,7 @@ skip = [
   { name = "windows_i686_msvc" },
   { name = "windows_x86_64_gnu" },
   { name = "windows_x86_64_msvc" },
-  { name = "webpki-roots" }, # Maybe a bug?
-  { name = "getrandom" },
+  { name = "getrandom" }, # reqwest / cbindgen
 ]
 skip-tree = []
 
@@ -78,7 +77,7 @@ allow = [
   "Unicode-3.0",                    # https://www.unicode.org/license.txt
 #   "Unicode-DFS-2016",               # https://spdx.org/licenses/Unicode-DFS-2016.html
 #   "Zlib",                           # https://tldrlegal.com/license/zlib-libpng-license-(zlib)
-    "CDLA-Permissive-2.0",          # https://cdla.dev/permissive-2-0/
+#   "CDLA-Permissive-2.0",          # https://cdla.dev/permissive-2-0/
 ]
 
 exceptions = []
