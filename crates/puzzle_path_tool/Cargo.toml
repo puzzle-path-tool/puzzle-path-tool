@@ -24,6 +24,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+mlua = { version = "0.10.3", features = ["luajit"] }
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
