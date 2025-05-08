@@ -1,6 +1,15 @@
 # Workspace Setup
 
 
+## Rust
+
+Install Rustup (https://rustup.rs/)
+
+```bash
+cargo install cargo-deny
+cargo install cargo-nextest
+```
+
 ## VS-Code
 
 ### Recommended Extensions
