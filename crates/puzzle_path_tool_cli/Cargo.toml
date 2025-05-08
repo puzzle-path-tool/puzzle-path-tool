@@ -28,7 +28,16 @@ path = "src/main.rs"
 workspace = true
 
 [dependencies]
+anyhow = "1.0.98"
+iced = "0.13.1"
+image = "0.25.6"
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
 puzzle-path-tool = { workspace = true }
+
+[build-dependencies]
+puzzle-core-build = { workspace = true }
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1.12"
