@@ -23,10 +23,6 @@ jobs:
             short-name: "linux/gnu"
 
           - os: "ubuntu"
-            target: "x86_64-unknown-linux-musl"
-            short-name: "linux/musl"
-
-          - os: "ubuntu"
             target: "aarch64-unknown-linux-gnu"
             short-name: "linux/arm"
 
