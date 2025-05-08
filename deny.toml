@@ -31,9 +31,8 @@ all-features = true
 
 [advisories]
 version = 2
-ignore = [
-
-]
+ignore = []
+unmaintained = 'workspace'
 
 [bans]
 multiple-versions = "deny" # Use `cargo tree --duplicates` to easily find duplicates
@@ -51,9 +50,12 @@ skip = [
   { name = "windows_i686_msvc" },
   { name = "windows_x86_64_gnu" },
   { name = "windows_x86_64_msvc" },
-  { name = "getrandom" }, # reqwest / cbindgen
 ]
-skip-tree = []
+
+skip-tree = [
+  { name = "iced", depth = 20 },
+  { name = "cbindgen", depth = 20 },
+]
 
 
 [licenses]
@@ -63,10 +65,10 @@ confidence-threshold = 0.93 # We want really high confidence when inferring lice
 allow = [
 #   "Apache-2.0 WITH LLVM-exception", # https://spdx.org/licenses/LLVM-exception.html
   "Apache-2.0",                     # https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)
-#   "BSD-2-Clause",                   # https://tldrlegal.com/license/bsd-2-clause-license-(freebsd)
+  "BSD-2-Clause",                   # https://tldrlegal.com/license/bsd-2-clause-license-(freebsd)
   "BSD-3-Clause",                   # https://tldrlegal.com/license/bsd-3-clause-license-(revised)
-#   "BSL-1.0",                        # https://tldrlegal.com/license/boost-software-license-1.0-explained
-#   "CC0-1.0",                        # https://creativecommons.org/publicdomain/zero/1.0/
+  "BSL-1.0",                        # https://tldrlegal.com/license/boost-software-license-1.0-explained
+  "CC0-1.0",                        # https://creativecommons.org/publicdomain/zero/1.0/
   "ISC",                            # https://www.tldrlegal.com/license/isc-license
 #   "MIT-0",                          # https://choosealicense.com/licenses/mit-0/
   "MIT",                            # https://tldrlegal.com/license/mit-license
@@ -76,7 +78,7 @@ allow = [
 #   "Ubuntu-font-1.0",                # https://ubuntu.com/legal/font-licence
   "Unicode-3.0",                    # https://www.unicode.org/license.txt
 #   "Unicode-DFS-2016",               # https://spdx.org/licenses/Unicode-DFS-2016.html
-#   "Zlib",                           # https://tldrlegal.com/license/zlib-libpng-license-(zlib)
+  "Zlib",                           # https://tldrlegal.com/license/zlib-libpng-license-(zlib)
 #   "CDLA-Permissive-2.0",          # https://cdla.dev/permissive-2-0/
 ]
 

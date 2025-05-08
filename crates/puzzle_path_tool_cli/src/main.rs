@@ -3,7 +3,7 @@ use iced::{
     window::{self, Icon, icon},
 };
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct State {
     value: i32,
 }
@@ -28,6 +28,12 @@ impl State {
             Message::Increment => self.value += 1,
             Message::Decrement => self.value -= 1,
         }
+    }
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State { value: 10 }
     }
 }
 
