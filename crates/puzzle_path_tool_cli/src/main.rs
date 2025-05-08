@@ -37,15 +37,14 @@ impl Default for State {
     }
 }
 
-fn get_icon() -> anyhow::Result<Icon> {
-    let icon = include_bytes!("../assets/icon.png");
-    let icon = image::load_from_memory_with_format(icon, image::ImageFormat::Png)?;
+fn load_icon() -> anyhow::Result<Icon> {
+    let bytes = include_bytes!("../assets/icon.png");
+    let image = image::load_from_memory_with_format(bytes, image::ImageFormat::Png)?;
 
-    let icon = icon::from_rgba(
-        icon.clone().into_rgba8().into_raw(),
-        icon.width(),
-        icon.height(),
-    )?;
+    let width = image.width();
+    let height = image.height();
+
+    let icon = icon::from_rgba(image.into_rgba8().into_raw(), width, height)?;
     Ok(icon)
 }
 
@@ -53,7 +52,7 @@ fn main() -> anyhow::Result<()> {
     println!("Starting Gui...");
 
     let window_settings = window::Settings {
-        icon: get_icon().ok(),
+        icon: load_icon().ok(),
         ..Default::default()
     };
 
