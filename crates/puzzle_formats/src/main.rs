@@ -1,5 +1,3 @@
-#![allow(clippy::unwrap_used)] //TODO: Clean Up
-
 use std::{
     fs::{self, File},
     io::Write,
@@ -14,7 +12,7 @@ fn main() -> std::io::Result<()> {
 
     let result = puzzle_formats::decode_url(include_str!("../assets/puzzleid.txt").trim());
 
-    value_file.write_all(serde_json::to_string_pretty(&result).unwrap().as_bytes())?;
+    value_file.write_all(serde_json::to_string_pretty(&result)?.as_bytes())?;
     struct_file
         .write_all(format!("{:#?}", serde_json::from_value::<FPuzzlesFormat>(result)).as_bytes())?;
 

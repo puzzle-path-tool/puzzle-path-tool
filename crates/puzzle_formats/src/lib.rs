@@ -1,11 +1,83 @@
 #![allow(dead_code)]
 
-use serde::{Deserialize, Serialize};
+use core::fmt;
+use std::sync::LazyLock;
+
+use serde::{Deserialize, Serialize, de};
 use serde_json::Value;
 
 pub enum Region {
     InRegion(i32),
     NoRegion,
+}
+
+pub struct CellPos {
+    row: i8,
+    column: i8,
+}
+
+impl fmt::Debug for CellPos {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<R{}C{}>", self.row, self.column)
+    }
+}
+
+impl Serialize for CellPos {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let cell_string = format!("R{}C{}", self.row, self.column);
+        serializer.serialize_str(&cell_string)
+    }
+}
+
+ctreg::regex! { CellPosRegex = r"R(?<row>-?\d+)C(?<column>-?\d+)" }
+static CELL_POS_RE: LazyLock<CellPosRegex> = LazyLock::new(CellPosRegex::new);
+
+impl<'de> Deserialize<'de> for CellPos {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let cell_string: String = Deserialize::deserialize(deserializer)?;
+
+        let captures = CELL_POS_RE.captures(&cell_string).ok_or_else(|| {
+            de::Error::custom(format!(
+                "Invalid Format for Cell String `{cell_string}`, expected format `R<row>C<col>`"
+            ))
+        })?;
+
+        let row = captures.row.content.parse().map_err(|err| {
+            de::Error::custom(format!(
+                "Invalid Cell Row for Cell String `{cell_string}`: {err}"
+            ))
+        })?;
+
+        let column = captures.column.content.parse().map_err(|err| {
+            de::Error::custom(format!(
+                "Invalid Cell Column for Cell String `{cell_string}`: {err}"
+            ))
+        })?;
+
+        Ok(Self { row, column })
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct CellCollectionWithValue {
+    #[serde(rename = "cells")]
+    cells: Box<[CellPos]>,
+    #[serde(rename = "value")]
+    value: Option<Box<str>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct SingleCell {
+    #[serde(rename = "cell")]
+    cell: CellPos,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -76,10 +148,10 @@ pub struct FPuzzlesFormat {
     extraregion: Option<Value>,
 
     #[serde(rename = "odd")]
-    odd: Option<Value>,
+    odd: Option<Box<[SingleCell]>>,
 
     #[serde(rename = "even")]
-    even: Option<Value>,
+    even: Option<Box<[SingleCell]>>,
 
     #[serde(rename = "thermometer")]
     thermometer: Option<Value>,
@@ -88,7 +160,7 @@ pub struct FPuzzlesFormat {
     palindrome: Option<Value>,
 
     #[serde(rename = "killercage")]
-    killercage: Option<Value>,
+    killercage: Option<Box<[CellCollectionWithValue]>>,
 
     #[serde(rename = "littlekillersum")]
     littlekillersum: Option<Value>,
@@ -97,13 +169,13 @@ pub struct FPuzzlesFormat {
     sandwichsum: Option<Value>,
 
     #[serde(rename = "difference")]
-    difference: Option<Value>,
+    difference: Option<Box<[CellCollectionWithValue]>>,
 
     #[serde(rename = "negative")]
     negative: Option<Value>,
 
     #[serde(rename = "ratio")]
-    ratio: Option<Value>,
+    ratio: Option<Box<[CellCollectionWithValue]>>,
 
     #[serde(rename = "clone")]
     clone: Option<Value>,
@@ -115,10 +187,10 @@ pub struct FPuzzlesFormat {
     betweenline: Option<Value>,
 
     #[serde(rename = "minimum")]
-    minimum: Option<Value>,
+    minimum: Option<Box<[SingleCell]>>,
 
     #[serde(rename = "maximum")]
-    maximum: Option<Value>,
+    maximum: Option<Box<[SingleCell]>>,
 
     #[serde(rename = "xv")]
     xv: Option<Value>,
