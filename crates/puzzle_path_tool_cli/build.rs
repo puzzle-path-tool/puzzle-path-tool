@@ -1,3 +1,5 @@
+#![allow(clippy::unnecessary_wraps)]
+
 use puzzle_core_build as cb;
 
 fn main() {
