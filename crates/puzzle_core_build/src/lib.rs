@@ -1,6 +1,8 @@
 use std::{
     env::{self, VarError},
+    fmt::Display,
     path::PathBuf,
+    process,
 };
 
 use thiserror::Error;
@@ -89,4 +91,23 @@ pub fn rerun_if_changed_any() {
 
 pub fn rerun_if_changed(pattern: &str) {
     println!("cargo:rerun-if-changed={pattern}");
+}
+
+pub trait BuildResult<T, E> {
+    fn unwrap_build_result(self) -> T;
+}
+
+impl<T, E> BuildResult<T, E> for Result<T, E>
+where
+    E: Display,
+{
+    fn unwrap_build_result(self) -> T {
+        match self {
+            Ok(val) => val,
+            Err(err) => {
+                println!("{err}");
+                process::exit(1);
+            }
+        }
+    }
 }

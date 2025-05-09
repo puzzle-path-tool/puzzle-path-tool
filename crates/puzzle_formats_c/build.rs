@@ -1,7 +1,8 @@
 use puzzle_core_build as cb;
+use puzzle_core_build::BuildResult;
 
 fn main() {
-    generate_bindings().unwrap_or_else(|err| panic!("{}", err));
+    generate_bindings().unwrap_build_result();
 }
 
 fn generate_bindings() -> anyhow::Result<()> {

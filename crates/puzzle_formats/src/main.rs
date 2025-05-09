@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used)] //TODO: Clean Up
+
 use std::{
     fs::{self, File},
     io::Write,
