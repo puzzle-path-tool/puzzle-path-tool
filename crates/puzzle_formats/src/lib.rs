@@ -103,7 +103,51 @@ pub struct GridCell {
 
     #[serde(rename = "highlight")] // Parse Color
     highlight: Option<String>,
+    // candidates
+    //
 }
+
+/*
+
+Tool Constraints:
+
+lines
+cell
+cells
+cloneCells
+direction
+value
+values
+
+Cosmetics:
+
+lines
+cell
+cells
+direction
+value
+baseC
+outlineC
+fontC
+size
+width
+height
+angle
+
+Boolean Constraints
+
+diagonal+
+diagonal-
+antiknight
+antiking
+disjointgroups
+nonconsecutive
+
+TODO:
+Make Options into Defaults (in both directions, eg. if not present => Default, if Default => leave out)
+Make Option List into Empty List (also both Directions)
+
+*/
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
