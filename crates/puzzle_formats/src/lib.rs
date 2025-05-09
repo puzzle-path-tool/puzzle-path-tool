@@ -32,7 +32,7 @@ impl Serialize for CellPos {
     }
 }
 
-ctreg::regex! { CellPosRegex = r"R(?<row>-?\d+)C(?<column>-?\d+)" }
+ctreg::regex! { CellPosRegex = r"^R(?<row>-?\d+)C(?<column>-?\d+)$" }
 static CELL_POS_RE: LazyLock<CellPosRegex> = LazyLock::new(CellPosRegex::new);
 
 impl<'de> Deserialize<'de> for CellPos {
