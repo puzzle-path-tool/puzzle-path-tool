@@ -3,14 +3,16 @@
 use core::fmt;
 use std::sync::LazyLock;
 
-use serde::{Deserialize, Serialize, de};
+use serde::{Deserialize, Serialize, de, ser::SerializeSeq};
 use serde_json::Value;
 
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Region {
     InRegion(i32),
     NoRegion,
 }
 
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub struct CellPos {
     row: i8,
     column: i8,
@@ -64,7 +66,7 @@ impl<'de> Deserialize<'de> for CellPos {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct CellCollectionWithValue {
     #[serde(rename = "cells")]
@@ -73,14 +75,14 @@ pub struct CellCollectionWithValue {
     value: Option<Box<str>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct SingleCell {
     #[serde(rename = "cell")]
     cell: CellPos,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GridCell {
     #[serde(rename = "value")]
@@ -93,18 +95,93 @@ pub struct GridCell {
     region: Option<i32>,
 
     #[serde(rename = "c")] // Parse Color
-    c: Option<String>,
+    c: Option<Box<str>>,
 
-    #[serde(rename = "centerPencilMarks")]
-    center_pencil_marks: Option<Vec<i32>>,
+    #[serde(
+        rename = "centerPencilMarks",
+        default,
+        skip_serializing_if = "is_empty"
+    )]
+    center_pencil_marks: Box<[i32]>,
 
-    #[serde(rename = "cornerPencilMarks")]
-    corner_pencil_marks: Option<Vec<i32>>,
+    #[serde(
+        rename = "cornerPencilMarks",
+        default,
+        skip_serializing_if = "is_empty"
+    )]
+    corner_pencil_marks: Box<[i32]>,
 
     #[serde(rename = "highlight")] // Parse Color
-    highlight: Option<String>,
+    highlight: Option<Box<str>>,
     // candidates
     //
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Copy)]
+pub enum Direction {
+    #[serde(rename = "DR")]
+    DownRight,
+    #[serde(rename = "DL")]
+    DownLeft,
+    #[serde(rename = "UR")]
+    UpRight,
+    #[serde(rename = "UL")]
+    UpLeft,
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Copy)]
+pub enum NegativeFlag {
+    #[serde(rename = "ratio")]
+    Ratio,
+    #[serde(rename = "xv")]
+    XV,
+}
+
+#[derive(Debug, Default, Eq, PartialEq, Clone, Copy)]
+pub struct Negative {
+    ratio: bool,
+    xv: bool,
+}
+
+impl Serialize for Negative {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut flags = vec![];
+        if self.ratio {
+            flags.push(NegativeFlag::Ratio);
+        }
+        if self.xv {
+            flags.push(NegativeFlag::XV);
+        }
+
+        let mut seq = serializer.serialize_seq(Some(flags.len()))?;
+        for flag in flags {
+            seq.serialize_element(&flag)?;
+        }
+        seq.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for Negative {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let flags: Vec<NegativeFlag> = Vec::deserialize(deserializer)?;
+
+        let mut negatives = Negative::default();
+
+        for flag in flags {
+            match flag {
+                NegativeFlag::Ratio => negatives.ratio = true,
+                NegativeFlag::XV => negatives.xv = true,
+            }
+        }
+
+        Ok(negatives)
+    }
 }
 
 /*
@@ -149,53 +226,65 @@ Make Option List into Empty List (also both Directions)
 
 */
 
-#[derive(Serialize, Deserialize, Debug)]
+fn is_default<T>(value: &T) -> bool
+where
+    T: Default + PartialEq<T>,
+{
+    *value == T::default()
+}
+
+fn is_empty<T>(value: &[T]) -> bool {
+    value.is_empty()
+}
+
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct FPuzzlesFormat {
-    #[serde(rename = "title")]
-    title: String,
+    #[serde(rename = "title", default)]
+    title: Box<str>,
 
-    #[serde(rename = "author")]
-    author: String,
+    #[serde(rename = "author", default)]
+    author: Box<str>,
 
-    #[serde(rename = "ruleset")]
-    ruleset: String,
+    #[serde(rename = "ruleset", default)]
+    ruleset: Box<str>,
 
     #[serde(rename = "size")]
     size: i32,
 
-    #[serde(rename = "highlightConflicts")]
+    #[serde(rename = "highlightConflicts", default)]
     highlight_conflicts: bool,
 
     #[serde(rename = "grid")]
-    grid: Vec<Vec<GridCell>>,
+    grid: Box<[Box<[GridCell]>]>,
 
-    #[serde(rename = "diagonal+")]
-    diagonal_positive: Option<bool>,
+    #[serde(rename = "diagonal+", default, skip_serializing_if = "is_default")]
+    diagonal_positive: bool,
 
-    #[serde(rename = "diagonal-")]
-    diagonal_negative: Option<bool>,
+    #[serde(rename = "diagonal-", default, skip_serializing_if = "is_default")]
+    diagonal_negative: bool,
 
-    #[serde(rename = "antiknight")]
-    antiknight: Option<bool>,
+    #[serde(rename = "antiknight", default, skip_serializing_if = "is_default")]
+    antiknight: bool,
 
-    #[serde(rename = "antiking")]
-    antiking: Option<bool>,
+    #[serde(rename = "antiking", default, skip_serializing_if = "is_default")]
+    antiking: bool,
 
-    #[serde(rename = "disjointgroups")]
-    disjointgroups: Option<bool>,
+    #[serde(rename = "disjointgroups", default, skip_serializing_if = "is_default")]
+    disjointgroups: bool,
 
-    #[serde(rename = "nonconsecutive")]
-    nonconsecutive: Option<bool>,
+    #[serde(rename = "nonconsecutive", default, skip_serializing_if = "is_default")]
+    nonconsecutive: bool,
 
     #[serde(rename = "extraregion")]
     extraregion: Option<Value>,
 
-    #[serde(rename = "odd")]
-    odd: Option<Box<[SingleCell]>>,
+    #[serde(rename = "odd", default, skip_serializing_if = "is_empty")]
+    odd: Box<[SingleCell]>,
 
-    #[serde(rename = "even")]
-    even: Option<Box<[SingleCell]>>,
+    #[serde(rename = "even", default, skip_serializing_if = "is_empty")]
+    even: Box<[SingleCell]>,
 
     #[serde(rename = "thermometer")]
     thermometer: Option<Value>,
@@ -203,8 +292,8 @@ pub struct FPuzzlesFormat {
     #[serde(rename = "palindrome")]
     palindrome: Option<Value>,
 
-    #[serde(rename = "killercage")]
-    killercage: Option<Box<[CellCollectionWithValue]>>,
+    #[serde(rename = "killercage", default, skip_serializing_if = "is_empty")]
+    killercage: Box<[CellCollectionWithValue]>,
 
     #[serde(rename = "littlekillersum")]
     littlekillersum: Option<Value>,
@@ -212,14 +301,14 @@ pub struct FPuzzlesFormat {
     #[serde(rename = "sandwichsum")]
     sandwichsum: Option<Value>,
 
-    #[serde(rename = "difference")]
-    difference: Option<Box<[CellCollectionWithValue]>>,
+    #[serde(rename = "difference", default, skip_serializing_if = "is_empty")]
+    difference: Box<[CellCollectionWithValue]>,
 
-    #[serde(rename = "negative")]
-    negative: Option<Value>,
+    #[serde(rename = "negative", default, skip_serializing_if = "is_default")]
+    negative: Negative,
 
-    #[serde(rename = "ratio")]
-    ratio: Option<Box<[CellCollectionWithValue]>>,
+    #[serde(rename = "ratio", default, skip_serializing_if = "is_empty")]
+    ratio: Box<[CellCollectionWithValue]>,
 
     #[serde(rename = "clone")]
     clone: Option<Value>,
@@ -230,11 +319,11 @@ pub struct FPuzzlesFormat {
     #[serde(rename = "betweenline")]
     betweenline: Option<Value>,
 
-    #[serde(rename = "minimum")]
-    minimum: Option<Box<[SingleCell]>>,
+    #[serde(rename = "minimum", default, skip_serializing_if = "is_empty")]
+    minimum: Box<[SingleCell]>,
 
-    #[serde(rename = "maximum")]
-    maximum: Option<Box<[SingleCell]>>,
+    #[serde(rename = "maximum", default, skip_serializing_if = "is_empty")]
+    maximum: Box<[SingleCell]>,
 
     #[serde(rename = "xv")]
     xv: Option<Value>,
