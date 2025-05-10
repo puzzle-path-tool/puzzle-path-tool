@@ -107,6 +107,24 @@ impl StrOrInt {
     }
 }
 
+impl From<String> for StrOrInt {
+    fn from(value: String) -> Self {
+        StrOrInt::Str(value.into_boxed_str())
+    }
+}
+
+impl From<&str> for StrOrInt {
+    fn from(value: &str) -> Self {
+        value.to_owned().into()
+    }
+}
+
+impl From<i32> for StrOrInt {
+    fn from(value: i32) -> Self {
+        StrOrInt::Int(value)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GridCell {
