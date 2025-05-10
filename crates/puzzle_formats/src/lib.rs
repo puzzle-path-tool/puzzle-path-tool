@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use core::fmt;
-use std::sync::LazyLock;
+use std::{borrow::Cow, sync::LazyLock};
 
 use serde::{Deserialize, Serialize, de, ser::SerializeSeq};
 use serde_json::Value;
@@ -83,13 +83,38 @@ pub struct SingleCell {
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
+#[serde(untagged)]
+pub enum StrOrInt {
+    Str(Box<str>),
+    Int(i32),
+}
+
+impl StrOrInt {
+    #[must_use]
+    pub fn as_str(&self) -> Cow<str> {
+        match self {
+            StrOrInt::Str(str) => Cow::Borrowed(str),
+            StrOrInt::Int(n) => Cow::Owned(n.to_string()),
+        }
+    }
+
+    #[must_use]
+    pub fn as_i32(&self) -> Option<i32> {
+        match self {
+            StrOrInt::Str(str) => str.parse().ok(),
+            StrOrInt::Int(n) => Some(*n),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GridCell {
     #[serde(rename = "value")]
-    value: Option<i32>,
+    value: Option<StrOrInt>,
 
-    #[serde(rename = "given")] // Default is false
-    given: Option<bool>,
+    #[serde(rename = "given", default, skip_serializing_if = "is_default")]
+    given: bool,
 
     #[serde(rename = "region")] // Treat null and undefined Differently
     region: Option<i32>,
@@ -102,14 +127,14 @@ pub struct GridCell {
         default,
         skip_serializing_if = "is_empty"
     )]
-    center_pencil_marks: Box<[i32]>,
+    center_pencil_marks: Box<[StrOrInt]>,
 
     #[serde(
         rename = "cornerPencilMarks",
         default,
         skip_serializing_if = "is_empty"
     )]
-    corner_pencil_marks: Box<[i32]>,
+    corner_pencil_marks: Box<[StrOrInt]>,
 
     #[serde(rename = "highlight")] // Parse Color
     highlight: Option<Box<str>>,
