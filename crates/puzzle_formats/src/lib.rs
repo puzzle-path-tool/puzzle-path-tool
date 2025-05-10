@@ -3,7 +3,8 @@
 use core::fmt;
 use std::{borrow::Cow, sync::LazyLock};
 
-use serde::{Deserialize, Serialize, de, ser::SerializeSeq};
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+use serde::{Deserialize, Deserializer, Serialize, de, ser::SerializeSeq};
 use serde_json::Value;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
@@ -12,10 +13,85 @@ pub enum Region {
     NoRegion,
 }
 
+impl Serialize for Region {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Region::InRegion(n) => serializer.serialize_i32(*n),
+            Region::NoRegion => serializer.serialize_none(),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Region {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let val: Option<i32> = Deserialize::deserialize(deserializer)?;
+        let region = match val {
+            Some(n) => Region::InRegion(n),
+            None => Region::NoRegion,
+        };
+        Ok(region)
+    }
+}
+
+fn deserialize_some<'de, T, D>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    T: Deserialize<'de>,
+    D: Deserializer<'de>,
+{
+    Deserialize::deserialize(deserializer).map(Some)
+}
+
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub struct CellPos {
     row: i8,
     column: i8,
+}
+
+#[derive(
+    Serialize,
+    Deserialize,
+    Debug,
+    Eq,
+    PartialEq,
+    Clone,
+    Copy,
+    IntoPrimitive,
+    TryFromPrimitive,
+    Default,
+)]
+#[repr(u8)]
+pub enum HighlightColor {
+    #[default]
+    #[serde(rename = "#FFFFFF")]
+    White = 0,
+    #[serde(rename = "#A8A8A8")]
+    Gray = 1,
+    #[serde(rename = "#000000")]
+    Black = 2,
+    #[serde(rename = "#FFA0A0")]
+    Red = 3,
+    #[serde(rename = "#FFE060")]
+    Yellow = 4,
+    #[serde(rename = "#FFFFB0")]
+    LightYellow = 5,
+    #[serde(rename = "#B0FFB0")]
+    LightGreen = 6,
+    #[serde(rename = "#60D060")]
+    Green = 7,
+    #[serde(rename = "#D0D0FF")]
+    LightBlue = 8,
+    #[serde(rename = "#8080F0")]
+    Bleue = 9,
+    #[serde(rename = "#FF80FF")]
+    Lavender = 10,
+    #[serde(rename = "#FFD0D0")]
+    LightRed = 11,
 }
 
 impl fmt::Debug for CellPos {
@@ -71,7 +147,7 @@ impl<'de> Deserialize<'de> for CellPos {
 pub struct CellCollectionWithValue {
     #[serde(rename = "cells")]
     cells: Box<[CellPos]>,
-    #[serde(rename = "value")]
+    #[serde(rename = "value", default, skip_serializing_if = "Option::is_none")]
     value: Option<Box<str>>,
 }
 
@@ -128,17 +204,24 @@ impl From<i32> for StrOrInt {
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct GridCell {
-    #[serde(rename = "value")]
+    #[serde(rename = "value", default, skip_serializing_if = "Option::is_none")]
     value: Option<StrOrInt>,
 
     #[serde(rename = "given", default, skip_serializing_if = "is_default")]
     given: bool,
 
-    #[serde(rename = "region")] // Treat null and undefined Differently
-    region: Option<i32>,
+    // null: None
+    // undefined: Choose Default, based on position (get this as parameter somehow?, maybe add post processing step?)
+    #[serde(
+        rename = "region",
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_some"
+    )]
+    region: Option<Region>,
 
-    #[serde(rename = "c")] // Parse Color
-    c: Option<Box<str>>,
+    #[serde(rename = "c", default, skip_serializing_if = "is_default")]
+    c: HighlightColor,
 
     #[serde(
         rename = "centerPencilMarks",
@@ -154,10 +237,11 @@ pub struct GridCell {
     )]
     corner_pencil_marks: Box<[StrOrInt]>,
 
-    #[serde(rename = "highlight")] // Parse Color
-    highlight: Option<Box<str>>,
-    // candidates
-    //
+    #[serde(rename = "highlight", default, skip_serializing_if = "is_default")]
+    highlight: HighlightColor,
+
+    #[serde(rename = "candidates", default, skip_serializing_if = "is_empty")]
+    candidates: Box<[i32]>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Copy)]

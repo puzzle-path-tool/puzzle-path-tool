@@ -26,6 +26,7 @@ workspace = true
 [dependencies]
 ctreg = "1.0.3"
 lz-str = "0.2.1"
+num_enum = "0.7.3"
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 regex = "1.11.1"

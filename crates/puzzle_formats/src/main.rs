@@ -9,12 +9,16 @@ fn main() -> std::io::Result<()> {
     fs::create_dir_all("generated")?;
     let mut value_file = File::create("generated/json_value.txt")?;
     let mut struct_file = File::create("generated/json_struct.txt")?;
+    let mut value_out_file = File::create("generated/json_value_out.txt")?;
 
-    let result = puzzle_formats::decode_url(include_str!("../assets/puzzleid.txt").trim());
+    let value = puzzle_formats::decode_url(include_str!("../assets/puzzleid.txt").trim());
 
-    value_file.write_all(serde_json::to_string_pretty(&result)?.as_bytes())?;
-    struct_file
-        .write_all(format!("{:#?}", serde_json::from_value::<FPuzzlesFormat>(result)).as_bytes())?;
+    value_file.write_all(serde_json::to_string_pretty(&value)?.as_bytes())?;
+
+    let result = serde_json::from_value::<FPuzzlesFormat>(value)?;
+    struct_file.write_all(format!("{result:#?}").as_bytes())?;
+
+    value_out_file.write_all(serde_json::to_string_pretty(&result)?.as_bytes())?;
 
     println!("Files written");
 

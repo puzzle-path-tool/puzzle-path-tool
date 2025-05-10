@@ -3295,6 +3295,7 @@ version = "0.1.0"
 dependencies = [
  "ctreg",
  "lz-str",
+ "num_enum",
  "puzzle-core",
  "puzzle-core-macros",
  "regex",
