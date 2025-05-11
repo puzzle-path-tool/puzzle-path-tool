@@ -379,50 +379,6 @@ impl<'de> Deserialize<'de> for Negative {
     }
 }
 
-/*
-
-Tool Constraints:
-
-lines
-cell
-cells
-cloneCells
-direction
-value
-values
-
-Cosmetics:
-
-lines
-cell
-cells
-direction
-value
-baseC
-outlineC
-fontC
-size
-width
-height
-angle
-
-Boolean Constraints
-
-diagonal+
-diagonal-
-antiknight
-antiking
-disjointgroups
-nonconsecutive
-
-Just make one for each, and use it everywhere, no matter the wasted fields
-
-TODO:
-Make Options into Defaults (in both directions, eg. if not present => Default, if Default => leave out)
-Make Option List into Empty List (also both Directions)
-
-*/
-
 fn is_default<T>(value: &T) -> bool
 where
     T: Default + PartialEq<T>,
