@@ -159,6 +159,74 @@ pub struct SingleCell {
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct Constraint {
+    #[serde(rename = "lines", default, skip_serializing_if = "is_empty")]
+    lines: Box<[Box<[CellPos]>]>,
+
+    #[serde(rename = "cell", default, skip_serializing_if = "Option::is_none")]
+    cell: Option<CellPos>,
+
+    #[serde(rename = "cells", default, skip_serializing_if = "is_empty")]
+    cells: Box<[CellPos]>,
+
+    #[serde(rename = "cloneCells", default, skip_serializing_if = "is_empty")]
+    clone_cells: Box<[CellPos]>,
+
+    #[serde(rename = "direction", default, skip_serializing_if = "Option::is_none")]
+    direction: Option<Direction>,
+
+    #[serde(rename = "value", default, skip_serializing_if = "Option::is_none")]
+    value: Option<Box<str>>,
+
+    #[serde(rename = "values", default, skip_serializing_if = "is_empty")]
+    values: Box<[StrOrInt]>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct Cosmetic {
+    #[serde(rename = "lines", default, skip_serializing_if = "is_empty")]
+    lines: Box<[Box<[CellPos]>]>,
+
+    #[serde(rename = "cell", default, skip_serializing_if = "Option::is_none")]
+    cell: Option<CellPos>,
+
+    #[serde(rename = "cells", default, skip_serializing_if = "is_empty")]
+    cells: Box<[CellPos]>,
+
+    #[serde(rename = "direction", default, skip_serializing_if = "Option::is_none")]
+    direction: Option<Direction>,
+
+    #[serde(rename = "value", default, skip_serializing_if = "Option::is_none")]
+    value: Option<Box<str>>,
+
+    #[serde(rename = "values", default, skip_serializing_if = "is_empty")]
+    values: Box<[StrOrInt]>,
+
+    #[serde(rename = "baseC", default, skip_serializing_if = "Option::is_none")]
+    base_c: Option<Box<str>>, // Maybe Parse to Color Type
+
+    #[serde(rename = "outlineC", default, skip_serializing_if = "Option::is_none")]
+    outline_c: Option<Box<str>>, // Maybe Parse to Color Type
+
+    #[serde(rename = "fontC", default, skip_serializing_if = "Option::is_none")]
+    font_c: Option<Box<str>>, // Maybe Parse to Color Type
+
+    #[serde(rename = "size", default, skip_serializing_if = "Option::is_none")]
+    size: Option<f64>,
+
+    #[serde(rename = "width", default, skip_serializing_if = "Option::is_none")]
+    width: Option<f64>,
+
+    #[serde(rename = "height", default, skip_serializing_if = "Option::is_none")]
+    height: Option<f64>,
+
+    #[serde(rename = "angle", default, skip_serializing_if = "Option::is_none")]
+    angle: Option<f64>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone)]
 #[serde(untagged)]
 pub enum StrOrInt {
     Str(Box<str>),
@@ -347,6 +415,8 @@ antiking
 disjointgroups
 nonconsecutive
 
+Just make one for each, and use it everywhere, no matter the wasted fields
+
 TODO:
 Make Options into Defaults (in both directions, eg. if not present => Default, if Default => leave out)
 Make Option List into Empty List (also both Directions)
@@ -404,74 +474,74 @@ pub struct FPuzzlesFormat {
     #[serde(rename = "nonconsecutive", default, skip_serializing_if = "is_default")]
     nonconsecutive: bool,
 
-    #[serde(rename = "extraregion")]
-    extraregion: Option<Value>,
+    #[serde(rename = "extraregion", default, skip_serializing_if = "is_empty")]
+    extraregion: Box<[Constraint]>,
 
     #[serde(rename = "odd", default, skip_serializing_if = "is_empty")]
-    odd: Box<[SingleCell]>,
+    odd: Box<[Constraint]>,
 
     #[serde(rename = "even", default, skip_serializing_if = "is_empty")]
-    even: Box<[SingleCell]>,
+    even: Box<[Constraint]>,
 
-    #[serde(rename = "thermometer")]
-    thermometer: Option<Value>,
+    #[serde(rename = "thermometer", default, skip_serializing_if = "is_empty")]
+    thermometer: Box<[Constraint]>,
 
-    #[serde(rename = "palindrome")]
-    palindrome: Option<Value>,
+    #[serde(rename = "palindrome", default, skip_serializing_if = "is_empty")]
+    palindrome: Box<[Constraint]>,
 
     #[serde(rename = "killercage", default, skip_serializing_if = "is_empty")]
-    killercage: Box<[CellCollectionWithValue]>,
+    killercage: Box<[Constraint]>,
 
-    #[serde(rename = "littlekillersum")]
-    littlekillersum: Option<Value>,
+    #[serde(rename = "littlekillersum", default, skip_serializing_if = "is_empty")]
+    littlekillersum: Box<[Constraint]>,
 
-    #[serde(rename = "sandwichsum")]
-    sandwichsum: Option<Value>,
+    #[serde(rename = "sandwichsum", default, skip_serializing_if = "is_empty")]
+    sandwichsum: Box<[Constraint]>,
 
     #[serde(rename = "difference", default, skip_serializing_if = "is_empty")]
-    difference: Box<[CellCollectionWithValue]>,
+    difference: Box<[Constraint]>,
 
     #[serde(rename = "negative", default, skip_serializing_if = "is_default")]
     negative: Negative,
 
     #[serde(rename = "ratio", default, skip_serializing_if = "is_empty")]
-    ratio: Box<[CellCollectionWithValue]>,
+    ratio: Box<[Constraint]>,
 
-    #[serde(rename = "clone")]
-    clone: Option<Value>,
+    #[serde(rename = "clone", default, skip_serializing_if = "is_empty")]
+    clone: Box<[Constraint]>,
 
-    #[serde(rename = "arrow")]
-    arrow: Option<Value>,
+    #[serde(rename = "arrow", default, skip_serializing_if = "is_empty")]
+    arrow: Box<[Constraint]>,
 
-    #[serde(rename = "betweenline")]
-    betweenline: Option<Value>,
+    #[serde(rename = "betweenline", default, skip_serializing_if = "is_empty")]
+    betweenline: Box<[Constraint]>,
 
     #[serde(rename = "minimum", default, skip_serializing_if = "is_empty")]
-    minimum: Box<[SingleCell]>,
+    minimum: Box<[Constraint]>,
 
     #[serde(rename = "maximum", default, skip_serializing_if = "is_empty")]
-    maximum: Box<[SingleCell]>,
+    maximum: Box<[Constraint]>,
 
-    #[serde(rename = "xv")]
-    xv: Option<Value>,
+    #[serde(rename = "xv", default, skip_serializing_if = "is_empty")]
+    xv: Box<[Constraint]>,
 
-    #[serde(rename = "quadruple")]
-    quadruple: Option<Value>,
+    #[serde(rename = "quadruple", default, skip_serializing_if = "is_empty")]
+    quadruple: Box<[Constraint]>,
 
-    #[serde(rename = "text")]
-    text: Option<Value>,
+    #[serde(rename = "text", default, skip_serializing_if = "is_empty")]
+    text: Box<[Cosmetic]>,
 
-    #[serde(rename = "circle")]
-    circle: Option<Value>,
+    #[serde(rename = "circle", default, skip_serializing_if = "is_empty")]
+    circle: Box<[Cosmetic]>,
 
-    #[serde(rename = "rectangle")]
-    rectangle: Option<Value>,
+    #[serde(rename = "rectangle", default, skip_serializing_if = "is_empty")]
+    rectangle: Box<[Cosmetic]>,
 
-    #[serde(rename = "line")]
-    line: Option<Value>,
+    #[serde(rename = "line", default, skip_serializing_if = "is_empty")]
+    line: Box<[Cosmetic]>,
 
-    #[serde(rename = "cage")]
-    cage: Option<Value>,
+    #[serde(rename = "cage", default, skip_serializing_if = "is_empty")]
+    cage: Box<[Cosmetic]>,
 }
 
 pub enum FPuzzlesURL {
