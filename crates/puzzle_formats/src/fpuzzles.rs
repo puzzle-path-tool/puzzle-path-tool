@@ -5,14 +5,14 @@ use grid_cell::GridCell;
 use negative::Negative;
 use serde::{Deserialize, Serialize};
 
-pub mod cell_pos;
-pub mod constraint;
-pub mod cosmetic;
-pub mod direction;
-pub mod grid_cell;
-pub mod highlight_color;
-pub mod negative;
-pub mod region;
+mod cell_pos;
+mod constraint;
+mod cosmetic;
+mod direction;
+mod grid_cell;
+mod highlight_color;
+mod negative;
+mod region;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
