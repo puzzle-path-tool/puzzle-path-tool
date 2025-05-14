@@ -13,8 +13,6 @@ pub struct GridCell {
     #[serde(rename = "given", default, skip_serializing_if = "is_default")]
     given: bool,
 
-    // null: None
-    // undefined: Choose Default, based on position (get this as parameter somehow?, maybe add post processing step?)
     #[serde(
         rename = "region",
         default,
