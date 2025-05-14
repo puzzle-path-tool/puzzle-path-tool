@@ -1,67 +1,103 @@
 use std::ffi::OsString;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
-///TODO(1): Explaining overall CLI
 #[derive(Debug, Parser)]
 #[command(name = "puzzpt")]
-#[command(about = "TODO(1.1): Explaining overall CLI", long_about = None)]
+#[command(about = "TODO(0): Explaining overall CLI", long_about = None)]
 pub(super) struct Cli {
-    ///TODO(2): The specified output
-    output: Output,
-
     #[command(subcommand)]
-    input: Input,
+    task: Task,
+}
 
-    ///TODO(4): Script-Dir option text
+#[derive(Debug, Subcommand)]
+#[command(about = "TODO(1): task type", long_about = None)]
+enum Task {
+    /// TODO(1.1): Explaining Stub Command
+    Stub {
+        //TODO
+    },
+    /// TODO(1.2): Explaining Gen Command
+    Gen {
+        #[command(subcommand)]
+        input: Input,
+
+        #[command(flatten)]
+        generation_options: GenerationOptions,
+    },
+}
+
+#[derive(Args, Debug)]
+#[command(about = "TODO(2): Generation Options", long_about = None)]
+struct GenerationOptions {
+    ///TODO(2.1): Script-Dir option text
     #[arg(short = 's', long = "script-dir")]
     scriptdir: Option<OsString>,
 
-    ///TODO(5): Seed option text
+    ///TODO(2.2): Seed option text
     #[arg(short = 'r', long = "rand-seed")]
     seed: Option<String>,
 
-    ///TODO(6): Watch option text
+    ///TODO(2.3): Watch option text
     #[arg(short = 'w', long = "watch")]
     watch: bool,
 
-    ///TODO(7): Cache Strategies option text
+    ///TODO(2.4): Cache Strategies option text
     #[arg(short = 'c', long = "cache")]
     cache: Option<CacheStrategie>,
 
-    ///TODO(8): Script-Dir option text
+    ///TODO(2.5): Script-Dir option text
     #[arg(short = 't', long = "type-defs")]
     typedefinitions: Option<OsString>,
 }
 
+#[derive(Args, Debug)]
+#[command(about = "TODO(3): Output Options", long_about = None)]
+struct OutputOptions {
+    ///TODO(3.1): Explaining UI command
+    #[arg(short = 'u', long = "web-ui")]
+    ui: bool,
+    ///TODO(3.2): Explaining fulljson command
+    #[arg(short = 'j', long = "json-output")]
+    json_path: Option<OsString>,
+    ///TODO(3.3): Explaining Export command
+    #[arg(short = 'f', long = "export-format")]
+    export_format: Option<ExportFormat>,
+}
+
 #[derive(Debug, Subcommand)]
+#[command(about = "TODO(4): Input Options", long_about = None)]
 enum Input {
-    ///TODO(9): Explaining Puzzlelua Command
+    ///TODO(4.1): Explaining Puzzlelua Command
     PuzzleLua {
-        ///TODO(10): Explain Path to lua file
+        #[command(flatten)]
+        output_options: OutputOptions,
+        ///TODO(4.1.1): Explain Path to lua file
         path: OsString,
     },
-    ///TODO(11): Explaining Workspacelua Command
+    ///TODO(4.2): Explaining Workspacelua Command
     WorkspaceLua {
-        ///TODO(12): Explain Path to lua file
+        #[command(flatten)]
+        output_options: OutputOptions,
+        ///TODO(4.2.1): Explain Path to lua file
         path: OsString,
-        ///TODO(13): Explain optional puzzlenames
+        ///TODO(4.2.2): Explain optional puzzlenames
         #[arg(last = true)]
         puzzlenames: Vec<OsString>,
     },
-    ///TODO(14): Explaining fulljson command
+    ///TODO(4.3): Explaining fulljson command
     FullJson {
-        ///TODO(15):Explain Path to json
+        #[command(flatten)]
+        output_options: OutputOptions,
+        ///TODO(4.3.1):Explain Path to json
         path: OsString,
     },
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
-enum Output {
-    UI,
-    //Todo:Rename
-    FullJson,
-    Export,
+enum ExportFormat {
+    SudokuPad,
+    FPuzzles,
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
