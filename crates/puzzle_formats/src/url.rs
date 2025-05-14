@@ -37,6 +37,8 @@ pub enum PuzzleUrl {
     FPuzzles(FPuzzlesURL),
     // sudokumaker.app/?puzzle=SUDOKUMAKERID
     SudokuMakerURL(String),
+    // https://swaroopg92.github.io/penpa-edit/ANY
+    PenpaUrl(String),
 }
 
 /// .

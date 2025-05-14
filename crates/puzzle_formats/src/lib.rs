@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 pub mod fpuzzles;
+pub mod penpa;
 pub mod serialization;
 pub mod sudokumaker;
 pub mod sudokupad;
