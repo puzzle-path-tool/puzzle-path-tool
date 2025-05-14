@@ -13,7 +13,7 @@ include = [
   "../LICENSE-MIT",
   "**/*.rs",
   "Cargo.toml",
-  "assets/**/*"
+  "assets/**/*",
 ]
 
 version.workspace = true
@@ -28,11 +28,15 @@ path = "src/main.rs"
 [lints]
 workspace = true
 
+[features]
+ui = ["dep:iced", "dep:image"]
+
 [dependencies]
 anyhow = "1.0.98"
 clap = { version = "4.5.38", features = ["derive"] }
-iced = "0.13.1"
-image = "0.25.6"
+iced = { version = "0.13.1", optional = true }
+image = { version = "0.25.6", optional = true }
+notify = { version = "8.0.0", features = ["serde"] }
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }

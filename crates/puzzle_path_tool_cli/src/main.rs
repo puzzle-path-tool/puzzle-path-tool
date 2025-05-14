@@ -2,6 +2,7 @@ use clap::Parser;
 
 mod commands;
 #[allow(dead_code)]
+#[cfg(feature = "ui")]
 mod run_application;
 
 fn main() {
@@ -49,8 +50,15 @@ fn main() {
 
 //TODO add Sudoku field
 fn handle_output(output: commands::OutputOptions) {
+    #[allow(clippy::manual_assert)]
     if output.ui {
-        _ = run_application::run();
+        #[cfg(feature = "ui")]{
+            _ = run_application::run();
+        }
+        #[cfg(not (feature = "ui"))]{
+            //TODO Errorhandling
+            panic!("UI feature needs to be enabled");
+        }
     }
     if let Some(format) = output.export_format {
         println!("TODO: put Sudoku as JSON/URL in Terminal for {format:?}");
