@@ -7,12 +7,12 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 #[command(about = "TODO(0): Explaining overall CLI", long_about = None)]
 pub(super) struct Cli {
     #[command(subcommand)]
-    task: Task,
+    pub(super) task: Task,
 }
 
 #[derive(Debug, Subcommand)]
 #[command(about = "TODO(1): task type", long_about = None)]
-enum Task {
+pub(super) enum Task {
     /// TODO(1.1): Explaining Stub Command
     Stub {
         //TODO
@@ -29,45 +29,45 @@ enum Task {
 
 #[derive(Args, Debug)]
 #[command(about = "TODO(2): Generation Options", long_about = None)]
-struct GenerationOptions {
+pub(super) struct GenerationOptions {
     ///TODO(2.1): Script-Dir option text
     #[arg(short = 's', long = "script-dir")]
-    scriptdir: Option<OsString>,
+    pub(super) scriptdir: Option<OsString>,
 
     ///TODO(2.2): Seed option text
     #[arg(short = 'r', long = "rand-seed")]
-    seed: Option<String>,
+    pub(super) seed: Option<String>,
 
     ///TODO(2.3): Watch option text
     #[arg(short = 'w', long = "watch")]
-    watch: bool,
+    pub(super) watch: bool,
 
     ///TODO(2.4): Cache Strategies option text
     #[arg(short = 'c', long = "cache")]
-    cache: Option<CacheStrategie>,
+    pub(super) cache: Option<CacheStrategie>,
 
     ///TODO(2.5): Script-Dir option text
     #[arg(short = 't', long = "type-defs")]
-    typedefinitions: Option<OsString>,
+    pub(super) typedefinitions: Option<OsString>,
 }
 
 #[derive(Args, Debug)]
 #[command(about = "TODO(3): Output Options", long_about = None)]
-struct OutputOptions {
+pub(super) struct OutputOptions {
     ///TODO(3.1): Explaining UI command
     #[arg(short = 'u', long = "web-ui")]
-    ui: bool,
+    pub(super) ui: bool,
     ///TODO(3.2): Explaining fulljson command
     #[arg(short = 'j', long = "json-output")]
-    json_path: Option<OsString>,
+    pub(super) json_path: Option<OsString>,
     ///TODO(3.3): Explaining Export command
     #[arg(short = 'f', long = "export-format")]
-    export_format: Option<ExportFormat>,
+    pub(super) export_format: Option<ExportFormat>,
 }
 
 #[derive(Debug, Subcommand)]
 #[command(about = "TODO(4): Input Options", long_about = None)]
-enum Input {
+pub(super) enum Input {
     ///TODO(4.1): Explaining Puzzlelua Command
     PuzzleLua {
         #[command(flatten)]
@@ -95,12 +95,12 @@ enum Input {
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
-enum ExportFormat {
+pub(super) enum ExportFormat {
     SudokuPad,
     FPuzzles,
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
-enum CacheStrategie {
+pub(super) enum CacheStrategie {
     ExampleCacheStragegie,
 }
