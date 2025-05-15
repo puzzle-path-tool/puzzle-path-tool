@@ -1,0 +1,186 @@
+# yaml-language-server: $schema=rules.schema.json
+pendingRules:
+  - Japanese Sums
+  - X
+  - V
+  - Fog of War
+  - Renban Line
+  - Nabner Line
+  - Entropic Line
+  - Region Sum Line
+  - Zipper Line
+  - Strong Zipper Line
+  - Parity Line
+  - Same Parity Line
+  - Modular Line
+  - Index Line
+  - Sequence Line
+  - Lockout Line
+  - 10 Line
+  - Double Arrow
+  - Normal Sudoku Rules *
+  - Size Rules *
+  - Irregular Regions
+  - Disjoint Groups
+  - Diagonal Constraint
+  - Dutch Whispers
+  - Chinese Whispers
+  - Palindromes
+  - Between Lines
+  - Killer Cage
+  - Non Consecutive
+  - King Move
+  - Knight Move
+  - Queen Move
+  - X/V/Kropki Negative *
+  - Greater than
+  - Slow Thermometer
+  - Fast Thermometer
+  - Odd
+  - Even
+  - Counting Circle
+  - Given Digit
+  - X-Sums
+  - Sandwich
+  - Skyscraper
+  - Numbered Rooms
+  - Little Killer
+  - Samurai / Gattai Sudoku
+  - Ying Yang
+  - Fillomino
+  - Window Sudoku
+  - Ortagonal Sudoku
+  - 3d Sudoku
+  - Magic Square
+  - Pentominoes
+  - Extra Regions (Windoku)
+  - Nonconsecutive
+  - Maximum (Fortress)
+  - Minimum
+  - Zenith
+  - Nadir
+  - Clone
+  - Quadruple
+  - Look and Say Cage
+  - Global Entropy
+  - Global Modulo
+  - Row Indexer
+  - Column Indexer
+  - Doubler Cell
+  - Schroedinger Cell
+  - Knapp Daneben
+  - Slitherlink (+ Slitherlink Circle) *
+  - Rat Path *
+  - Chaos Construction
+  - Toroidal Sudoku
+  - Akari *
+  - Yajilin *
+  - Deconstruction
+  - Given Pencils Marks *
+  - Pill Arrow
+  - Split Pea
+  - Nurikabe
+  - Cave
+  - Liar *
+  - Ambiguous Rules *
+  - Repeated Neighbours
+  - Neighbour Sums
+  - Zone Cage
+  - Inner Frame Sum
+  - Outside
+  - Gattai
+  - Next to Nine
+  - Average Arrow
+  - Remote Sums Sudoku
+  - Unique Sums
+  - Multiplication (eg, two digits on the rectangle multiply to X)
+  - Doubling Lines
+  - Battenburg
+  - Mathrax
+  - Reused Variables (eg. X and Y must be determined)
+  - Pathway
+  - Trio
+  - Coordinate
+  - Search Nine
+  - Point to Next
+  - First Seen
+  - Primes
+  - Unique Count Arrow
+  - Friendly Cells
+  - Sequence
+  - Clock Face
+  - Lemon
+  - Math Operators
+  - Matrix Determinants
+  - Apply Constraint in Limited Region (eg. King only for gray cells)
+  - Connected Region
+  - Rossini
+  - Median
+  - Deficit (eg. More numbers than cells)
+  - Subset (eg. More numbers than cells, choose Subset)
+  - Projected Sums
+  - Linked Grids
+  - "159"
+  - Carpet
+  - Diagonal Same Sums / Differences (DotCom)
+  - Sum or Greater
+  - Capsules
+  - Set Values
+  - Young Tableaux
+rules:
+  - name: Arrow
+    rules:
+      - |
+        The digits on the arrow path add to the digit in the circled cell.
+        Digits can repeat on the arrow if allowed by the other rules.
+      - |
+        Digits on an arrow sum to the digit in the corresponding circle.
+    visuals:
+      - |
+        A dark gray, non rounded line, with a hollow circle on on one end, and an arrow head on the other.
+
+  - name: Thermometer
+    rules:
+      - |
+        Along thermometers, digits must increase from the bulb end.
+    visuals:
+      - |
+        A light gray, thick rounded line, with a filled circle on one end.
+
+  - name: German Whispers
+    rules:
+      - |
+        Adjacent digits along a green line must differ by 5 or more.
+    visuals:
+      - |
+        A green line.
+
+  - name: White Kropki Dot
+    rules:
+      - |
+        Digits separated by a white dot are consecutive.
+        Not all dots are given.
+    visuals:
+      - |
+        A small white circle with a black outline between two cells.
+
+  - name: Black Kropki Dot
+    rules:
+      - |
+        Digits separated by a black dot are in a 1:2 ratio.
+        Not all dots are given.
+    visuals:
+      - |
+        A small black, filled circle between two cells.
+
+  - name: Star Battle
+    rules:
+      - |
+        The digits 1 and 9 act as stars.
+        No star can touch another, even diagonally.
+    visuals:
+      - |
+        None
+    markings:
+      - |
+        Red colored cells.

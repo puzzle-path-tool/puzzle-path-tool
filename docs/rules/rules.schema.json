@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "puzzle-path-tool/puzzle-rules/1.0.0",
+  "title": "Puzzle Rules",
+  "description": "A list of common and less common rules.",
+  "type": "object",
+  "patternProperties": {
+    "^\\$schema$": {
+      "type": "string"
+    }
+  },
+  "properties": {
+    "pendingRules": {
+      "title": "Pending Rules",
+      "description": "Rules that are not yet specified further in this document.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "rules": {
+      "title": "Rules",
+      "description": "The properties of a rule.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "description": "The primary name of the rule.",
+            "type": "string"
+          },
+          "altNames": {
+            "title": "Alternative Names",
+            "description": "Alternative names of the rule.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rules": {
+            "title": "Rules Text",
+            "description": "A description of the rule. This text is used by puzzles.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visuals": {
+            "title": "Visuals",
+            "description": "How the rule is rendered in the grid.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "markings": {
+            "title": "Markings",
+            "description": "How deductions about the rule are labeled by the solver.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "rules",
+          "visuals"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}
