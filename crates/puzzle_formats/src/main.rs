@@ -30,7 +30,7 @@ fn main() -> std::io::Result<()> {
     // let response = client
     //     .request(reqwest::Method::GET, "https://tinyurl.com/2b5dwuy3")
     //     .send()
-    //     .;
+    //     ;
 
     Ok(())
 }

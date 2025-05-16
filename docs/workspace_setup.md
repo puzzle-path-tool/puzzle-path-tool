@@ -36,6 +36,7 @@ cargo install cargo-nextest
         "editor.formatOnPaste": true
     },
     "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.diagnostics.disabled": ["inactive-code"],
     "todo-tree.general.tags": [
         "BUG",
         "HACK",
