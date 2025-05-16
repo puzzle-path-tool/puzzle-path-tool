@@ -2,6 +2,9 @@ use std::error::Error;
 
 use serde_json::Value;
 use url::Url;
+use url_fetcher::{BlockingUrlFetcher, UrlFetcher};
+
+pub mod url_fetcher;
 
 pub enum FPuzzlesURL {
     // https://[www].f-puzzles.com/?load=FPUZZLESID
@@ -100,72 +103,28 @@ pub enum UnresolvedUrl {
 
 impl UnresolvedUrl {
     #[allow(clippy::missing_errors_doc)]
-    pub async fn resolve(&self) -> Result<ResolvedUrl, Box<dyn Error>> {
+    pub async fn resolve<F>(&self, fetcher: &F) -> Result<ResolvedUrl, Box<dyn Error + Send + Sync>>
+    where
+        F: UrlFetcher,
+    {
         let url = Url::parse("https://localhost:8080")?; // https://tinyurl.com/2b5dwuy3
-        let _value = Self::fetch_redirect_url(url.clone()).await?;
-        let _value2 = Self::fetch_result(url).await?;
+        let _value = fetcher.fetch_redirect_url(url.clone()).await?;
+        let _value2 = fetcher.fetch_result(url).await?;
         todo!(
             "Only one value will be requested and processed based on url and maybe even options param"
         )
     }
 
-    //TODO: extract Fetching into a Fetcher / AsyncFetcher, which can be plugged, provide default wrapper. resolve / resolve_with<F: UrlFetcher>
-    // Maybe make Reqwest a feature, and the default method uses the active feature
-    // Then only the default methods are gated behind features, the others can be accessed without any features, both blocking and async
-    async fn fetch_redirect_url(url: Url) -> Result<Url, Box<dyn Error>> {
-        let client = reqwest::ClientBuilder::new()
-            .redirect(reqwest::redirect::Policy::none())
-            .build()?;
-
-        let response = client.request(reqwest::Method::GET, url).send().await?;
-
-        Ok(response.url().to_owned())
-    }
-
-    async fn fetch_result(url: Url) -> Result<Box<str>, Box<dyn Error>> {
-        let client = reqwest::ClientBuilder::new()
-            .redirect(reqwest::redirect::Policy::limited(10))
-            .build()?;
-
-        let response = client.request(reqwest::Method::GET, url).send().await?;
-
-        let text = response.text().await?;
-
-        Ok(text.into_boxed_str())
-    }
-}
-
-#[cfg(feature = "blocking")]
-impl UnresolvedUrl {
     #[allow(clippy::missing_errors_doc)]
-    pub fn resolve_blocking(&self) -> Result<ResolvedUrl, Box<dyn Error>> {
+    pub fn resolve_blocking<F>(&self, fetcher: &F) -> Result<ResolvedUrl, Box<dyn Error>>
+    where
+        F: BlockingUrlFetcher,
+    {
         let url = Url::parse("https://localhost:8080")?; // https://tinyurl.com/2b5dwuy3
-        let _value = Self::fetch_redirect_url_blocking(url.clone())?;
-        let _value2 = Self::fetch_result_blocking(url)?;
+        let _value = fetcher.fetch_redirect_url(url.clone())?;
+        let _value2 = fetcher.fetch_result(url)?;
         todo!(
             "Only one value will be requested and processed based on url and maybe even options param"
         )
-    }
-
-    fn fetch_redirect_url_blocking(url: Url) -> Result<Url, Box<dyn Error>> {
-        let client = reqwest::blocking::ClientBuilder::new()
-            .redirect(reqwest::redirect::Policy::none())
-            .build()?;
-
-        let response = client.request(reqwest::Method::GET, url).send()?;
-
-        Ok(response.url().to_owned())
-    }
-
-    fn fetch_result_blocking(url: Url) -> Result<Box<str>, Box<dyn Error>> {
-        let client = reqwest::blocking::ClientBuilder::new()
-            .redirect(reqwest::redirect::Policy::limited(10))
-            .build()?;
-
-        let response = client.request(reqwest::Method::GET, url).send()?;
-
-        let text = response.text()?;
-
-        Ok(text.into_boxed_str())
     }
 }
