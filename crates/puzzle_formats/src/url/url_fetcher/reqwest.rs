@@ -1,27 +1,29 @@
-#[cfg(any(feature = "reqwest", feature = "reqwest-blocking"))]
-mod reqwest_fetcher {
-    pub use crate::url::url_fetcher::BlockingUrlFetcher;
-    pub use crate::url::url_fetcher::UrlFetcher;
-    pub use async_trait::async_trait;
-    pub use std::error::Error;
-    pub use url::Url;
+#![cfg(any(feature = "reqwest", feature = "reqwest-blocking"))]
 
-    pub struct ReqwestUrlFetcher {}
+pub struct ReqwestUrlFetcher {}
 
-    impl ReqwestUrlFetcher {
-        #[must_use]
-        pub fn new() -> Self {
-            ReqwestUrlFetcher {}
-        }
+impl ReqwestUrlFetcher {
+    #[must_use]
+    pub const fn new() -> Self {
+        ReqwestUrlFetcher {}
     }
+}
 
-    impl Default for ReqwestUrlFetcher {
-        fn default() -> Self {
-            Self::new()
-        }
+impl Default for ReqwestUrlFetcher {
+    fn default() -> Self {
+        Self::new()
     }
+}
 
-    #[cfg(feature = "reqwest")]
+#[cfg(feature = "reqwest")]
+mod reqwest_async {
+    use crate::url::url_fetcher::UrlFetcher;
+    use async_trait::async_trait;
+    use std::error::Error;
+    use url::Url;
+
+    use super::ReqwestUrlFetcher;
+
     #[async_trait]
     impl UrlFetcher for ReqwestUrlFetcher {
         async fn fetch_redirect_url(&self, url: Url) -> Result<Url, Box<dyn Error + Send + Sync>> {
@@ -46,8 +48,16 @@ mod reqwest_fetcher {
             Ok(text.into_boxed_str())
         }
     }
+}
 
-    #[cfg(feature = "reqwest-blocking")]
+#[cfg(feature = "reqwest-blocking")]
+mod reqwest_blocking {
+    use crate::url::url_fetcher::BlockingUrlFetcher;
+    use std::error::Error;
+    use url::Url;
+
+    use super::ReqwestUrlFetcher;
+
     impl BlockingUrlFetcher for ReqwestUrlFetcher {
         fn fetch_redirect_url(&self, url: Url) -> Result<Url, Box<dyn Error>> {
             let client = reqwest::blocking::ClientBuilder::new()
@@ -72,6 +82,3 @@ mod reqwest_fetcher {
         }
     }
 }
-
-#[cfg(any(feature = "reqwest", feature = "reqwest-blocking"))]
-pub use reqwest_fetcher::*;
