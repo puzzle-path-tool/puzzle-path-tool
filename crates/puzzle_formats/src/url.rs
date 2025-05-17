@@ -61,7 +61,9 @@ pub fn decode_url(url: &str) -> Value {
 }
 
 pub struct PuzzleFormat {}
-pub struct SomeError {}
+pub enum SomeError {
+    SomeError,
+}
 
 pub enum UrlValue {
     Resolved(ResolvedUrl),
@@ -70,8 +72,59 @@ pub enum UrlValue {
 
 impl UrlValue {
     #[allow(clippy::missing_errors_doc)]
-    pub fn parse(_url: &str) -> Result<Self, SomeError> {
-        todo!()
+    pub fn parse(url: &Url) -> Result<Self, SomeError> {
+        if !matches!(url.scheme(), "http" | "https") {
+            return Err(SomeError::SomeError);
+        }
+
+        let Some(domain) = url.domain() else {
+            return Err(SomeError::SomeError);
+        };
+
+        let Some(mut segments) = url.path_segments() else {
+            return Err(SomeError::SomeError);
+        };
+
+        let mut _query_pairs = url.query_pairs();
+
+        match domain {
+            "sudokupad.app" | "alpha.sudokupad.app" | "beta.sudokupad.app" => {
+                // If it has the query param `puzzleid`, read it
+                // Ignore other params
+                // else
+                // => if the first segment is `sudoku`, read all other segments and join them with '/'
+                // => else read all segments and join them with '/'
+
+                // The resulting id follows the format
+                // SHORTID  or  (fpuz|fpuzzles)FPUZZLESID  or  (scl|ctc)SUDOKUPADID  or  (scf)SCFID
+
+                todo!()
+            }
+            "f-puzzles.com" | "www.f-puzzles.com" => {
+                // No segments
+                // Check only first Query Param
+                // => id = ShortID
+                // => load = LongID
+                // Ignore further Params
+                todo!()
+            }
+            "sudokumaker.app" => {
+                // Ignore Segments
+                // Ignore other Params
+                // Read `puzzle` Param
+                todo!()
+            }
+            "swaroopg92.github.io" => {
+                // Segments exact ["penpa-edit"]
+                // Accepts either query params or fragments formatted the same ["#", "?", "#?", "?#"]
+
+                if segments.next() != Some("penpa-edit") {
+                    return Err(SomeError::SomeError);
+                }
+                todo!()
+            }
+            _ => Err(SomeError::SomeError),
+        }
     }
 }
 
