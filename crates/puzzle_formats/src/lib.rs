@@ -6,3 +6,5 @@ pub mod serialization;
 pub mod sudokumaker;
 pub mod sudokupad;
 pub mod url;
+
+mod thread_test;

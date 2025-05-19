@@ -31,6 +31,7 @@ workspace = true
 [dependencies]
 async-trait = "0.1.88"
 ctreg = "1.0.3"
+itertools = "0.14.0"
 lz-str = "0.2.1"
 num_enum = "0.7.3"
 puzzle-core = { workspace = true }

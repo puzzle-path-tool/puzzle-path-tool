@@ -1,5 +1,6 @@
-use std::error::Error;
+use std::{borrow::Cow, error::Error};
 
+use itertools::Itertools;
 use serde_json::Value;
 use url::Url;
 use url_fetcher::{BlockingUrlFetcher, UrlFetcher};
@@ -74,56 +75,80 @@ impl UrlValue {
     #[allow(clippy::missing_errors_doc)]
     pub fn parse(url: &Url) -> Result<Self, SomeError> {
         if !matches!(url.scheme(), "http" | "https") {
-            return Err(SomeError::SomeError);
+            return Err(SomeError::SomeError); // Invalid Schema
         }
 
         let Some(domain) = url.domain() else {
-            return Err(SomeError::SomeError);
+            return Err(SomeError::SomeError); // No Domain
         };
 
         let Some(mut segments) = url.path_segments() else {
-            return Err(SomeError::SomeError);
+            return Err(SomeError::SomeError); // No Domain
         };
 
-        let mut _query_pairs = url.query_pairs();
+        let mut query_pairs = url.query_pairs();
 
         match domain {
             "sudokupad.app" | "alpha.sudokupad.app" | "beta.sudokupad.app" => {
-                // If it has the query param `puzzleid`, read it
-                // Ignore other params
-                // else
-                // => if the first segment is `sudoku`, read all other segments and join them with '/'
-                // => else read all segments and join them with '/'
+                let puzzleid = query_pairs.find_map(|(k, v)| (k == "puzzleid").then_some(v));
+
+                let puzzleid = puzzleid.unwrap_or_else(|| {
+                    let mut segments = segments.peekable();
+
+                    if segments.peek() == Some(&"sudoku") {
+                        segments.next();
+                    }
+
+                    let puzzleid = segments.join("/");
+                    Cow::Owned(puzzleid)
+                });
+
+                todo!("load: {puzzleid}");
 
                 // The resulting id follows the format
                 // SHORTID  or  (fpuz|fpuzzles)FPUZZLESID  or  (scl|ctc)SUDOKUPADID  or  (scf)SCFID
-
-                todo!()
             }
             "f-puzzles.com" | "www.f-puzzles.com" => {
-                // No segments
-                // Check only first Query Param
-                // => id = ShortID
-                // => load = LongID
-                // Ignore further Params
-                todo!()
+                if let Some(_segment) = segments.next() {
+                    return Err(SomeError::SomeError); // Unknown Page
+                }
+
+                let Some((k, v)) = query_pairs.next() else {
+                    return Err(SomeError::SomeError); // Missing Id
+                };
+
+                match k.as_ref() {
+                    "id" => {
+                        let puzzleid = v;
+                        todo!("load Short: {puzzleid}");
+                    }
+                    "load" => {
+                        let puzzleid = v;
+                        todo!("load Long: {puzzleid}");
+                    }
+                    _k => Err(SomeError::SomeError), // Missing Id
+                }
             }
             "sudokumaker.app" => {
-                // Ignore Segments
-                // Ignore other Params
-                // Read `puzzle` Param
-                todo!()
+                let puzzleid = query_pairs.find_map(|(k, v)| (k == "puzzle").then_some(v));
+
+                let Some(puzzleid) = puzzleid else {
+                    return Err(SomeError::SomeError); // Missing Id
+                };
+
+                todo!("load: {puzzleid}");
             }
             "swaroopg92.github.io" => {
-                // Segments exact ["penpa-edit"]
-                // Accepts either query params or fragments formatted the same ["#", "?", "#?", "?#"]
-
-                if segments.next() != Some("penpa-edit") {
-                    return Err(SomeError::SomeError);
+                if !(segments.next() == Some("penpa-edit") && segments.next().is_none()) {
+                    return Err(SomeError::SomeError); // Unknown Site
                 }
-                todo!()
+
+                todo!("Dont load for now");
+
+                // Accepts either query params or fragments formatted the same ["#", "?", "#?", "?#"]
+                // Just ignore this without parsing for now
             }
-            _ => Err(SomeError::SomeError),
+            _ => Err(SomeError::SomeError), // Unknown Site
         }
     }
 }
