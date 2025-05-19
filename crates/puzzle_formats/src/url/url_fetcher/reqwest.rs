@@ -31,9 +31,18 @@ mod reqwest_async {
                 .redirect(reqwest::redirect::Policy::none())
                 .build()?;
 
-            let response = client.request(reqwest::Method::GET, url).send().await?;
+            let response = client
+                .request(reqwest::Method::GET, url.clone())
+                .send()
+                .await?;
 
-            Ok(response.url().to_owned())
+            let location = response
+                .headers()
+                .get(reqwest::header::LOCATION)
+                .ok_or("No Redirect")?;
+            let url = url.join(location.to_str()?)?;
+
+            Ok(url)
         }
 
         async fn fetch_result(&self, url: Url) -> Result<Box<str>, Box<dyn Error + Send + Sync>> {
@@ -64,9 +73,15 @@ mod reqwest_blocking {
                 .redirect(reqwest::redirect::Policy::none())
                 .build()?;
 
-            let response = client.request(reqwest::Method::GET, url).send()?;
+            let response = client.request(reqwest::Method::GET, url.clone()).send()?;
 
-            Ok(response.url().to_owned())
+            let location = response
+                .headers()
+                .get(reqwest::header::LOCATION)
+                .ok_or("No Redirect")?;
+            let url = url.join(location.to_str()?)?;
+
+            Ok(url)
         }
 
         fn fetch_result(&self, url: Url) -> Result<Box<str>, Box<dyn Error>> {
