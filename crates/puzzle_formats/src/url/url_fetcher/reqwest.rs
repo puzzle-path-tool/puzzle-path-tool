@@ -31,10 +31,7 @@ mod reqwest_async {
                 .redirect(reqwest::redirect::Policy::none())
                 .build()?;
 
-            let response = client
-                .request(reqwest::Method::GET, url.clone())
-                .send()
-                .await?;
+            let response = client.get(url.clone()).send().await?;
 
             let location = response
                 .headers()
@@ -50,7 +47,7 @@ mod reqwest_async {
                 .redirect(reqwest::redirect::Policy::limited(10))
                 .build()?;
 
-            let response = client.request(reqwest::Method::GET, url).send().await?;
+            let response = client.get(url).send().await?;
 
             let text = response.text().await?;
 
@@ -73,7 +70,7 @@ mod reqwest_blocking {
                 .redirect(reqwest::redirect::Policy::none())
                 .build()?;
 
-            let response = client.request(reqwest::Method::GET, url.clone()).send()?;
+            let response = client.get(url.clone()).send()?;
 
             let location = response
                 .headers()
@@ -89,7 +86,7 @@ mod reqwest_blocking {
                 .redirect(reqwest::redirect::Policy::limited(10))
                 .build()?;
 
-            let response = client.request(reqwest::Method::GET, url).send()?;
+            let response = client.get(url).send()?;
 
             let text = response.text()?;
 
