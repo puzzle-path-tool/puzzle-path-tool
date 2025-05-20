@@ -7,54 +7,14 @@ use url_fetcher::{BlockingUrlFetcher, UrlFetcher};
 
 pub mod url_fetcher;
 
-pub enum FPuzzlesURL {
-    // https://[www].f-puzzles.com/?load=FPUZZLESID
-    Normal(String),
-
-    // https://f-puzzles.com/?id=TINYURLID
-    // get the redirect from https://tinyurl.com/TINYURLID OR the url itself (f-puzzles does not do any safety check, for the redirect)
-    Shortened(String),
-}
-
-pub enum SudokuPadUrl {
-    // https://sudokupad.app/ANYTHING?puzzleid=ANYSUDOKUPADID
-    // https://sudokupad.app/sudoku/ANYSUDOKUPADID
-    // https://sudokupad.app/ANYSUDOKUPADID
-
-    // ANYSUDOKUPADID = SHORTID // (fpuz|fpuzzles)FPUZZLESID // (scl|ctc)SUDOKUPADID
-    Scl(String),
-    FPuz(String),
-
-    // get the correct id as text response from https://sudokupad.app/api/puzzle/SHORTID
-    Shortened(String),
-}
-
-impl SudokuPadUrl {
-    fn from_full_id(full_id: &str) -> Self {
-        if full_id.len() > 20 {
-            SudokuPadUrl::Scl(String::new())
-        } else {
-            SudokuPadUrl::Shortened(String::new())
-        }
-    }
-}
-
-pub enum PuzzleUrl {
-    SudokuPad(SudokuPadUrl),
-    FPuzzles(FPuzzlesURL),
-    // sudokumaker.app/?puzzle=SUDOKUMAKERID
-    SudokuMakerURL(String),
-    // https://swaroopg92.github.io/penpa-edit/ANY
-    PenpaUrl(String),
-}
-
 /// .
 ///
 /// # Panics
 ///
 /// Panics if .
 #[must_use]
-pub fn decode_url(url: &str) -> Value {
+#[deprecated]
+pub fn old_decode_url(url: &str) -> Value {
     let bytes = lz_str::decompress_from_base64(url).unwrap_or_else(|| panic!("Could not decode"));
     let json_str = String::from_utf16(&bytes).unwrap_or_else(|e| panic!("No Utf8: {e}"));
 
@@ -62,8 +22,17 @@ pub fn decode_url(url: &str) -> Value {
 }
 
 pub struct PuzzleFormat {}
-pub enum SomeError {
-    SomeError,
+
+#[derive(Debug, thiserror::Error)]
+pub enum ParseError {
+    #[error("Invalid Url Scheme: {0}")]
+    InvalidScheme(Box<str>),
+    #[error("No Domain could be extracted from Url: {0}")]
+    NoDomain(Box<Url>),
+    #[error("Unknown Page at Url: {0}")]
+    UnknownPage(Box<Url>),
+    #[error("No Id could be extracted from Url: {0}")]
+    MissingId(Box<Url>),
 }
 
 pub enum UrlValue {
@@ -72,18 +41,26 @@ pub enum UrlValue {
 }
 
 impl UrlValue {
+    fn resolved(inner: ResolvedUrlInner) -> Self {
+        Self::Resolved(ResolvedUrl::new(inner))
+    }
+
+    fn unresolved(inner: UnresolvedUrlInner) -> Self {
+        Self::Unresolved(UnresolvedUrl::new(inner))
+    }
+
     #[allow(clippy::missing_errors_doc)]
-    pub fn parse(url: &Url) -> Result<Self, SomeError> {
+    pub fn parse(url: &Url) -> Result<Self, ParseError> {
         if !matches!(url.scheme(), "http" | "https") {
-            return Err(SomeError::SomeError); // Invalid Schema
+            return Err(ParseError::InvalidScheme(url.scheme().into()));
         }
 
         let Some(domain) = url.domain() else {
-            return Err(SomeError::SomeError); // No Domain
+            return Err(ParseError::NoDomain(url.clone().into()));
         };
 
         let Some(mut segments) = url.path_segments() else {
-            return Err(SomeError::SomeError); // No Domain
+            return Err(ParseError::NoDomain(url.clone().into()));
         };
 
         let mut query_pairs = url.query_pairs();
@@ -103,106 +80,207 @@ impl UrlValue {
                     Cow::Owned(puzzleid)
                 });
 
-                todo!("load: {puzzleid}");
+                if let Some(puzzleid) = puzzleid
+                    .strip_prefix("fpuzzles")
+                    .or_else(|| puzzleid.strip_prefix("fpuz"))
+                {
+                    return Ok(Self::resolved(ResolvedUrlInner::SudokuPad(
+                        SudokuPadFullUrl::FPuz(puzzleid.into()),
+                    )));
+                }
 
-                // The resulting id follows the format
-                // SHORTID  or  (fpuz|fpuzzles)FPUZZLESID  or  (scl|ctc)SUDOKUPADID  or  (scf)SCFID
+                if let Some(puzzleid) = puzzleid
+                    .strip_prefix("scl")
+                    .or_else(|| puzzleid.strip_prefix("ctc"))
+                {
+                    return Ok(Self::resolved(ResolvedUrlInner::SudokuPad(
+                        SudokuPadFullUrl::Scl(puzzleid.into()),
+                    )));
+                }
+
+                if let Some(puzzleid) = puzzleid.strip_prefix("scf") {
+                    return Ok(Self::resolved(ResolvedUrlInner::SudokuPad(
+                        SudokuPadFullUrl::Scf(puzzleid.into()),
+                    )));
+                }
+
+                Ok(Self::unresolved(UnresolvedUrlInner::SudokuPad(
+                    puzzleid.into(),
+                )))
             }
             "f-puzzles.com" | "www.f-puzzles.com" => {
-                if let Some(_segment) = segments.next() {
-                    return Err(SomeError::SomeError); // Unknown Page
+                if segments.next().is_some() {
+                    return Err(ParseError::UnknownPage(url.clone().into()));
                 }
 
                 let Some((k, v)) = query_pairs.next() else {
-                    return Err(SomeError::SomeError); // Missing Id
+                    return Err(ParseError::MissingId(url.clone().into()));
                 };
 
                 match k.as_ref() {
                     "id" => {
                         let puzzleid = v;
-                        todo!("load Short: {puzzleid}");
+                        Ok(Self::unresolved(UnresolvedUrlInner::FPuzzles(
+                            puzzleid.into_owned().into(),
+                        )))
                     }
                     "load" => {
                         let puzzleid = v;
-                        todo!("load Long: {puzzleid}");
+                        Ok(Self::resolved(ResolvedUrlInner::FPuzzles(
+                            puzzleid.into_owned().into(),
+                        )))
                     }
-                    _k => Err(SomeError::SomeError), // Missing Id
+                    _k => Err(ParseError::MissingId(url.clone().into())),
                 }
             }
             "sudokumaker.app" => {
                 let puzzleid = query_pairs.find_map(|(k, v)| (k == "puzzle").then_some(v));
 
                 let Some(puzzleid) = puzzleid else {
-                    return Err(SomeError::SomeError); // Missing Id
+                    return Err(ParseError::MissingId(url.clone().into()));
                 };
 
-                todo!("load: {puzzleid}");
+                Ok(Self::resolved(ResolvedUrlInner::SudokuMaker(
+                    puzzleid.into_owned().into_boxed_str(),
+                )))
             }
             "swaroopg92.github.io" => {
                 if !(segments.next() == Some("penpa-edit") && segments.next().is_none()) {
-                    return Err(SomeError::SomeError); // Unknown Site
+                    return Ok(Self::unresolved(UnresolvedUrlInner::Unknown(
+                        url.clone().into(),
+                    )));
                 }
 
-                todo!("Dont load for now");
-
-                // Accepts either query params or fragments formatted the same ["#", "?", "#?", "?#"]
-                // Just ignore this without parsing for now
+                Ok(Self::resolved(ResolvedUrlInner::Penpa(url.clone().into())))
             }
-            _ => Err(SomeError::SomeError), // Unknown Site
+            _ => Ok(Self::unresolved(UnresolvedUrlInner::Unknown(Box::new(
+                url.clone(),
+            )))),
         }
     }
 }
 
-pub enum ResolvedUrl {
-    FPuzzles(Box<str>),
-    SudokuPad(SudokuPadFullUrl),
-    SudokuMaker(Box<str>),
-    Penpa(Box<str>),
+pub struct ResolvedUrl {
+    inner: ResolvedUrlInner,
 }
 
 impl ResolvedUrl {
+    fn new(inner: ResolvedUrlInner) -> Self {
+        Self { inner }
+    }
+
     #[allow(clippy::missing_errors_doc)]
-    pub fn decode(&self) -> Result<PuzzleFormat, SomeError> {
+    pub fn decode(&self) -> Result<PuzzleFormat, Box<dyn Error>> {
         todo!()
     }
 }
 
-pub enum SudokuPadFullUrl {
+enum ResolvedUrlInner {
+    FPuzzles(Box<str>),
+    SudokuPad(SudokuPadFullUrl),
+    SudokuMaker(Box<str>),
+    Penpa(Box<Url>),
+}
+
+enum SudokuPadFullUrl {
     Scl(Box<str>),
     Scf(Box<str>),
     FPuz(Box<str>),
 }
 
-pub enum UnresolvedUrl {
-    FPuzzles(Box<str>),
-    SudokuPad(Box<str>),
-    Unknown(Box<str>),
+pub struct UnresolvedUrl {
+    inner: UnresolvedUrlInner,
 }
 
+#[derive(Debug, Default)]
+pub struct ResolutionOptions {}
+
 impl UnresolvedUrl {
+    fn new(inner: UnresolvedUrlInner) -> Self {
+        Self { inner }
+    }
+
     #[allow(clippy::missing_errors_doc)]
-    pub async fn resolve<F>(&self, fetcher: &F) -> Result<ResolvedUrl, Box<dyn Error + Send + Sync>>
+    pub async fn resolve<F>(
+        &self,
+        fetcher: &F,
+        _options: &ResolutionOptions,
+    ) -> Result<ResolvedUrl, Box<dyn Error + Send + Sync>>
     where
         F: UrlFetcher,
     {
-        let url = Url::parse("https://localhost:8080")?; // https://tinyurl.com/2b5dwuy3
-        let _value = fetcher.fetch_redirect_url(url.clone()).await?;
-        let _value2 = fetcher.fetch_result(url).await?;
+        use ResolutionStep as R;
+
+        match self.resolution_step()? {
+            R::FetchRedirectUrl(url) => {
+                let _value = fetcher.fetch_redirect_url(url.clone()).await?;
+            }
+            R::FetchResult(url) => {
+                let _value = fetcher.fetch_result(url).await?;
+            }
+        }
+
         todo!(
             "Only one value will be requested and processed based on url and maybe even options param"
         )
     }
 
+    #[allow(clippy::expect_used)]
     #[allow(clippy::missing_errors_doc)]
-    pub fn resolve_blocking<F>(&self, fetcher: &F) -> Result<ResolvedUrl, Box<dyn Error>>
+    #[allow(clippy::missing_panics_doc)]
+    pub fn resolve_blocking<F>(
+        &self,
+        fetcher: &F,
+        _options: &ResolutionOptions,
+    ) -> Result<ResolvedUrl, Box<dyn Error>>
     where
         F: BlockingUrlFetcher,
     {
-        let url = Url::parse("https://localhost:8080")?; // https://tinyurl.com/2b5dwuy3
-        let _value = fetcher.fetch_redirect_url(url.clone())?;
-        let _value2 = fetcher.fetch_result(url)?;
+        use ResolutionStep as R;
+
+        match self.resolution_step().expect("msg") {
+            R::FetchRedirectUrl(url) => {
+                let _value = fetcher.fetch_redirect_url(url.clone())?;
+            }
+            R::FetchResult(url) => {
+                let _value = fetcher.fetch_result(url)?;
+            }
+        }
+
         todo!(
             "Only one value will be requested and processed based on url and maybe even options param"
         )
     }
+
+    fn resolution_step(&self) -> Result<ResolutionStep, Box<dyn Error + Send + Sync>> {
+        use ResolutionStep as R;
+        use UnresolvedUrlInner as U;
+
+        match &self.inner {
+            U::FPuzzles(id) => {
+                let url = Url::parse(format!("https://tinyurl.com/{id}").as_str())?;
+                Ok(R::FetchRedirectUrl(url))
+            }
+            U::SudokuPad(id) => {
+                let url = Url::parse(format!("https://sudokupad.app/api/puzzle/{id}").as_str())?;
+                Ok(R::FetchResult(url))
+            }
+            U::Unknown(url) => Ok(R::FetchRedirectUrl(*url.clone())),
+        }
+    }
+}
+
+enum ResolutionStep {
+    FetchResult(Url),
+    FetchRedirectUrl(Url),
+}
+
+enum UnresolvedUrlInner {
+    // https://f-puzzles.com/?id=TINYURLID
+    // get the redirect from https://tinyurl.com/TINYURLID OR the url itself (f-puzzles does not do any safety check, for the redirect)
+    FPuzzles(Box<str>),
+    // get the correct id as text response from https://sudokupad.app/api/puzzle/SHORTID
+    SudokuPad(Box<str>),
+    // Just resolve Redirect
+    Unknown(Box<Url>),
 }

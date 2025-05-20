@@ -3,7 +3,8 @@ use std::{
     io::Write,
 };
 
-use puzzle_formats::{fpuzzles::FPuzzlesFormat, url::decode_url};
+#[allow(deprecated)]
+use puzzle_formats::{fpuzzles::FPuzzlesFormat, url::old_decode_url};
 
 fn main() -> std::io::Result<()> {
     fs::create_dir_all("generated")?;
@@ -11,7 +12,8 @@ fn main() -> std::io::Result<()> {
     let mut struct_file = File::create("generated/json_struct.txt")?;
     let mut value_out_file = File::create("generated/json_value_out.txt")?;
 
-    let value = decode_url(include_str!("../assets/puzzleid.txt").trim());
+    #[allow(deprecated)]
+    let value = old_decode_url(include_str!("../assets/puzzleid.txt").trim());
 
     value_file.write_all(serde_json::to_string_pretty(&value)?.as_bytes())?;
 
