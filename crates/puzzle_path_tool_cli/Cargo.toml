@@ -41,6 +41,8 @@ puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
 puzzle-path-tool = { workspace = true }
+tokio = "1.45.0"
+tokio-stream = "0.1.17"
 
 [build-dependencies]
 puzzle-core-build = { workspace = true }
