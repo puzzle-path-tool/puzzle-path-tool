@@ -164,14 +164,41 @@ pub struct ResolvedUrl {
     inner: ResolvedUrlInner,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum DecodeError {
+    #[error("Placeholder Error")]
+    Placeholder,
+}
+
 impl ResolvedUrl {
     fn new(inner: ResolvedUrlInner) -> Self {
         Self { inner }
     }
 
     #[allow(clippy::missing_errors_doc)]
-    pub fn decode(&self) -> Result<PuzzleFormat, Box<dyn Error>> {
-        todo!()
+    pub fn decode(&self) -> Result<PuzzleFormat, DecodeError> {
+        match &self.inner {
+            ResolvedUrlInner::FPuzzles(id) => {
+                todo!("{id}")
+            }
+            ResolvedUrlInner::SudokuPad(full_url) => match full_url {
+                SudokuPadFullUrl::FPuz(id) => {
+                    todo!("{id}")
+                }
+                SudokuPadFullUrl::Scl(id) => {
+                    todo!("{id}")
+                }
+                SudokuPadFullUrl::Scf(id) => {
+                    todo!("{id}")
+                }
+            },
+            ResolvedUrlInner::SudokuMaker(id) => {
+                todo!("{id}")
+            }
+            ResolvedUrlInner::Penpa(id) => {
+                todo!("{id}")
+            }
+        }
     }
 }
 
