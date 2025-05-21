@@ -7,13 +7,17 @@ pub mod reqwest;
 
 #[async_trait]
 pub trait UrlFetcher {
-    async fn fetch_redirect_url(&self, url: Url) -> Result<Url, Box<dyn Error + Send + Sync>>;
-    async fn fetch_result(&self, url: Url) -> Result<Box<str>, Box<dyn Error + Send + Sync>>;
+    type Error: Error + Send + Sync + 'static;
+
+    async fn fetch_redirect_url(&self, url: Url) -> Result<Option<Url>, Self::Error>;
+    async fn fetch_result(&self, url: Url) -> Result<Box<str>, Self::Error>;
 }
 
 pub trait BlockingUrlFetcher {
+    type Error: Error + 'static;
+
     #[allow(clippy::missing_errors_doc)]
-    fn fetch_redirect_url(&self, url: Url) -> Result<Url, Box<dyn Error>>;
+    fn fetch_redirect_url(&self, url: Url) -> Result<Option<Url>, Self::Error>;
     #[allow(clippy::missing_errors_doc)]
-    fn fetch_result(&self, url: Url) -> Result<Box<str>, Box<dyn Error>>;
+    fn fetch_result(&self, url: Url) -> Result<Box<str>, Self::Error>;
 }

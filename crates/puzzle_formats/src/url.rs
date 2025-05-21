@@ -192,6 +192,14 @@ pub struct UnresolvedUrl {
     inner: UnresolvedUrlInner,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum ResolutionError<E: Error> {
+    #[error("Fetcher Error: {0}")]
+    Fetcher(#[from] E),
+    #[error("Puzzle Id could not be inserted into Url: {0}")]
+    MalformedId(#[source] url::ParseError),
+}
+
 #[derive(Debug, Default)]
 pub struct ResolutionOptions {}
 
@@ -201,17 +209,21 @@ impl UnresolvedUrl {
     }
 
     #[allow(clippy::missing_errors_doc)]
-    pub async fn resolve<F>(
+    pub async fn resolve<F, E>(
         &self,
         fetcher: &F,
         _options: &ResolutionOptions,
-    ) -> Result<ResolvedUrl, Box<dyn Error + Send + Sync>>
+    ) -> Result<ResolvedUrl, ResolutionError<E>>
     where
-        F: UrlFetcher,
+        F: UrlFetcher<Error = E>,
+        E: Error + Send + Sync + 'static,
     {
         use ResolutionStep as R;
 
-        match self.resolution_step()? {
+        match self
+            .resolution_step()
+            .map_err(ResolutionError::MalformedId)?
+        {
             R::FetchRedirectUrl(url) => {
                 let _value = fetcher.fetch_redirect_url(url.clone()).await?;
             }
@@ -225,20 +237,22 @@ impl UnresolvedUrl {
         )
     }
 
-    #[allow(clippy::expect_used)]
     #[allow(clippy::missing_errors_doc)]
-    #[allow(clippy::missing_panics_doc)]
-    pub fn resolve_blocking<F>(
+    pub fn resolve_blocking<F, E>(
         &self,
         fetcher: &F,
         _options: &ResolutionOptions,
-    ) -> Result<ResolvedUrl, Box<dyn Error>>
+    ) -> Result<ResolvedUrl, ResolutionError<E>>
     where
-        F: BlockingUrlFetcher,
+        F: BlockingUrlFetcher<Error = E>,
+        E: Error + 'static,
     {
         use ResolutionStep as R;
 
-        match self.resolution_step().expect("msg") {
+        match self
+            .resolution_step()
+            .map_err(ResolutionError::MalformedId)?
+        {
             R::FetchRedirectUrl(url) => {
                 let _value = fetcher.fetch_redirect_url(url.clone())?;
             }
@@ -252,7 +266,7 @@ impl UnresolvedUrl {
         )
     }
 
-    fn resolution_step(&self) -> Result<ResolutionStep, Box<dyn Error + Send + Sync>> {
+    fn resolution_step(&self) -> Result<ResolutionStep, url::ParseError> {
         use ResolutionStep as R;
         use UnresolvedUrlInner as U;
 
