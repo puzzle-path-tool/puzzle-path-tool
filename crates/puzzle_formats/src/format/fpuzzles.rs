@@ -1,4 +1,4 @@
-use super::serialization::{is_default, is_empty};
+use crate::serialization::{is_default, is_empty};
 use constraint::Constraint;
 use cosmetic::Cosmetic;
 use grid_cell::GridCell;

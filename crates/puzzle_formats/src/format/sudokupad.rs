@@ -1,4 +1,4 @@
-use super::serialization::is_empty;
+use crate::serialization::is_empty;
 use arrow::Arrow;
 use cage::Cage;
 use cell::Cell;

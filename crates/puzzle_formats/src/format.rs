@@ -1,3 +1,8 @@
+pub mod fpuzzles;
+pub mod penpa;
+pub mod sudokumaker;
+pub mod sudokupad;
+
 pub trait PuzzleFormat {
     // This trait specifies, how a format is loaded
     // conversion from / to string

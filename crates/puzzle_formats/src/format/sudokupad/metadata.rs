@@ -1,4 +1,4 @@
-use super::super::serialization::is_default;
+use crate::serialization::is_default;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]

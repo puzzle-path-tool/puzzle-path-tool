@@ -4,7 +4,7 @@ use std::{
 };
 
 #[allow(deprecated)]
-use puzzle_formats::{fpuzzles::FPuzzlesFormat, url::old_decode_url};
+use puzzle_formats::{format::fpuzzles::FPuzzlesFormat, url::old_decode_url};
 
 fn main() -> std::io::Result<()> {
     fs::create_dir_all("generated")?;
