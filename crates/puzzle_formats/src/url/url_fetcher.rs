@@ -3,7 +3,10 @@ use std::error::Error;
 use async_trait::async_trait;
 use url::Url;
 
+pub mod cache;
+pub mod map_err;
 pub mod reqwest;
+pub mod rusqlite;
 
 #[async_trait]
 pub trait UrlFetcher {
