@@ -7,6 +7,7 @@ pub mod cache;
 pub mod map_err;
 pub mod reqwest;
 pub mod rusqlite;
+pub mod tokio;
 
 #[async_trait]
 pub trait UrlFetcher {
