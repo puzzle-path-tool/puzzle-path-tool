@@ -29,6 +29,34 @@ pub struct CachedFetcher<C, F> {
     fetcher: F,
 }
 
+impl<C, F> CachedFetcher<C, F>
+where
+    C: UrlFetcherCache + Send + Sync,
+    F: UrlFetcher + Send + Sync,
+{
+    pub fn new(cache: C, fetcher: F) -> Self {
+        Self { cache, fetcher }
+    }
+}
+
+pub trait UrlFetcherCacheExt: UrlFetcher + Sized {
+    fn with_cache<C>(self, cache: C) -> CachedFetcher<C, Self>
+    where
+        C: UrlFetcherCache + Send + Sync;
+}
+
+impl<F> UrlFetcherCacheExt for F
+where
+    F: UrlFetcher + Send + Sync,
+{
+    fn with_cache<C>(self, cache: C) -> CachedFetcher<C, Self>
+    where
+        C: UrlFetcherCache + Send + Sync,
+    {
+        CachedFetcher::new(cache, self)
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum CachedFetcherError<CF, CS, F> {
     #[error("Error fetching Cache: {0}")]
