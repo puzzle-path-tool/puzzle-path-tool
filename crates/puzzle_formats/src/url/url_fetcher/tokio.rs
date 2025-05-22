@@ -31,7 +31,7 @@ where
 
     async fn fetch_redirect_url(&self, url: Url) -> Result<Option<Url>, Self::Error> {
         let inner = self.inner.clone();
-        tokio::task::spawn_blocking(move || inner.fetch_redirect_url(url))
+        tokio::task::spawn_blocking(move || inner.fetch_redirect_url_blocking(url))
             .await
             .map_err(|err| TokioFetcherError::JoinError(err.into()))?
             .map_err(|err| TokioFetcherError::FetchError(err.into()))
@@ -39,7 +39,7 @@ where
 
     async fn fetch_result(&self, url: Url) -> Result<Box<str>, Self::Error> {
         let inner = self.inner.clone();
-        tokio::task::spawn_blocking(move || inner.fetch_result(url))
+        tokio::task::spawn_blocking(move || inner.fetch_result_blocking(url))
             .await
             .map_err(|err| TokioFetcherError::JoinError(err.into()))?
             .map_err(|err| TokioFetcherError::FetchError(err.into()))

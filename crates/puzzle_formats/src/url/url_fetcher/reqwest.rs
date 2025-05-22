@@ -82,7 +82,7 @@ mod reqwest_blocking {
     impl BlockingUrlFetcher for ReqwestUrlFetcher {
         type Error = super::Error;
 
-        fn fetch_redirect_url(&self, url: Url) -> super::Result<Option<Url>> {
+        fn fetch_redirect_url_blocking(&self, url: Url) -> super::Result<Option<Url>> {
             let client = reqwest::blocking::ClientBuilder::new()
                 .redirect(reqwest::redirect::Policy::none())
                 .build()?;
@@ -102,7 +102,7 @@ mod reqwest_blocking {
             Ok(Some(url))
         }
 
-        fn fetch_result(&self, url: Url) -> super::Result<Box<str>> {
+        fn fetch_result_blocking(&self, url: Url) -> super::Result<Box<str>> {
             let client = reqwest::blocking::ClientBuilder::new()
                 .redirect(reqwest::redirect::Policy::limited(10))
                 .build()?;

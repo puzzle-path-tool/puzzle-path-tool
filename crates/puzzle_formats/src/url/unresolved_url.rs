@@ -85,10 +85,10 @@ impl UnresolvedUrl {
             .map_err(ResolutionError::MalformedId)?
         {
             R::FetchRedirectUrl(url) => {
-                let _value = fetcher.fetch_redirect_url(url.clone())?;
+                let _value = fetcher.fetch_redirect_url_blocking(url.clone())?;
             }
             R::FetchResult(url) => {
-                let _value = fetcher.fetch_result(url)?;
+                let _value = fetcher.fetch_result_blocking(url)?;
             }
         }
 

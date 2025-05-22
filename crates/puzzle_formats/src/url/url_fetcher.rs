@@ -21,7 +21,7 @@ pub trait BlockingUrlFetcher {
     type Error: Error + 'static;
 
     #[allow(clippy::missing_errors_doc)]
-    fn fetch_redirect_url(&self, url: Url) -> Result<Option<Url>, Self::Error>;
+    fn fetch_redirect_url_blocking(&self, url: Url) -> Result<Option<Url>, Self::Error>;
     #[allow(clippy::missing_errors_doc)]
-    fn fetch_result(&self, url: Url) -> Result<Box<str>, Self::Error>;
+    fn fetch_result_blocking(&self, url: Url) -> Result<Box<str>, Self::Error>;
 }
