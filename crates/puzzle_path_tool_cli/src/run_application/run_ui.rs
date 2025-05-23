@@ -7,6 +7,8 @@ use iced::{
 
 use tokio::sync::mpsc;
 
+use super::{UICommand, UIMessage};
+
 #[derive(Debug)]
 pub(super) struct Flags {
     pub(super) sender: mpsc::Sender<UIMessage>,
@@ -57,15 +59,17 @@ impl State {
         match message {
             Message::Increment => {
                 self.value += 1;
-                self.sender.try_send(UIMessage::MessageFromUI {
+                let e = self.sender.try_send(UIMessage::MessageFromUI {
                     value: String::from_str("Increment").expect("str can't fail"),
                 });
+                println!("{e:?}");
             }
             Message::Decrement => {
                 self.value -= 1;
-                self.sender.try_send(UIMessage::MessageFromUI {
-                    value: String::from_str("Increment").expect("str can't fail"),
+                let e = self.sender.try_send(UIMessage::MessageFromUI {
+                    value: String::from_str("Decrement").expect("str can't fail"),
                 });
+                println!("{e:?}");
             }
             Message::FromStream { command } => {
                 _ = command;
@@ -86,29 +90,17 @@ fn load_icon() -> anyhow::Result<Icon> {
     Ok(icon)
 }
 
-pub fn run(flags: Flags) -> anyhow::Result<()> {
+pub(super) fn run(flags: Flags) {
     println!("Starting Gui...");
-
     let window_settings = window::Settings {
         icon: load_icon().ok(),
         ..Default::default()
     };
-
-    iced::application("Test Window", State::update, State::view)
+    let sender = flags.sender.clone();
+    let _ = iced::application("Test Window", State::update, State::view)
         .window(window_settings)
         .run_with(|| State::new(flags));
-
-    Ok(())
-}
-
-#[derive(Debug, Clone)]
-pub(super) enum UIMessage {
-    //TODO
-    MessageFromUI { value: String },
-}
-
-#[derive(Debug, Clone, Copy)]
-pub(super) enum UICommand {
-    //TODO
-    CommandToUI,
+    //TODO: Errorhandling
+    let _ = sender.try_send(UIMessage::WindowClosed);
+    println!("Gui closed");
 }

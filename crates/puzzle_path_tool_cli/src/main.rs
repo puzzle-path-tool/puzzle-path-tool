@@ -4,8 +4,8 @@ mod commands;
 #[allow(dead_code)]
 mod run_application;
 
-fn main() {
-    //run_application::run();
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
     let args = commands::Cli::parse();
 
     match args.task {
@@ -14,7 +14,7 @@ fn main() {
             input,
             generation_options,
         } => {
-            let application = run_application::ApplicationRunner::new();
+            let mut application = run_application::ApplicationRunner::new();
             match input {
                 commands::Input::PuzzleLua {
                     path,
@@ -22,7 +22,7 @@ fn main() {
                 } => {
                     println!("TODO: Get PuzzleLua file at {path:?}");
                     println!("TODO: Generate Sudoku with {generation_options:?}");
-                    handle_output(output_options, application);
+                    handle_output(output_options, &mut application);
                 }
                 commands::Input::WorkspaceLua {
                     path,
@@ -35,7 +35,7 @@ fn main() {
                     } else {
                         println!("TODO: Generate {puzzlenames:?} with {generation_options:?}");
                     }
-                    handle_output(output_options, application);
+                    handle_output(output_options, &mut application);
                 }
                 commands::Input::FullJson {
                     path,
@@ -43,18 +43,22 @@ fn main() {
                 } => {
                     println!("TODO: Get FullJson at {path:#?}");
                     println!("TODO: Generate Sudoku with {generation_options:?}");
-                    handle_output(output_options, application);
+                    handle_output(output_options, &mut application);
                 }
             }
+
+            let _application = application.join_all_tasks().await;
         }
     }
 }
 
 //TODO add Sudoku field
-fn handle_output(output: commands::OutputOptions, mut application: run_application::ApplicationRunner) {
-    #[allow(clippy::manual_assert)]
+fn handle_output(
+    output: commands::OutputOptions,
+    application: &mut run_application::ApplicationRunner,
+) {
     if output.ui {
-        application.start_ui();
+        application.set_up_ui();
     }
     if let Some(format) = output.export_format {
         println!("TODO: put Sudoku as JSON/URL in Terminal for {format:?}");
