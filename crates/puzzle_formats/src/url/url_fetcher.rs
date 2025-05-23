@@ -8,6 +8,7 @@ pub mod map_err;
 pub mod reqwest;
 pub mod rusqlite;
 pub mod tokio;
+pub mod tokio_rusqlite;
 
 #[async_trait]
 pub trait UrlFetcher {

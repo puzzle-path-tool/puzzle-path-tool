@@ -6,7 +6,7 @@ use url::Url;
 
 use super::{
     BlockingUrlFetcher, UrlFetcher,
-    cache::{CacheError, UrlFetcherCache},
+    cache::{BlockingUrlFetcherCache, CacheError, UrlFetcherCache},
 };
 
 pub struct TokioUrlFetcher<F> {
@@ -25,7 +25,7 @@ pub enum TokioFetcherError<E> {
 impl<F> UrlFetcher for TokioUrlFetcher<F>
 where
     F: BlockingUrlFetcher + Send + Sync + 'static,
-    F::Error: Error + Send + Sync,
+    F::Error: Send + Sync,
 {
     type Error = TokioFetcherError<F::Error>;
 
@@ -63,18 +63,28 @@ where
 #[async_trait]
 impl<F> UrlFetcherCache for TokioUrlFetcher<F>
 where
-    TokioUrlFetcher<F>: UrlFetcher<Error = CacheError<F::FetchError>>,
-    F: BlockingUrlFetcher + UrlFetcherCache + Send + Sync,
+    TokioUrlFetcher<F>: UrlFetcher<Error = CacheError<TokioFetcherError<F::FetchError>>>,
+    F: BlockingUrlFetcherCache + Send + Sync + 'static,
+    F::FetchError: Send + Sync,
+    F::StoreError: Send + Sync,
 {
-    type FetchError = F::FetchError;
-    type StoreError = F::StoreError;
+    type FetchError = TokioFetcherError<F::FetchError>;
+    type StoreError = TokioFetcherError<F::StoreError>;
 
     #[allow(clippy::missing_errors_doc)]
     async fn store_redirect(&self, url: Url, value: Option<Url>) -> Result<(), Self::StoreError> {
-        self.inner.store_redirect(url, value).await
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || inner.store_redirect_blocking(url, value))
+            .await
+            .map_err(|err| TokioFetcherError::JoinError(err.into()))?
+            .map_err(|err| TokioFetcherError::FetchError(err.into()))
     }
     #[allow(clippy::missing_errors_doc)]
     async fn store_result(&self, url: Url, value: Box<str>) -> Result<(), Self::StoreError> {
-        self.inner.store_result(url, value).await
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || inner.store_result_blocking(url, value))
+            .await
+            .map_err(|err| TokioFetcherError::JoinError(err.into()))?
+            .map_err(|err| TokioFetcherError::FetchError(err.into()))
     }
 }
