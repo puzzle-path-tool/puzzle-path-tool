@@ -73,11 +73,13 @@ jobs:
 
       - name: Build
         uses: houseabsolute/actions-rust-cross@v1
+        env:
+          RUSTFLAGS: "--all-features"
         with:
           command: build
           target: ${{ matrix.arch.target }}
           toolchain: ${{ matrix.toolchain.name }}
-          args: "--locked --all-features ${{ matrix.mode.flag }}"
+          args: "--locked ${{ matrix.mode.flag }}"
 
       - name: Show Build Files
         run: ls -lahs $PUZZLE_OUT_DIR
