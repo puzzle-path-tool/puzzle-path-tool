@@ -77,7 +77,7 @@ jobs:
           command: build
           target: ${{ matrix.arch.target }}
           toolchain: ${{ matrix.toolchain.name }}
-          args: "--locked ${{ matrix.mode.flag }}"
+          args: "--locked --all-features ${{ matrix.mode.flag }}"
 
       - name: Show Build Files
         run: ls -lahs $PUZZLE_OUT_DIR
