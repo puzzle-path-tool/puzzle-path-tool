@@ -50,3 +50,4 @@ url = "2.5.4"
 
 [dev-dependencies]
 anyhow = "1.0.98"
+tokio = { version = "1.45.0", features = ["macros"]}
