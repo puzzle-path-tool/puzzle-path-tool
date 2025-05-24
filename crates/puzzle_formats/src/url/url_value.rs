@@ -6,6 +6,7 @@ use url::Url;
 use crate::url::resolved_url::SudokuPadFullUrl;
 
 use super::{
+    IntoUrl,
     resolved_url::{ResolvedUrl, ResolvedUrlInner},
     unresolved_url::{UnresolvedUrl, UnresolvedUrlInner},
 };
@@ -15,11 +16,13 @@ pub enum ParseError {
     #[error("Invalid Url Scheme: {0}")]
     InvalidScheme(Box<str>),
     #[error("No Domain could be extracted from Url: {0}")]
-    NoDomain(Box<Url>),
+    NoDomain(Url),
     #[error("Unknown Page at Url: {0}")]
-    UnknownPage(Box<Url>),
+    UnknownPage(Url),
     #[error("No Id could be extracted from Url: {0}")]
-    MissingId(Box<Url>),
+    MissingId(Url),
+    #[error("Error Parsing Url: {0}")]
+    UrlParseError(#[source] url::ParseError),
 }
 
 pub enum UrlValue {
@@ -37,20 +40,22 @@ impl UrlValue {
     }
 
     #[allow(clippy::missing_errors_doc)]
-    pub fn parse(url: &Url) -> Result<Self, ParseError> {
+    pub fn parse(url: impl IntoUrl) -> Result<Self, ParseError> {
         use ResolvedUrlInner as R;
         use UnresolvedUrlInner as U;
+
+        let url = url.into_url().map_err(ParseError::UrlParseError)?;
 
         if !matches!(url.scheme(), "http" | "https") {
             return Err(ParseError::InvalidScheme(url.scheme().into()));
         }
 
         let Some(domain) = url.domain() else {
-            return Err(ParseError::NoDomain(url.clone().into()));
+            return Err(ParseError::NoDomain(url.clone()));
         };
 
         let Some(mut segments) = url.path_segments() else {
-            return Err(ParseError::NoDomain(url.clone().into()));
+            return Err(ParseError::NoDomain(url.clone()));
         };
 
         let mut query_pairs = url.query_pairs();
@@ -94,11 +99,11 @@ impl UrlValue {
             }
             "f-puzzles.com" | "www.f-puzzles.com" => {
                 if segments.next().is_some() {
-                    return Err(ParseError::UnknownPage(url.clone().into()));
+                    return Err(ParseError::UnknownPage(url));
                 }
 
                 let Some((k, v)) = query_pairs.next() else {
-                    return Err(ParseError::MissingId(url.clone().into()));
+                    return Err(ParseError::MissingId(url));
                 };
 
                 match k.as_ref() {
@@ -110,14 +115,14 @@ impl UrlValue {
                         let puzzleid = v;
                         Ok(Self::resolved(R::FPuzzles(puzzleid.into_owned().into())))
                     }
-                    _k => Err(ParseError::MissingId(url.clone().into())),
+                    _k => Err(ParseError::MissingId(url)),
                 }
             }
             "sudokumaker.app" => {
                 let puzzleid = query_pairs.find_map(|(k, v)| (k == "puzzle").then_some(v));
 
                 let Some(puzzleid) = puzzleid else {
-                    return Err(ParseError::MissingId(url.clone().into()));
+                    return Err(ParseError::MissingId(url));
                 };
 
                 Ok(Self::resolved(R::SudokuMaker(
@@ -126,12 +131,12 @@ impl UrlValue {
             }
             "swaroopg92.github.io" => {
                 if !(segments.next() == Some("penpa-edit") && segments.next().is_none()) {
-                    return Ok(Self::unresolved(U::Unknown(url.clone().into())));
+                    return Ok(Self::unresolved(U::Unknown(Box::new(url))));
                 }
 
-                Ok(Self::resolved(R::Penpa(url.clone().into())))
+                Ok(Self::resolved(R::Penpa(Box::new(url))))
             }
-            _ => Ok(Self::unresolved(U::Unknown(Box::new(url.clone())))),
+            _ => Ok(Self::unresolved(U::Unknown(Box::new(url)))),
         }
     }
 }

@@ -217,5 +217,5 @@ fn fetch_result(
 ) -> rusqlite::Result<Result<Box<str>, FetchError>> {
     todo!()
 }
-    
+
 */
