@@ -25,7 +25,7 @@ default = ["reqwest", "tokio-rusqlite"]
 reqwest = ["dep:reqwest"]
 reqwest-blocking = ["reqwest/blocking"]
 rusqlite = ["dep:rusqlite"]
-tokio-rusqlite = ["dep:tokio-rusqlite"]
+tokio-rusqlite = ["dep:tokio-rusqlite", "dep:rusqlite"]
 
 [lints]
 workspace = true
