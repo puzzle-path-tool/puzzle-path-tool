@@ -51,3 +51,45 @@ impl IntoUrl for &String {
         String::as_str(self)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use url::Url;
+
+    use crate::url::IntoUrl;
+
+    #[test]
+    fn convert() -> anyhow::Result<()> {
+        let url_str: &str = "https://google.com/";
+        let url_string: String = url_str.to_string();
+        let url = Url::parse(url_str)?;
+
+        assert_eq!(url, url_str.into_url()?, "Converting &str to Url");
+        assert_eq!(
+            url,
+            url_string.clone().into_url()?,
+            "Converting String to Url"
+        );
+        assert_eq!(url, (&url_string).into_url()?, "Converting &String to Url");
+        assert_eq!(url, url.clone().into_url()?, "Converting Url to Url");
+
+        assert_eq!(
+            url_str,
+            IntoUrl::as_str(&url_str),
+            "Converting &str to &str"
+        );
+        assert_eq!(
+            url_str,
+            IntoUrl::as_str(&url_string),
+            "Converting String to &str"
+        );
+        assert_eq!(
+            url_str,
+            IntoUrl::as_str(&&url_string),
+            "Converting &String to &str"
+        );
+        assert_eq!(url_str, IntoUrl::as_str(&url), "Converting Url to &str");
+
+        Ok(())
+    }
+}
