@@ -21,11 +21,11 @@ authors.workspace = true
 license.workspace = true
 
 [features]
-default = ["reqwest", "tokio_rusqlite"]
+default = ["reqwest", "tokio-rusqlite"]
 reqwest = ["dep:reqwest"]
 reqwest-blocking = ["reqwest/blocking"]
 rusqlite = ["dep:rusqlite"]
-tokio_rusqlite = ["dep:tokio-rusqlite"]
+tokio-rusqlite = ["dep:tokio-rusqlite"]
 
 [lints]
 workspace = true

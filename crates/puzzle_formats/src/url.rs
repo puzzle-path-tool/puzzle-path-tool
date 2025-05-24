@@ -1,10 +1,12 @@
 use serde_json::Value;
 
+mod into_url;
 mod resolved_url;
 mod unresolved_url;
 pub mod url_fetcher;
 mod url_value;
 
+pub use into_url::*;
 pub use resolved_url::*;
 pub use unresolved_url::*;
 pub use url_value::*;
