@@ -73,13 +73,11 @@ jobs:
 
       - name: Build
         uses: houseabsolute/actions-rust-cross@v1
-        env:
-          RUSTFLAGS: "--all-features"
         with:
           command: build
           target: ${{ matrix.arch.target }}
           toolchain: ${{ matrix.toolchain.name }}
-          args: "--locked ${{ matrix.mode.flag }}"
+          args: "--locked --all-features ${{ matrix.mode.flag }}"
 
       - name: Show Build Files
         run: ls -lahs $PUZZLE_OUT_DIR
@@ -90,7 +88,7 @@ jobs:
           command: test
           target: ${{ matrix.arch.target }}
           toolchain: ${{ matrix.toolchain.name }}
-          args: "--locked ${{ matrix.mode.flag }}"
+          args: "--locked --all-features ${{ matrix.mode.flag }}"
   clippy:
     name: "Clippy"
     runs-on: ubuntu-latest
