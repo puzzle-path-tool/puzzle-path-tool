@@ -1,3 +1,3 @@
-pub trait VisualPuzzleFormat {
+pub struct VisualPuzzle {
     //TODO
 }

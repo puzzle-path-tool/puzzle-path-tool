@@ -1,3 +1,3 @@
-pub trait FullPuzzleFormat {
+pub struct FullPuzzle {
     //TODO
 }
