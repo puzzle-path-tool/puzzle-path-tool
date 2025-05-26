@@ -5,6 +5,6 @@ pub struct LogicalPuzzle {
 }
 
 pub struct Element {
-    element_type: Box<str>,
-    data: Value,
+    element_type: Box<str>, // "core:german_whisper"
+    data: Value,            // {cells: [R1C2, R2C3, ...]}
 }
