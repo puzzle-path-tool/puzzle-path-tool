@@ -16,6 +16,9 @@ pub struct Metadata {
     #[serde(rename = "rules", default)]
     rules: Box<str>,
 
+    #[serde(rename = "solution", default, skip_serializing_if = "is_default")]
+    solution: Box<str>,
+
     #[serde(
         rename = "msgcorrect",
         default,

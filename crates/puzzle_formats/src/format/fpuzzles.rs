@@ -122,4 +122,9 @@ pub struct FPuzzlesFormat {
 
     #[serde(rename = "cage", default, skip_serializing_if = "is_empty")]
     cage: Box<[Cosmetic]>,
+
+    //TODO: Maybe wrong format
+    /// Only used by Sudokupad
+    #[serde(rename = "solution", default, skip_serializing_if = "is_empty")]
+    solution: Box<[Box<str>]>,
 }
