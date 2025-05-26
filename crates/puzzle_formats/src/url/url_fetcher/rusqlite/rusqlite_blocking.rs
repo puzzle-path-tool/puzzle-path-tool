@@ -80,6 +80,7 @@ impl BlockingUrlFetcher for RusqliteBlockingUrlFetcherCache {
     }
 }
 
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
 mod test {
     use rusqlite::Connection;
@@ -92,19 +93,18 @@ mod test {
 
     use super::RusqliteBlockingUrlFetcherCache;
 
-    fn setup_cache() -> anyhow::Result<RusqliteBlockingUrlFetcherCache> {
-        let c = Connection::open_in_memory()?;
-        let cache = RusqliteBlockingUrlFetcherCache::new(c)?;
-        Ok(cache)
+    fn setup_cache() -> RusqliteBlockingUrlFetcherCache {
+        let c = Connection::open_in_memory().unwrap();
+        RusqliteBlockingUrlFetcherCache::new(c).unwrap()
     }
 
     #[test]
-    fn redirect() -> anyhow::Result<()> {
-        let cache = setup_cache()?;
+    fn redirect() {
+        let cache = setup_cache();
 
-        let url1 = Url::parse("https://google.com/")?;
-        let url2 = Url::parse("https://bing.com/")?;
-        let url3 = Url::parse("https://yahoo.com/")?;
+        let url1 = Url::parse("https://google.com/").unwrap();
+        let url2 = Url::parse("https://bing.com/").unwrap();
+        let url3 = Url::parse("https://yahoo.com/").unwrap();
 
         assert!(matches!(
             cache.fetch_redirect_url_blocking(url1.clone()),
@@ -115,10 +115,12 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_redirect_blocking(url1.clone(), Some(url3.clone()))?;
+        cache
+            .store_redirect_blocking(url1.clone(), Some(url3.clone()))
+            .unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url_blocking(url1.clone())?,
+            cache.fetch_redirect_url_blocking(url1.clone()).unwrap(),
             Some(url3.clone())
         );
         assert!(matches!(
@@ -126,28 +128,35 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_redirect_blocking(url2.clone(), None)?;
+        cache.store_redirect_blocking(url2.clone(), None).unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url_blocking(url1.clone())?,
+            cache.fetch_redirect_url_blocking(url1.clone()).unwrap(),
             Some(url3.clone())
         );
-        assert_eq!(cache.fetch_redirect_url_blocking(url2.clone())?, None);
+        assert_eq!(
+            cache.fetch_redirect_url_blocking(url2.clone()).unwrap(),
+            None
+        );
 
-        cache.store_redirect_blocking(url1.clone(), None)?;
+        cache.store_redirect_blocking(url1.clone(), None).unwrap();
 
-        assert_eq!(cache.fetch_redirect_url_blocking(url1.clone())?, None);
-        assert_eq!(cache.fetch_redirect_url_blocking(url2.clone())?, None);
-
-        Ok(())
+        assert_eq!(
+            cache.fetch_redirect_url_blocking(url1.clone()).unwrap(),
+            None
+        );
+        assert_eq!(
+            cache.fetch_redirect_url_blocking(url2.clone()).unwrap(),
+            None
+        );
     }
 
     #[test]
-    fn result() -> anyhow::Result<()> {
-        let cache = setup_cache()?;
+    fn result() {
+        let cache = setup_cache();
 
-        let url1 = Url::parse("https://google.com/")?;
-        let url2 = Url::parse("https://bing.com/")?;
+        let url1 = Url::parse("https://google.com/").unwrap();
+        let url2 = Url::parse("https://bing.com/").unwrap();
 
         let val1 = "THISISARANDOMID";
         let val2 = "ANOTHERRANDOMID";
@@ -161,33 +170,52 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_result_blocking(url1.clone(), val1.into())?;
+        cache
+            .store_result_blocking(url1.clone(), val1.into())
+            .unwrap();
 
-        assert_eq!(cache.fetch_result_blocking(url1.clone())?, val1.into());
+        assert_eq!(
+            cache.fetch_result_blocking(url1.clone()).unwrap(),
+            val1.into()
+        );
         assert!(matches!(
             cache.fetch_result_blocking(url2.clone()),
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_result_blocking(url2.clone(), val2.into())?;
+        cache
+            .store_result_blocking(url2.clone(), val2.into())
+            .unwrap();
 
-        assert_eq!(cache.fetch_result_blocking(url1.clone())?, val1.into());
-        assert_eq!(cache.fetch_result_blocking(url2.clone())?, val2.into());
+        assert_eq!(
+            cache.fetch_result_blocking(url1.clone()).unwrap(),
+            val1.into()
+        );
+        assert_eq!(
+            cache.fetch_result_blocking(url2.clone()).unwrap(),
+            val2.into()
+        );
 
-        cache.store_result_blocking(url1.clone(), val2.into())?;
+        cache
+            .store_result_blocking(url1.clone(), val2.into())
+            .unwrap();
 
-        assert_eq!(cache.fetch_result_blocking(url1.clone())?, val2.into());
-        assert_eq!(cache.fetch_result_blocking(url2.clone())?, val2.into());
-
-        Ok(())
+        assert_eq!(
+            cache.fetch_result_blocking(url1.clone()).unwrap(),
+            val2.into()
+        );
+        assert_eq!(
+            cache.fetch_result_blocking(url2.clone()).unwrap(),
+            val2.into()
+        );
     }
 
     #[test]
-    fn overlap() -> anyhow::Result<()> {
-        let cache = setup_cache()?;
+    fn overlap() {
+        let cache = setup_cache();
 
-        let url1 = Url::parse("https://google.com/")?;
-        let url2 = Url::parse("https://bing.com/")?;
+        let url1 = Url::parse("https://google.com/").unwrap();
+        let url2 = Url::parse("https://bing.com/").unwrap();
 
         let val1 = "THISISARANDOMID";
 
@@ -200,10 +228,12 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_redirect_blocking(url1.clone(), Some(url2.clone()))?;
+        cache
+            .store_redirect_blocking(url1.clone(), Some(url2.clone()))
+            .unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url_blocking(url1.clone())?,
+            cache.fetch_redirect_url_blocking(url1.clone()).unwrap(),
             Some(url2.clone())
         );
         assert!(matches!(
@@ -211,22 +241,30 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_result_blocking(url1.clone(), val1.into())?;
+        cache
+            .store_result_blocking(url1.clone(), val1.into())
+            .unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url_blocking(url1.clone())?,
+            cache.fetch_redirect_url_blocking(url1.clone()).unwrap(),
             Some(url2.clone())
         );
-        assert_eq!(cache.fetch_result_blocking(url1.clone())?, val1.into());
+        assert_eq!(
+            cache.fetch_result_blocking(url1.clone()).unwrap(),
+            val1.into()
+        );
 
-        cache.store_redirect_blocking(url1.clone(), Some(url1.clone()))?;
+        cache
+            .store_redirect_blocking(url1.clone(), Some(url1.clone()))
+            .unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url_blocking(url1.clone())?,
+            cache.fetch_redirect_url_blocking(url1.clone()).unwrap(),
             Some(url1.clone())
         );
-        assert_eq!(cache.fetch_result_blocking(url1.clone())?, val1.into());
-
-        Ok(())
+        assert_eq!(
+            cache.fetch_result_blocking(url1.clone()).unwrap(),
+            val1.into()
+        );
     }
 }

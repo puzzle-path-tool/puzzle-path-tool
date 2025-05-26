@@ -52,6 +52,7 @@ impl IntoUrl for &String {
     }
 }
 
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
 mod test {
     use url::Url;
@@ -59,19 +60,27 @@ mod test {
     use crate::url::IntoUrl;
 
     #[test]
-    fn convert() -> anyhow::Result<()> {
+    fn convert() {
         let url_str: &str = "https://google.com/";
         let url_string: String = url_str.to_string();
-        let url = Url::parse(url_str)?;
+        let url = Url::parse(url_str).unwrap();
 
-        assert_eq!(url, url_str.into_url()?, "Converting &str to Url");
+        assert_eq!(url, url_str.into_url().unwrap(), "Converting &str to Url");
         assert_eq!(
             url,
-            url_string.clone().into_url()?,
+            url_string.clone().into_url().unwrap(),
             "Converting String to Url"
         );
-        assert_eq!(url, (&url_string).into_url()?, "Converting &String to Url");
-        assert_eq!(url, url.clone().into_url()?, "Converting Url to Url");
+        assert_eq!(
+            url,
+            (&url_string).into_url().unwrap(),
+            "Converting &String to Url"
+        );
+        assert_eq!(
+            url,
+            url.clone().into_url().unwrap(),
+            "Converting Url to Url"
+        );
 
         assert_eq!(
             url_str,
@@ -89,7 +98,5 @@ mod test {
             "Converting &String to &str"
         );
         assert_eq!(url_str, IntoUrl::as_str(&url), "Converting Url to &str");
-
-        Ok(())
     }
 }

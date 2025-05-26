@@ -3375,7 +3375,6 @@ dependencies = [
 name = "puzzle-formats"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-trait",
  "ctreg",
  "itertools 0.14.0",

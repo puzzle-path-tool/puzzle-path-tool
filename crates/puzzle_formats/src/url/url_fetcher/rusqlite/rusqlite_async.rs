@@ -111,6 +111,7 @@ impl UrlFetcher for RusqliteUrlFetcherCache {
     }
 }
 
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
 mod test {
     use tokio_rusqlite::Connection;
@@ -123,19 +124,18 @@ mod test {
 
     use super::RusqliteUrlFetcherCache;
 
-    async fn setup_cache() -> anyhow::Result<RusqliteUrlFetcherCache> {
-        let c = Connection::open_in_memory().await?;
-        let cache = RusqliteUrlFetcherCache::new(c).await?;
-        Ok(cache)
+    async fn setup_cache() -> RusqliteUrlFetcherCache {
+        let c = Connection::open_in_memory().await.unwrap();
+        RusqliteUrlFetcherCache::new(c).await.unwrap()
     }
 
     #[tokio::test]
-    async fn redirect() -> anyhow::Result<()> {
-        let cache = setup_cache().await?;
+    async fn redirect() {
+        let cache = setup_cache().await;
 
-        let url1 = Url::parse("https://google.com/")?;
-        let url2 = Url::parse("https://bing.com/")?;
-        let url3 = Url::parse("https://yahoo.com/")?;
+        let url1 = Url::parse("https://google.com/").unwrap();
+        let url2 = Url::parse("https://bing.com/").unwrap();
+        let url3 = Url::parse("https://yahoo.com/").unwrap();
 
         assert!(matches!(
             cache.fetch_redirect_url(url1.clone()).await,
@@ -148,10 +148,11 @@ mod test {
 
         cache
             .store_redirect(url1.clone(), Some(url3.clone()))
-            .await?;
+            .await
+            .unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url(url1.clone()).await?,
+            cache.fetch_redirect_url(url1.clone()).await.unwrap(),
             Some(url3.clone())
         );
         assert!(matches!(
@@ -159,28 +160,26 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_redirect(url2.clone(), None).await?;
+        cache.store_redirect(url2.clone(), None).await.unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url(url1.clone()).await?,
+            cache.fetch_redirect_url(url1.clone()).await.unwrap(),
             Some(url3.clone())
         );
-        assert_eq!(cache.fetch_redirect_url(url2.clone()).await?, None);
+        assert_eq!(cache.fetch_redirect_url(url2.clone()).await.unwrap(), None);
 
-        cache.store_redirect(url1.clone(), None).await?;
+        cache.store_redirect(url1.clone(), None).await.unwrap();
 
-        assert_eq!(cache.fetch_redirect_url(url1.clone()).await?, None);
-        assert_eq!(cache.fetch_redirect_url(url2.clone()).await?, None);
-
-        Ok(())
+        assert_eq!(cache.fetch_redirect_url(url1.clone()).await.unwrap(), None);
+        assert_eq!(cache.fetch_redirect_url(url2.clone()).await.unwrap(), None);
     }
 
     #[tokio::test]
-    async fn result() -> anyhow::Result<()> {
-        let cache = setup_cache().await?;
+    async fn result() {
+        let cache = setup_cache().await;
 
-        let url1 = Url::parse("https://google.com/")?;
-        let url2 = Url::parse("https://bing.com/")?;
+        let url1 = Url::parse("https://google.com/").unwrap();
+        let url2 = Url::parse("https://bing.com/").unwrap();
 
         let val1 = "THISISARANDOMID";
         let val2 = "ANOTHERRANDOMID";
@@ -194,33 +193,31 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_result(url1.clone(), val1.into()).await?;
+        cache.store_result(url1.clone(), val1.into()).await.unwrap();
 
-        assert_eq!(cache.fetch_result(url1.clone()).await?, val1.into());
+        assert_eq!(cache.fetch_result(url1.clone()).await.unwrap(), val1.into());
         assert!(matches!(
             cache.fetch_result(url2.clone()).await,
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_result(url2.clone(), val2.into()).await?;
+        cache.store_result(url2.clone(), val2.into()).await.unwrap();
 
-        assert_eq!(cache.fetch_result(url1.clone()).await?, val1.into());
-        assert_eq!(cache.fetch_result(url2.clone()).await?, val2.into());
+        assert_eq!(cache.fetch_result(url1.clone()).await.unwrap(), val1.into());
+        assert_eq!(cache.fetch_result(url2.clone()).await.unwrap(), val2.into());
 
-        cache.store_result(url1.clone(), val2.into()).await?;
+        cache.store_result(url1.clone(), val2.into()).await.unwrap();
 
-        assert_eq!(cache.fetch_result(url1.clone()).await?, val2.into());
-        assert_eq!(cache.fetch_result(url2.clone()).await?, val2.into());
-
-        Ok(())
+        assert_eq!(cache.fetch_result(url1.clone()).await.unwrap(), val2.into());
+        assert_eq!(cache.fetch_result(url2.clone()).await.unwrap(), val2.into());
     }
 
     #[tokio::test]
-    async fn overlap() -> anyhow::Result<()> {
-        let cache = setup_cache().await?;
+    async fn overlap() {
+        let cache = setup_cache().await;
 
-        let url1 = Url::parse("https://google.com/")?;
-        let url2 = Url::parse("https://bing.com/")?;
+        let url1 = Url::parse("https://google.com/").unwrap();
+        let url2 = Url::parse("https://bing.com/").unwrap();
 
         let val1 = "THISISARANDOMID";
 
@@ -235,10 +232,11 @@ mod test {
 
         cache
             .store_redirect(url1.clone(), Some(url2.clone()))
-            .await?;
+            .await
+            .unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url(url1.clone()).await?,
+            cache.fetch_redirect_url(url1.clone()).await.unwrap(),
             Some(url2.clone())
         );
         assert!(matches!(
@@ -246,24 +244,23 @@ mod test {
             Err(CacheError::NoCacheValue)
         ));
 
-        cache.store_result(url1.clone(), val1.into()).await?;
+        cache.store_result(url1.clone(), val1.into()).await.unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url(url1.clone()).await?,
+            cache.fetch_redirect_url(url1.clone()).await.unwrap(),
             Some(url2.clone())
         );
-        assert_eq!(cache.fetch_result(url1.clone()).await?, val1.into());
+        assert_eq!(cache.fetch_result(url1.clone()).await.unwrap(), val1.into());
 
         cache
             .store_redirect(url1.clone(), Some(url1.clone()))
-            .await?;
+            .await
+            .unwrap();
 
         assert_eq!(
-            cache.fetch_redirect_url(url1.clone()).await?,
+            cache.fetch_redirect_url(url1.clone()).await.unwrap(),
             Some(url1.clone())
         );
-        assert_eq!(cache.fetch_result(url1.clone()).await?, val1.into());
-
-        Ok(())
+        assert_eq!(cache.fetch_result(url1.clone()).await.unwrap(), val1.into());
     }
 }

@@ -1,3 +1,5 @@
+#![cfg(feature = "tokio")]
+
 use std::{error::Error, sync::Arc};
 
 use async_trait::async_trait;
