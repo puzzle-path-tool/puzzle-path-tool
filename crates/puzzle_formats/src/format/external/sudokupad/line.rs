@@ -5,6 +5,8 @@ use serde_json::Value;
 #[serde(deny_unknown_fields)]
 pub struct Line {
     // TODO: ({wayPoints: ([x, y]) [], color: "#aaaf", thickness: 9.6 })
+
+    // target ["arrows"], color ["none"], thickness, wayPoints, className, d
     #[serde(rename = "restValues", default, flatten)]
     rest_values: Value,
 }
