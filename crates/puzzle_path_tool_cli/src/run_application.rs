@@ -1,4 +1,4 @@
-use crate::commands::ExportFormat;
+use crate::commands::{ExportFormat, GenerationOptions};
 use std::ffi::OsString;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tokio_stream::StreamExt;
@@ -64,6 +64,12 @@ impl ApplicationRunner {
                     while let Some(command) = stream.next().await {
                         println!("MainMessageHandler recieves {command:?}");
                         match command {
+                            LogicThreadCommand::SetUpExport { format } => {
+                                println!("TODO: put Sudoku as JSON/URL in Terminal for {format:?}");
+                            }
+                            LogicThreadCommand::SetUpJson { path } => {
+                                println!("TODO: create full Json file at {path:?}");
+                            }
                             LogicThreadCommand::SetUpUI { sender, receiver } => {
                                 runner.set_up_ui(sender, receiver);
                             }
@@ -71,11 +77,18 @@ impl ApplicationRunner {
                                 runner.join_all_tasks().await;
                                 break;
                             }
-                            LogicThreadCommand::SetUpExport { format } => {
-                                println!("TODO: put Sudoku as JSON/URL in Terminal for {format:?}");
+                            LogicThreadCommand::BuildFromLuaFile { path } => {
+                                println!("TODO: Get PuzzleLua file at {path:?}");
                             }
-                            LogicThreadCommand::SetUpJson { path } => {
-                                println!("TODO: create full Json file at {path:?}");
+                            LogicThreadCommand::BuildFromWorkSpace { path, puzzlenames } => {
+                                if puzzlenames.is_empty() {
+                                    println!("TODO: Generate all Sudokus at {path:?}");
+                                } else {
+                                    println!("TODO: Generate {puzzlenames:?} at {path:?}");
+                                }
+                            }
+                            LogicThreadCommand::SetGenerationOptions { options } => {
+                                println!("TODO: Generate Sudoku with {options:?}");
                             }
                         }
                     }
@@ -148,6 +161,16 @@ pub(super) struct MainRunner {
 
 #[derive(Debug)]
 enum LogicThreadCommand {
+    BuildFromLuaFile {
+        path: OsString,
+    },
+    BuildFromWorkSpace {
+        path: OsString,
+        puzzlenames: Vec<String>,
+    },
+    SetGenerationOptions {
+        options: GenerationOptions,
+    },
     SetUpUI {
         sender: Sender<UICommand>,
         receiver: Receiver<UIMessage>,
@@ -174,14 +197,37 @@ impl MainRunner {
         }
     }
 
+    pub(super) fn build_with_workspace(&self, path: OsString, puzzlenames: Vec<String>) {
+        let e = self
+            .logic_thread_sender
+            .blocking_send(LogicThreadCommand::BuildFromWorkSpace { path, puzzlenames });
+        println!("Build from Workspace: {e:?}");
+    }
+
+    pub(super) fn build_with_lua_file(&self, path: OsString) {
+        let e = self
+            .logic_thread_sender
+            .blocking_send(LogicThreadCommand::BuildFromLuaFile { path });
+        println!("Build from Lua file: {e:?}");
+    }
+
+    pub(super) fn set_generation_options(&self, options: GenerationOptions) {
+        let e = self
+            .logic_thread_sender
+            .blocking_send(LogicThreadCommand::SetGenerationOptions { options });
+        println!("Set GenerationOptions: {e:?}");
+    }
+
     pub(super) fn set_up_export(&self, format: ExportFormat) {
-        let e = self.logic_thread_sender
+        let e = self
+            .logic_thread_sender
             .blocking_send(LogicThreadCommand::SetUpExport { format });
         println!("SetUp export: {e:?}");
     }
 
     pub(super) fn set_up_json(&self, path: OsString) {
-        let e = self.logic_thread_sender
+        let e = self
+            .logic_thread_sender
             .blocking_send(LogicThreadCommand::SetUpJson { path });
         println!("SetUp export: {e:?}");
     }

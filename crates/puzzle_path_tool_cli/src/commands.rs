@@ -83,14 +83,7 @@ pub(super) enum Input {
         path: OsString,
         ///TODO(4.2.2): Explain optional puzzlenames
         #[arg(last = true)]
-        puzzlenames: Vec<OsString>,
-    },
-    ///TODO(4.3): Explaining fulljson command
-    FullJson {
-        #[command(flatten)]
-        output_options: OutputOptions,
-        ///TODO(4.3.1):Explain Path to json
-        path: OsString,
+        puzzlenames: Vec<String>,
     },
 }
 

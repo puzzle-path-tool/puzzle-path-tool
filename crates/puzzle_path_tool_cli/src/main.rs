@@ -19,8 +19,8 @@ fn main() {
                     path,
                     output_options,
                 } => {
-                    println!("TODO: Get PuzzleLua file at {path:?}");
-                    println!("TODO: Generate Sudoku with {generation_options:?}");
+                    main_runner.set_generation_options(generation_options);
+                    main_runner.build_with_lua_file(path);
                     handle_output(output_options, &mut main_runner);
                 }
                 commands::Input::WorkspaceLua {
@@ -28,20 +28,8 @@ fn main() {
                     puzzlenames,
                     output_options,
                 } => {
-                    println!("TODO: Get WorkspaceLua file at {path:?}");
-                    if puzzlenames.is_empty() {
-                        println!("TODO: Generate all Sudokus with {generation_options:?}");
-                    } else {
-                        println!("TODO: Generate {puzzlenames:?} with {generation_options:?}");
-                    }
-                    handle_output(output_options, &mut main_runner);
-                }
-                commands::Input::FullJson {
-                    path,
-                    output_options,
-                } => {
-                    println!("TODO: Get FullJson at {path:#?}");
-                    println!("TODO: Generate Sudoku with {generation_options:?}");
+                    main_runner.set_generation_options(generation_options);
+                    main_runner.build_with_workspace(path, puzzlenames);
                     handle_output(output_options, &mut main_runner);
                 }
             }
