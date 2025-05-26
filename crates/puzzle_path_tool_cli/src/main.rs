@@ -4,8 +4,7 @@ mod commands;
 #[allow(dead_code)]
 mod run_application;
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
+fn main() {
     let args = commands::Cli::parse();
 
     match args.task {
@@ -14,7 +13,7 @@ async fn main() {
             input,
             generation_options,
         } => {
-            let mut application = run_application::ApplicationRunner::new();
+            let mut main_runner = run_application::MainRunner::new();
             match input {
                 commands::Input::PuzzleLua {
                     path,
@@ -22,7 +21,7 @@ async fn main() {
                 } => {
                     println!("TODO: Get PuzzleLua file at {path:?}");
                     println!("TODO: Generate Sudoku with {generation_options:?}");
-                    handle_output(output_options, &mut application);
+                    handle_output(output_options, &mut main_runner);
                 }
                 commands::Input::WorkspaceLua {
                     path,
@@ -35,7 +34,7 @@ async fn main() {
                     } else {
                         println!("TODO: Generate {puzzlenames:?} with {generation_options:?}");
                     }
-                    handle_output(output_options, &mut application);
+                    handle_output(output_options, &mut main_runner);
                 }
                 commands::Input::FullJson {
                     path,
@@ -43,27 +42,25 @@ async fn main() {
                 } => {
                     println!("TODO: Get FullJson at {path:#?}");
                     println!("TODO: Generate Sudoku with {generation_options:?}");
-                    handle_output(output_options, &mut application);
+                    handle_output(output_options, &mut main_runner);
                 }
             }
 
-            let _application = application.join_all_tasks().await;
+            let main_runner = main_runner.join_all_tasks();
+            println!("Joined all tasks from main: {main_runner:?}");
         }
     }
 }
 
 //TODO add Sudoku field
-fn handle_output(
-    output: commands::OutputOptions,
-    application: &mut run_application::ApplicationRunner,
-) {
+fn handle_output(output: commands::OutputOptions, main_runner: &mut run_application::MainRunner) {
     if output.ui {
-        application.set_up_ui();
+        main_runner.set_up_ui();
     }
     if let Some(format) = output.export_format {
-        println!("TODO: put Sudoku as JSON/URL in Terminal for {format:?}");
+        main_runner.set_up_export(format);
     }
     if let Some(path) = output.json_path {
-        println!("TODO: create full Json file at {path:?}");
+        main_runner.set_up_json(path);
     }
 }
