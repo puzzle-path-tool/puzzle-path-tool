@@ -1,14 +1,12 @@
 use csscolorparser::Color;
 use serde::{Deserialize, Serialize};
 
-use crate::serialization::is_empty;
-
 use super::pos::Pos;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Arrow {
-    #[serde(rename = "wayPoints", skip_serializing_if = "is_empty")]
+    #[serde(rename = "wayPoints", default)]
     way_points: Box<[Pos<f64>]>,
 
     #[serde(rename = "color", skip_serializing_if = "Option::is_none")]

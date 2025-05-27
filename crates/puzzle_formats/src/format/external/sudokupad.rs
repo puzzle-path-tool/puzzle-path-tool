@@ -6,9 +6,9 @@ use cell::Cell;
 use cosmetic::Cosmetic;
 use line::Line;
 use metadata::Metadata;
+use pos::Pos;
 use region::Region;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use trigger_effect::TriggerEffect;
 
 mod arrow;
@@ -49,9 +49,8 @@ pub struct SudokupadSclFormat {
     #[serde(rename = "underlays", default, skip_serializing_if = "is_empty")]
     underlays: Box<[Cosmetic]>,
 
-    // TODO: ([x, y]) []
     #[serde(rename = "foglight", default, skip_serializing_if = "is_empty")]
-    foglight: Box<[Value]>,
+    foglight: Box<[Pos<i32>]>,
 
     #[serde(rename = "arrows", default, skip_serializing_if = "is_empty")]
     arrows: Box<[Arrow]>,

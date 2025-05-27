@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+
+use super::pos::Pos;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
-#[serde(deny_unknown_fields)]
+#[serde(transparent)]
 pub struct Region {
-    // TODO:  (([x, y]) [])
-    #[serde(rename = "restValues", default, flatten)]
-    rest_values: Value,
+    cells: Box<[Pos<i32>]>,
 }
