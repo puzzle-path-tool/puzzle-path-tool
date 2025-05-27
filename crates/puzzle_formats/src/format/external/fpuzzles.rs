@@ -5,6 +5,8 @@ use grid_cell::GridCell;
 use negative::Negative;
 use serde::{Deserialize, Serialize};
 
+use super::ExternalPuzzleFormat;
+
 mod cell_pos;
 mod constraint;
 mod cosmetic;
@@ -128,3 +130,5 @@ pub struct FPuzzlesFormat {
     #[serde(rename = "solution", default, skip_serializing_if = "is_empty")]
     solution: Box<[Box<str>]>,
 }
+
+impl ExternalPuzzleFormat for FPuzzlesFormat {}

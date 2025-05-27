@@ -1,3 +1,4 @@
+use super::{ExternalPuzzleFormat, fpuzzles::FPuzzlesFormat};
 use crate::serialization::is_empty;
 use arrow::Arrow;
 use cage::Cage;
@@ -57,3 +58,12 @@ pub struct SudokupadSclFormat {
     #[serde(rename = "triggereffect", default, skip_serializing_if = "is_empty")]
     triggereffect: Box<[TriggerEffect]>,
 }
+
+pub struct SudokupadScfFormat {}
+pub struct SudokupadFPuzFormat {
+    puzzle: FPuzzlesFormat,
+}
+
+impl ExternalPuzzleFormat for SudokupadSclFormat {}
+impl ExternalPuzzleFormat for SudokupadScfFormat {}
+impl ExternalPuzzleFormat for SudokupadFPuzFormat {}
