@@ -960,6 +960,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "csscolorparser"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "148247664b27bf6bf5041b46cf1e8c4872f70e75e3281348deb88abd75c915ab"
+dependencies = [
+ "phf",
+ "serde",
+]
+
+[[package]]
 name = "ctor-lite"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3376,6 +3386,7 @@ name = "puzzle-formats"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "csscolorparser",
  "ctreg",
  "itertools 0.14.0",
  "lz-str",

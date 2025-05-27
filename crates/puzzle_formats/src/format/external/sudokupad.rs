@@ -17,6 +17,7 @@ mod cell;
 mod cosmetic;
 mod line;
 mod metadata;
+mod pos;
 mod region;
 mod trigger_effect;
 

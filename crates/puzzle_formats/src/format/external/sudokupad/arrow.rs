@@ -1,10 +1,22 @@
+use csscolorparser::Color;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+
+use crate::serialization::is_empty;
+
+use super::pos::Pos;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Arrow {
-    // TODO: ({wayPoints: ([x, y]) [], color: "#aaaf", thickness: 9.6, headLength: 0.35 })
-    #[serde(rename = "restValues", default, flatten)]
-    rest_values: Value,
+    #[serde(rename = "wayPoints", skip_serializing_if = "is_empty")]
+    way_points: Box<[Pos<f64>]>,
+
+    #[serde(rename = "color", skip_serializing_if = "Option::is_none")]
+    color: Option<Color>,
+
+    #[serde(rename = "thickness", skip_serializing_if = "Option::is_none")]
+    thickness: Option<f64>,
+
+    #[serde(rename = "headLength", skip_serializing_if = "Option::is_none")]
+    head_length: Option<f64>,
 }

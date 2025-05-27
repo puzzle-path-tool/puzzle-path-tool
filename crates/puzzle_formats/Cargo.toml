@@ -33,6 +33,7 @@ workspace = true
 
 [dependencies]
 async-trait = "0.1.88"
+csscolorparser = { version = "0.7.1", features = ["serde"]}
 ctreg = "1.0.3"
 itertools = "0.14.0"
 lz-str = "0.2.1"
