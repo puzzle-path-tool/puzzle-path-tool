@@ -13,42 +13,10 @@ fn main() {
             input,
             generation_options,
         } => {
-            let mut main_runner = run_application::MainRunner::new();
-            match input {
-                commands::Input::PuzzleLua {
-                    path,
-                    output_options,
-                } => {
-                    main_runner.set_generation_options(generation_options);
-                    main_runner.build_with_lua_file(path);
-                    handle_output(output_options, &mut main_runner);
-                }
-                commands::Input::WorkspaceLua {
-                    path,
-                    puzzlenames,
-                    output_options,
-                } => {
-                    main_runner.set_generation_options(generation_options);
-                    main_runner.build_with_workspace(path, puzzlenames);
-                    handle_output(output_options, &mut main_runner);
-                }
-            }
+            let main_runner = run_application::MainRunner::new(input, generation_options);
 
-            let main_runner = main_runner.join_all_tasks();
-            println!("Joined all tasks from main: {main_runner:?}");
+            println!("Joined all tasks from main");
+            main_runner.join_all_tasks();
         }
-    }
-}
-
-//TODO add Sudoku field
-fn handle_output(output: commands::OutputOptions, main_runner: &mut run_application::MainRunner) {
-    if output.ui {
-        main_runner.set_up_ui();
-    }
-    if let Some(format) = output.export_format {
-        main_runner.set_up_export(format);
-    }
-    if let Some(path) = output.json_path {
-        main_runner.set_up_json(path);
     }
 }
