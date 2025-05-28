@@ -90,33 +90,31 @@ pub(super) struct ApplicationRunner {
 }
 
 impl ApplicationRunner {
-    fn run_new(input: Input, options: GenerationOptions) -> (Option<Flags>, JoinHandle<()>) {
+    fn run_new(input: Input, _options: GenerationOptions) -> (Option<Flags>, JoinHandle<()>) {
         let mut runner = ApplicationRunner {
             watch: None,
             window: UIWindow::Closed,
             builder: None,
         };
-        let mut ui_flags = None;
-
-        match input {
+        let ui_flags = match input {
             Input::PuzzleLua {
-                path,
+                path: _,
                 output_options,
             } => {
                 //main_runner.set_generation_options(generation_options);
                 //main_runner.build_with_lua_file(path);
-                ui_flags = runner.setup_output(&output_options);
+                runner.setup_output(&output_options)
             }
             Input::WorkspaceLua {
-                path,
-                puzzlenames,
+                path: _,
+                puzzlenames: _,
                 output_options,
             } => {
                 //main_runner.set_generation_options(generation_options);
                 //main_runner.build_with_workspace(path, puzzlenames);
-                ui_flags = runner.setup_output(&output_options);
+                runner.setup_output(&output_options)
             }
-        }
+        };
 
         let handle = std::thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new();
