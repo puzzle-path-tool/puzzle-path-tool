@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize, de, ser::SerializeSeq};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Pos<T> {
     x: T,
     y: T,
