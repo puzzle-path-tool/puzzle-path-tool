@@ -15,11 +15,21 @@ local function dump(o)
     end
 end
 
+---@class Never
+--- @operator add(any): Never
+--- @operator sub(any): Never
+--- @operator mul(any): Never
+--- @operator div(any): Never
+
 --- @class Part
---- @operator add(any): Part
---- @operator sub(any): Part
---- @operator mul(any): Part
---- @operator div(any): Part
+--- @operator add(integer | Part): Part
+--- @operator add(any): Never
+--- @operator sub(integer | Part): Part
+--- @operator sub(any): Never
+--- @operator mul(integer | Part): Part
+--- @operator mul(any): Never
+--- @operator div(integer | Part): Part
+--- @operator div(any): Never
 
 local part = {}
 local meta = {}
@@ -74,9 +84,14 @@ end
 local a = part:new("a")
 local b = part:new("b")
 
-local y = 1 + a
+---@type table
+local t = { 1 }
 
-local x = a + b * a * b - a / (5 + 5)
+---@type Part
+local y = t + a
+
+---@type Part
+local x = a + b * a + 44 * b - a / (5 + 5)
 
 print("hey")
 print(y)
