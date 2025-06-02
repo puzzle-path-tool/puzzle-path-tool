@@ -1,5 +1,3 @@
-use std::{ffi::OsString, str::FromStr, sync::atomic};
-
 use iced::{
     widget::{self},
     window::{self, Icon, icon},
@@ -7,66 +5,15 @@ use iced::{
 
 use tokio::sync::mpsc;
 
-use super::{UICommand, UIMessage};
+use puzzle_core::explorer_collection::{ExplorerId, ExplorerObject};
 
+use super::{UICommand, UIMessage};
 mod views;
 
 #[derive(Debug)]
 pub(super) struct Flags {
     pub(super) sender: mpsc::Sender<UIMessage>,
     pub(super) reciever: mpsc::Receiver<UICommand>,
-}
-
-#[derive(Debug, Clone)]
-struct ExplorerObject {
-    displayed_name: String,
-    id: usize,
-    expanable: Option<(Vec<ExplorerObject>, bool)>,
-}
-
-static COUNTER: atomic::AtomicUsize = atomic::AtomicUsize::new(1);
-impl ExplorerObject {
-    fn new(name: String) -> ExplorerObject {
-        ExplorerObject {
-            displayed_name: name,
-            id: COUNTER.fetch_add(1, atomic::Ordering::Relaxed),
-            expanable: None,
-        }
-    }
-    fn build_folder(name: String, paths: &Vec<Vec<String>>) -> ExplorerObject {
-        let mut new = ExplorerObject::new(name);
-        for path in paths {
-            new.push_path(path);
-        }
-        new
-    }
-    fn push(&mut self, object: ExplorerObject) {
-        if let Some((children, _expanded)) = &mut self.expanable {
-            children.push(object);
-        } else {
-            self.expanable = Some((vec![object], false));
-        }
-    }
-    fn push_path(&mut self, path: &[String]) {
-        if let Some((first, rest)) = path.split_first() {
-            if let Some((object, _)) = &mut self.expanable {
-                if let Some(preexisting) = object.iter_mut().find(|a| &a.displayed_name == first) {
-                    preexisting.push_path(rest);
-                } else {
-                    let mut new = ExplorerObject::new(first.clone());
-                    new.push_path(rest);
-                    object.push(new);
-                }
-            } else {
-                let mut new = ExplorerObject::new(first.clone());
-                new.push_path(rest);
-                self.push(new);
-            }
-        }
-    }
-    fn get_id(&self) -> usize {
-        self.id
-    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -89,9 +36,32 @@ struct State {
 
 #[derive(Debug, Clone, Copy)]
 enum Message {
-    Increment,
-    Decrement,
-    FromStream { command: UICommand },
+    FromExplorer { message: ExplorerMessage },
+    FromController { message: ControllerMessage },
+    FromDetails { message: DetailsMessage },
+    FromSudokuCanvas { message: SudokuCanvasMessage },
+    Command { command: UICommand },
+}
+
+#[derive(Debug, Clone, Copy)]
+enum ExplorerMessage {
+    Expand { id: ExplorerId, value: bool },
+    Selected { id: ExplorerId },
+}
+
+#[derive(Debug, Clone, Copy)]
+enum ControllerMessage {
+    Example,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum DetailsMessage {
+    Example,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum SudokuCanvasMessage {
+    Example,
 }
 
 impl State {
@@ -102,7 +72,7 @@ impl State {
 
     fn new(flags: Flags) -> (Self, iced::Task<Message>) {
         let reciever = tokio_stream::wrappers::ReceiverStream::new(flags.reciever);
-        let task = iced::Task::run(reciever, |c| Message::FromStream { command: c });
+        let task = iced::Task::run(reciever, |c| Message::Command { command: c });
         (
             State {
                 value: 10,
@@ -110,16 +80,33 @@ impl State {
                 sender: flags.sender,
 
                 sudoku_explorer: {
-                    let paths = [
+                    let mut paths = [
                         vec!["examplefolder1", "examplefolder11", "examplefile111"],
                         vec!["examplefolder1", "examplefolder11", "examplefile112"],
+                        vec![
+                            "examplefolder1",
+                            "examplefolder11",
+                            "loooooooooooooooooooooooooongexamplefile113",
+                        ],
                         vec!["examplefolder1", "examplefile12"],
                         vec!["examplefile2"],
                         vec!["examplefile3"],
-                    ]
-                    .iter_mut()
-                    .map(|x| x.iter_mut().map(|z| (**z).to_string()).collect())
-                    .collect();
+                    ];
+                    let mut vec: Vec<u32> = (1..15).collect();
+                    let mut vec: Vec<Vec<String>> = vec
+                        .iter_mut()
+                        .map(|x| {
+                            vec![
+                                "long examplefolder4".to_string(),
+                                format!("examplefile4{}", x),
+                            ]
+                        })
+                        .collect();
+                    let mut paths: Vec<Vec<String>> = paths
+                        .iter_mut()
+                        .map(|x| x.iter_mut().map(|z| (**z).to_string()).collect())
+                        .collect();
+                    paths.append(&mut vec);
                     ExplorerObject::build_folder("explorer".to_string(), &paths)
                 },
             },
@@ -129,13 +116,15 @@ impl State {
 
     pub fn view(&self) -> iced::Element<'_, Message> {
         widget::column![
-            widget::row![
-                views::explorer_view(self),
-                views::sudoku_view(self),
-                views::path_info_view(self)
-            ]
-            .spacing(10),
-            views::control_view(self),
+            widget::row!()
+                .push_maybe(
+                    views::explorer_view(&self.sudoku_explorer)
+                        .map(|element| element.map(|m| Message::FromExplorer { message: m }))
+                )
+                .push(views::sudoku_view(self).map(|m| Message::FromSudokuCanvas { message: m }))
+                .push(views::path_info_view(self).map(|m| Message::FromDetails { message: m }))
+                .spacing(10),
+            views::control_view(self).map(|m| Message::FromController { message: m }),
         ]
         .spacing(10)
         .padding(5)
@@ -144,24 +133,58 @@ impl State {
 
     pub fn update(&mut self, message: Message) {
         match message {
-            Message::Increment => {
-                self.value += 1;
-                let e = self.sender.try_send(UIMessage::MessageFromUI {
-                    value: String::from_str("Increment").expect("str can't fail"),
-                });
-                println!("{e:?}");
-            }
-            Message::Decrement => {
-                self.value -= 1;
-                let e = self.sender.try_send(UIMessage::MessageFromUI {
-                    value: String::from_str("Decrement").expect("str can't fail"),
-                });
-                println!("{e:?}");
-            }
-            Message::FromStream { command } => {
+            Message::Command { command } => {
                 _ = command;
                 self.recieved_from_stream += 1;
             }
+            Message::FromExplorer { message } => {
+                self.update_explorer(message);
+            }
+            Message::FromController { message } => {
+                self.update_controller(message);
+            }
+            Message::FromDetails { message } => {
+                self.update_details(message);
+            }
+            Message::FromSudokuCanvas { message } => {
+                self.update_sudoku_canvas(message);
+            }
+        }
+    }
+
+    pub fn update_controller(&mut self, message: ControllerMessage) {
+        match message {
+            ControllerMessage::Example => todo!(),
+        }
+    }
+
+    pub fn update_details(&mut self, message: DetailsMessage) {
+        match message {
+            DetailsMessage::Example => todo!(),
+        }
+    }
+
+    pub fn update_sudoku_canvas(&mut self, message: SudokuCanvasMessage) {
+        match message {
+            SudokuCanvasMessage::Example => todo!(),
+        }
+    }
+
+    pub fn update_explorer(&mut self, message: ExplorerMessage) {
+        match message {
+            ExplorerMessage::Expand { id, value } => {
+                if let Some(object) = self.sudoku_explorer.get_by_id_mut(id) {
+                    object.expand(value);
+                } else {
+                    println!("TODO: Errorhandling for missing objects in Explorer");
+                }
+            }
+            ExplorerMessage::Selected { id } => println!(
+                "TODO: Explorerobject {} selected",
+                self.sudoku_explorer
+                    .get_by_id(id)
+                    .map_or("NOT FOUND", |x| { x.name() })
+            ),
         }
     }
 }

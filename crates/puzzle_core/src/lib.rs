@@ -3,6 +3,8 @@ pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }
 
+pub mod explorer_collection;
+
 #[cfg(test)]
 mod tests {
     use super::*;
