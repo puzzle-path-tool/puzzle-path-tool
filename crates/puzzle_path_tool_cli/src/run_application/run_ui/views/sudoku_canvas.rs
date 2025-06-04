@@ -1,4 +1,4 @@
-use iced::widget::canvas;
+use iced::widget::canvas::{self, LineCap, LineJoin};
 use iced::{
     Color, Point, Rectangle, Renderer, Theme,
     alignment::{Horizontal as HorizontalAlignment, Vertical as VerticalAlignment},
@@ -39,7 +39,7 @@ struct Bounds {
 }
 
 impl Bounds {
-    fn include_point(&mut self, point: &Point<f32>, size: f32) {
+    fn include_point(&mut self, point: Point<f32>, size: f32) {
         self.include_bounds(Bounds {
             x_min: point.x - size / 2.0,
             x_max: point.x + size / 2.0,
@@ -72,6 +72,8 @@ enum SudokuObject {
     Line {
         points: Vec<Point>,
         size: f32,
+        line_cap: LineCap,
+        line_join: LineJoin,
         color: Color,
     },
     Polygon {
@@ -109,10 +111,12 @@ impl SudokuObject {
                 points,
                 size,
                 color: _,
+                line_cap: _,
+                line_join: _,
             } => {
                 let mut bounds = Bounds::default();
                 for point in points {
-                    bounds.include_point(point, *size);
+                    bounds.include_point(*point, *size);
                 }
                 bounds
             }
@@ -124,7 +128,7 @@ impl SudokuObject {
             } => {
                 let mut bounds = Bounds::default();
                 for point in points {
-                    bounds.include_point(point, *border_size);
+                    bounds.include_point(*point, *border_size);
                 }
                 bounds
             }
@@ -136,7 +140,7 @@ impl SudokuObject {
                 fill_color: _,
             } => {
                 let mut bounds = Bounds::default();
-                bounds.include_point(center, *border_size + *radius * 2.0);
+                bounds.include_point(*center, *border_size + *radius * 2.0);
                 bounds
             }
             SudokuObject::Image {
@@ -233,6 +237,8 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
                 points,
                 size,
                 color,
+                line_cap,
+                line_join,
             } => {
                 let points: Vec<Point> =
                     points.iter().map(|point| transform_point(*point)).collect();
@@ -249,8 +255,8 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
                         canvas::stroke::Stroke::default()
                             .with_color(*color)
                             .with_width(size)
-                            .with_line_cap(canvas::LineCap::Round)
-                            .with_line_join(canvas::LineJoin::Round),
+                            .with_line_cap(*line_cap)
+                            .with_line_join(*line_join),
                     );
                 }
             }
@@ -347,10 +353,9 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
     }
 }
 
-// Finally, we simply use our `Circle` to create the `Canvas`!
 pub(super) fn view(_state: &State) -> Element<'_, SudokuCanvasMessage> {
     let sudoku = example_sudoku();
-    canvas(sudoku)
+    canvas::Canvas::new(sudoku)
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
         .into()
@@ -359,26 +364,7 @@ pub(super) fn view(_state: &State) -> Element<'_, SudokuCanvasMessage> {
 fn example_sudoku() -> Sudoku {
     Sudoku {
         objects: {
-            let mut objects: Vec<SudokuObject> = (0..9)
-                .map(
-                    #[allow(clippy::cast_precision_loss)]
-                    |i| {
-                        let x = (i % 3) as f32 * 3.0;
-                        let y = (i / 3) as f32 * 3.0;
-                        SudokuObject::Polygon {
-                            points: vec![
-                                Point::new(x + 3.0, y + 3.0),
-                                Point::new(x, y + 3.0),
-                                Point::new(x, y),
-                                Point::new(x + 3.0, y),
-                            ],
-                            border_size: 0.1,
-                            border_color: Color::BLACK,
-                            fill_color: None,
-                        }
-                    },
-                )
-                .collect();
+            let mut objects: Vec<SudokuObject> = vec![];
             objects.push(SudokuObject::Line {
                 points: vec![
                     Point::new(0.5, 2.5),
@@ -389,6 +375,8 @@ fn example_sudoku() -> Sudoku {
                 ],
                 size: 0.4,
                 color: Color::from_rgb8(0, 255, 0),
+                line_cap: LineCap::Round,
+                line_join: LineJoin::Round,
             });
             for i in 0..9 {
                 objects.append(
@@ -418,6 +406,28 @@ fn example_sudoku() -> Sudoku {
                         .collect(),
                 );
             }
+            objects.append(
+                &mut (0..9)
+                    .map(
+                        #[allow(clippy::cast_precision_loss)]
+                        |i| {
+                            let x = (i % 3) as f32 * 3.0;
+                            let y = (i / 3) as f32 * 3.0;
+                            SudokuObject::Polygon {
+                                points: vec![
+                                    Point::new(x + 3.0, y + 3.0),
+                                    Point::new(x, y + 3.0),
+                                    Point::new(x, y),
+                                    Point::new(x + 3.0, y),
+                                ],
+                                border_size: 0.1,
+                                border_color: Color::BLACK,
+                                fill_color: None,
+                            }
+                        },
+                    )
+                    .collect(),
+            );
             for i in 0..9 {
                 objects.append(
                     &mut (0..9)
