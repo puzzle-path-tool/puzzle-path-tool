@@ -27,8 +27,8 @@ enum ExplorerViewState<'a> {
 
 #[derive(Debug)]
 struct State {
-    value: i32,
-    recieved_from_stream: u32,
+    title: String,
+
     sender: mpsc::Sender<UIMessage>,
 
     sudoku_explorer: ExplorerObject,
@@ -66,8 +66,8 @@ enum SudokuCanvasMessage {
 
 impl State {
     fn title(&self) -> String {
-        println!("TODO: Build title with {self:?}");
-        "Test Window".to_string()
+        // TODO: determine title from state
+        self.title.clone()
     }
 
     fn new(flags: Flags) -> (Self, iced::Task<Message>) {
@@ -75,8 +75,7 @@ impl State {
         let task = iced::Task::run(reciever, |c| Message::Command { command: c });
         (
             State {
-                value: 10,
-                recieved_from_stream: 0,
+                title: "Test Window".to_string(),
                 sender: flags.sender,
 
                 sudoku_explorer: {
@@ -134,8 +133,7 @@ impl State {
     pub fn update(&mut self, message: Message) {
         match message {
             Message::Command { command } => {
-                _ = command;
-                self.recieved_from_stream += 1;
+                println!("TODO: recieved {command:?} from stream");
             }
             Message::FromExplorer { message } => {
                 self.update_explorer(message);
