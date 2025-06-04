@@ -6,6 +6,8 @@ use puzzle_core::explorer_collection::ExplorerObject;
 
 use super::{ControllerMessage, DetailsMessage, ExplorerMessage, State, SudokuCanvasMessage};
 
+pub(super) mod sudoku_canvas;
+
 pub(super) fn explorer_view(
     explorer: &ExplorerObject,
 ) -> Option<iced::Element<'_, ExplorerMessage>> {
@@ -47,12 +49,7 @@ pub(super) fn explorer_view(
 
 fn explorer_view_object(object: &ExplorerObject) -> iced::Element<'_, ExplorerMessage> {
     if let Some((children, expanded)) = object.expanded() {
-        let mut col = widget::column!().padding(Padding {
-            top: 2.0,
-            right: 0.0,
-            bottom: 8.0,
-            left: 10.0,
-        });
+        let mut col = widget::column!();
         let file_string = if expanded {
             format!("v {}", object.name())
         } else {
@@ -66,9 +63,15 @@ fn explorer_view_object(object: &ExplorerObject) -> iced::Element<'_, ExplorerMe
             },
         ));
         if expanded {
-            col = col.push(children.iter().fold(widget::column![], |x, child| {
-                x.push(explorer_view_object(child))
-            }));
+            col = col.push(children.iter().fold(
+                widget::column![].padding(Padding {
+                    top: 2.0,
+                    right: 0.0,
+                    bottom: 8.0,
+                    left: 10.0,
+                }),
+                |x, child| x.push(explorer_view_object(child)),
+            ));
         }
         col.into()
     } else {
@@ -112,10 +115,8 @@ pub(super) fn control_view(_state: &State) -> iced::Element<'_, ControllerMessag
         .into()
 }
 
-pub(super) fn sudoku_view(_state: &State) -> iced::Element<'_, SudokuCanvasMessage> {
-    widget::container(widget::text("sudoku_view"))
-        .padding(5)
+pub(super) fn sudoku_view(state: &State) -> iced::Element<'_, SudokuCanvasMessage> {
+    widget::container(sudoku_canvas::view(state))
         .center(Length::Fill)
-        .style(widget::container::bordered_box)
         .into()
 }
