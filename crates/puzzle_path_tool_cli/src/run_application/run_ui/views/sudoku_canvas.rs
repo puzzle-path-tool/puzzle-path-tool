@@ -353,15 +353,17 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
     }
 }
 
-pub(super) fn view(_state: &State) -> Element<'_, SudokuCanvasMessage> {
-    let sudoku = example_sudoku();
+pub(super) fn view(state: &State) -> Element<'_, SudokuCanvasMessage> {
+    let sudoku = example_sudoku(state.control.timeline_value);
     canvas::Canvas::new(sudoku)
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
         .into()
 }
 
-fn example_sudoku() -> Sudoku {
+#[allow(clippy::too_many_lines)]
+// progression is between 0 and 9*9
+fn example_sudoku(mut progression: u32) -> Sudoku {
     Sudoku {
         objects: {
             let mut objects: Vec<SudokuObject> = vec![];
@@ -428,6 +430,7 @@ fn example_sudoku() -> Sudoku {
                     )
                     .collect(),
             );
+            #[allow(clippy::cast_sign_loss)]
             for i in 0..9 {
                 objects.append(
                     &mut (0..9)
@@ -448,6 +451,14 @@ fn example_sudoku() -> Sudoku {
                                 }
                             },
                         )
+                        .take_while(|_| {
+                            if progression > 0 {
+                                progression -= 1;
+                                true
+                            } else {
+                                false
+                            }
+                        })
                         .collect(),
                 );
             }

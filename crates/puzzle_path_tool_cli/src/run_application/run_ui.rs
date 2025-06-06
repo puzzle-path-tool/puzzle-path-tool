@@ -1,5 +1,7 @@
 use iced::{
-    widget::{self},
+    Subscription,
+    time::Duration,
+    widget,
     window::{self, Icon, icon},
 };
 
@@ -32,12 +34,127 @@ struct State {
     sender: mpsc::Sender<UIMessage>,
 
     sudoku_explorer: ExplorerObject,
+
+    control: ControlState,
 }
 
 #[derive(Debug, Clone, Copy)]
+struct ControlState {
+    timeline_end: u32,
+    timeline_value: u32,
+
+    speed_stride: u32,
+    speed_frequence: std::time::Duration,
+
+    play_state: PlayState,
+    skip_controls: SkipControls,
+}
+
+impl ControlState {
+    fn new(timeline: u32) -> ControlState {
+        ControlState {
+            timeline_end: timeline,
+            timeline_value: 0,
+            speed_stride: 1,
+            speed_frequence: Duration::from_secs(1),
+            play_state: PlayState::Pause,
+            skip_controls: SkipControls::default(),
+        }
+    }
+
+    pub fn update_controls(&mut self, message: ControlsMessage) {
+        match message {
+            ControlsMessage::Playstate(play_state) => {
+                if self.play_state == play_state
+                    || ((play_state == PlayState::Play) && self.timeline_value == self.timeline_end)
+                    || ((play_state == PlayState::Backwards) && self.timeline_value == 0)
+                {
+                    self.timeline_value = if play_state == PlayState::Backwards {
+                        self.timeline_end
+                    } else {
+                        0
+                    };
+                }
+                self.play_state = play_state;
+            }
+            ControlsMessage::TimelineValue(value) => {
+                self.timeline_value = value.min(self.timeline_end);
+                self.play_state = PlayState::Pause;
+            }
+            ControlsMessage::SkipControls(skip_controls) => {
+                self.skip_controls = skip_controls;
+            }
+            ControlsMessage::TimelineNext => {
+                self.skip_controls.todo_skip();
+                match self.play_state {
+                    PlayState::Play => {
+                        self.timeline_value =
+                            (self.timeline_value + self.speed_stride).min(self.timeline_end);
+                        if self.timeline_value == self.timeline_end {
+                            self.play_state = PlayState::Pause;
+                        }
+                    }
+                    PlayState::Backwards => {
+                        self.timeline_value -= self.speed_stride;
+                        if self.timeline_value == 0 {
+                            self.play_state = PlayState::Pause;
+                        }
+                    }
+                    PlayState::Pause => {
+                        eprintln!("TODO: Errorhandling TimelineNext on Pause");
+                    }
+                }
+            }
+            ControlsMessage::SpeedStride(stride) => {
+                if stride.is_empty() {
+                    self.speed_stride = 0;
+                } else {
+                    let _ = stride
+                        .parse::<u32>()
+                        .map(|stride| self.speed_stride = stride.min(self.timeline_end));
+                }
+            }
+            ControlsMessage::SpeedFrequence(frequence) => {
+                if frequence.is_empty() {
+                    self.speed_frequence = Duration::ZERO;
+                } else {
+                    let _ = frequence.parse::<f32>().map(|frequence| {
+                        self.speed_frequence = Duration::from_secs_f32(frequence);
+                    });
+                }
+            }
+        }
+    }
+
+    fn subscription(&self) -> Subscription<ControlsMessage> {
+        match self.play_state {
+            PlayState::Pause => Subscription::none(),
+            _ => iced::time::every(self.speed_frequence.max(Duration::from_secs_f32(0.01)))
+                .map(|_| ControlsMessage::TimelineNext),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum PlayState {
+    Play,
+    Backwards,
+    Pause,
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+struct SkipControls {}
+
+impl SkipControls {
+    fn todo_skip(self) {
+        _ = self;
+    }
+}
+
+#[derive(Debug, Clone)]
 enum Message {
     FromExplorer { message: ExplorerMessage },
-    FromController { message: ControllerMessage },
+    FromControls { message: ControlsMessage },
     FromDetails { message: DetailsMessage },
     FromSudokuCanvas { message: SudokuCanvasMessage },
     Command { command: UICommand },
@@ -49,9 +166,14 @@ enum ExplorerMessage {
     Selected { id: ExplorerId },
 }
 
-#[derive(Debug, Clone, Copy)]
-enum ControllerMessage {
-    Example,
+#[derive(Debug, Clone)]
+enum ControlsMessage {
+    Playstate(PlayState),
+    TimelineValue(u32),
+    TimelineNext,
+    SpeedStride(String),
+    SpeedFrequence(String),
+    SkipControls(SkipControls),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -108,6 +230,8 @@ impl State {
                     paths.append(&mut vec);
                     ExplorerObject::build_folder("explorer".to_string(), &paths)
                 },
+
+                control: ControlState::new(9 * 9),
             },
             task,
         )
@@ -123,7 +247,7 @@ impl State {
                 .push(views::sudoku_view(self).map(|m| Message::FromSudokuCanvas { message: m }))
                 .push(views::path_info_view(self).map(|m| Message::FromDetails { message: m }))
                 .spacing(10),
-            views::control_view(self).map(|m| Message::FromController { message: m }),
+            views::control_view(&self.control).map(|m| Message::FromControls { message: m }),
         ]
         .spacing(10)
         .padding(5)
@@ -138,8 +262,8 @@ impl State {
             Message::FromExplorer { message } => {
                 self.update_explorer(message);
             }
-            Message::FromController { message } => {
-                self.update_controller(message);
+            Message::FromControls { message } => {
+                self.control.update_controls(message);
             }
             Message::FromDetails { message } => {
                 self.update_details(message);
@@ -150,10 +274,10 @@ impl State {
         }
     }
 
-    pub fn update_controller(&mut self, message: ControllerMessage) {
-        match message {
-            ControllerMessage::Example => todo!(),
-        }
+    pub fn subscription(&self) -> Subscription<Message> {
+        self.control
+            .subscription()
+            .map(|m| Message::FromControls { message: m })
     }
 
     pub fn update_details(&mut self, message: DetailsMessage) {
@@ -207,6 +331,7 @@ pub(super) fn run(flags: Flags) {
     let sender = flags.sender.clone();
     let _ = iced::application(State::title, State::update, State::view)
         .window(window_settings)
+        .subscription(State::subscription)
         .run_with(|| State::new(flags));
     //TODO: Errorhandling
     let _ = sender.try_send(UIMessage::WindowClosed);

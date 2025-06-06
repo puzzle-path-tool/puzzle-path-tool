@@ -4,7 +4,7 @@ use iced::{
 };
 use puzzle_core::explorer_collection::ExplorerObject;
 
-use super::{ControllerMessage, DetailsMessage, ExplorerMessage, State, SudokuCanvasMessage};
+use super::{ControlsMessage, DetailsMessage, ExplorerMessage, State, SudokuCanvasMessage};
 
 pub(super) mod sudoku_canvas;
 
@@ -106,13 +106,89 @@ pub(super) fn path_info_view(_state: &State) -> iced::Element<'_, DetailsMessage
         .into()
 }
 
-pub(super) fn control_view(_state: &State) -> iced::Element<'_, ControllerMessage> {
-    widget::container(widget::text("control_view"))
-        .padding(5)
-        .height(250)
-        .center_x(Length::Fill)
-        .style(widget::container::bordered_box)
-        .into()
+pub(super) fn control_view(state: &super::ControlState) -> iced::Element<'_, ControlsMessage> {
+    widget::container(
+        widget::column![
+            widget::container(widget::slider(
+                0..=state.timeline_end,
+                state.timeline_value,
+                ControlsMessage::TimelineValue
+            ))
+            .center_x(Length::Fill),
+            widget::row![
+                widget::container(widget::column![
+                    widget::row![
+                        widget::button(widget::text(
+                            if state.play_state == super::PlayState::Play
+                                || state.timeline_value == state.timeline_end
+                            {
+                                "RePlay"
+                            } else {
+                                "Play"
+                            }
+                        ))
+                        .on_press(ControlsMessage::Playstate(super::PlayState::Play)),
+                        widget::button(widget::text(
+                            if state.play_state == super::PlayState::Pause {
+                                "Cancel"
+                            } else {
+                                "Pause"
+                            }
+                        ))
+                        .on_press(ControlsMessage::Playstate(super::PlayState::Pause)),
+                        widget::button(widget::text(
+                            if state.play_state == super::PlayState::Backwards
+                                || state.timeline_value == 0
+                            {
+                                "RePlay Backwards"
+                            } else {
+                                "Backwards"
+                            }
+                        ))
+                        .on_press(ControlsMessage::Playstate(super::PlayState::Backwards)),
+                    ],
+                    widget::row![
+                        widget::text("Step frequenz:"),
+                        widget::text_input::TextInput::new(
+                            "-",
+                            {
+                                let value = format!("{}", state.speed_frequence.as_secs_f32());
+                                if value.contains('.') {
+                                    value
+                                } else {
+                                    format!("{value}.")
+                                }
+                            }
+                            .as_str()
+                        )
+                        .width(100)
+                        .on_input(|mut value| if value.contains('.') {
+                            ControlsMessage::SpeedFrequence(value)
+                        } else {
+                            value.pop();
+                            ControlsMessage::SpeedFrequence(value)
+                        }),
+                        widget::text("Step stride:"),
+                        widget::text_input::TextInput::new(
+                            "-",
+                            format!("{}", state.speed_stride).as_str()
+                        )
+                        .width(100)
+                        .on_input(ControlsMessage::SpeedStride),
+                    ]
+                    .spacing(3)
+                    .width(350)
+                ]),
+                widget::container(widget::text("skip_controlls")),
+            ]
+            .spacing(5)
+        ]
+        .spacing(5),
+    )
+    .padding(5)
+    .center_x(Length::Fill)
+    .style(widget::container::bordered_box)
+    .into()
 }
 
 pub(super) fn sudoku_view(state: &State) -> iced::Element<'_, SudokuCanvasMessage> {
