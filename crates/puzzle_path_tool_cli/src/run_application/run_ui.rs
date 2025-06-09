@@ -95,7 +95,7 @@ impl ControlState {
                         }
                     }
                     PlayState::Backwards => {
-                        self.timeline_value -= self.speed_stride;
+                        self.timeline_value -= self.speed_stride.min(self.timeline_value);
                         if self.timeline_value == 0 {
                             self.play_state = PlayState::Pause;
                         }

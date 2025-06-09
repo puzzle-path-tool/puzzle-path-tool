@@ -90,7 +90,7 @@ enum SudokuObject {
         fill_color: Option<Color>,
     },
     Image {
-        center: Point,
+        position: Point,
         width: f32,
         height: f32,
         value: canvas::Image,
@@ -144,7 +144,7 @@ impl SudokuObject {
                 bounds
             }
             SudokuObject::Image {
-                center,
+                position: center,
                 width,
                 height,
                 value: _,
@@ -203,6 +203,8 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
         _cursor: mouse::Cursor,
     ) -> Vec<canvas::Geometry<Renderer>> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
+        let mut frame2 = canvas::Frame::new(renderer, bounds.size());
+        let mut frame3 = canvas::Frame::new(renderer, bounds.size());
 
         let (size_factor, x_offset, y_offset) = {
             let sudoku_bounds = self.bounds();
@@ -311,11 +313,25 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
                 );
             }
             SudokuObject::Image {
-                center: _,
-                width: _,
-                height: _,
-                value: _,
-            } => todo!(),
+                position,
+                width,
+                height,
+                value,
+            } => {
+                let position = transform_point(*position);
+                let width = width * size_factor;
+                let height = height * size_factor;
+
+                frame2.draw_image(
+                    Rectangle {
+                        x: position.x,
+                        y: position.y,
+                        width,
+                        height,
+                    },
+                    value.clone(),
+                );
+            }
             SudokuObject::Text {
                 size,
                 value,
@@ -346,10 +362,10 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
                     shaping: iced::widget::text::Shaping::Basic,
                 };
 
-                frame.fill_text(text);
+                frame3.fill_text(text);
             }
         });
-        vec![frame.into_geometry()]
+        vec![frame3.into_geometry(), frame2.into_geometry(), frame.into_geometry()]
     }
 }
 
@@ -380,6 +396,30 @@ fn example_sudoku(mut progression: u32) -> Sudoku {
                 line_cap: LineCap::Round,
                 line_join: LineJoin::Round,
             });
+            for i in 0..9 {
+                objects.append(
+                    &mut (0..9)
+                        .filter(|ii| (i / 2 + ii * 5) % 3 < 1)
+                        .map(
+                            #[allow(clippy::cast_precision_loss)]
+                            |ii: i32| {
+                                let x = (ii % 3 + (i % 3) * 3) as f32;
+                                let y = (ii / 3 + (i / 3) * 3) as f32;
+                                SudokuObject::Image {
+                                    position: Point::new(x, y),
+                                    width: 1.0,
+                                    height: 1.0,
+                                    value: canvas::Image::new(
+                                        iced::advanced::image::Handle::from_path(
+                                            r"crates\puzzle_path_tool_cli\assets\icon.ico",
+                                        ),
+                                    ),
+                                }
+                            },
+                        )
+                        .collect(),
+                );
+            }
             for i in 0..9 {
                 objects.append(
                     &mut (0..9)
