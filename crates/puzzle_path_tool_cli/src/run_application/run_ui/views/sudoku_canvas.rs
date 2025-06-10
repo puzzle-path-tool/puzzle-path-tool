@@ -365,7 +365,11 @@ impl canvas::Program<SudokuCanvasMessage> for Sudoku {
                 frame3.fill_text(text);
             }
         });
-        vec![frame3.into_geometry(), frame2.into_geometry(), frame.into_geometry()]
+        vec![
+            frame3.into_geometry(),
+            frame2.into_geometry(),
+            frame.into_geometry(),
+        ]
     }
 }
 
