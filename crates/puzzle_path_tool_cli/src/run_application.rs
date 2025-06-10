@@ -1,7 +1,8 @@
 use crate::commands::{GenerationOptions, Input, OutputOptions};
-use run_ui::Flags;
 use std::thread::JoinHandle;
 use tokio::sync::mpsc::{self, Receiver, Sender};
+
+#[cfg(feature = "ui")]
 use tokio_stream::StreamExt;
 
 #[cfg(feature = "ui")]
@@ -18,6 +19,12 @@ struct WatchTask {
 }
 
 #[derive(Debug)]
+struct UIFlags {
+    sender: mpsc::Sender<UIMessage>,
+    reciever: mpsc::Receiver<UICommand>,
+}
+
+#[derive(Debug)]
 enum UIWindow {
     Closed,
     SetUp {
@@ -31,35 +38,36 @@ enum UIWindow {
 }
 
 impl UIWindow {
+    #[allow(unused_variables)]
     fn set_up_ui(self) -> UIWindow {
         if let UIWindow::SetUp { sender, receiver } = self {
-            if cfg!(feature = "ui") {
-                #[cfg(feature = "ui")]
-                {
-                    println!("Building UI message handler");
-                    let message_handler = tokio::spawn(async move {
-                        println!("Finished UI message handler");
-                        let mut stream = tokio_stream::wrappers::ReceiverStream::new(receiver);
-                        while let Some(ui_message) = stream.next().await {
-                            match ui_message {
-                                UIMessage::MessageFromUI { value } => {
-                                    println!("TODO: Handle UIMessage {value}");
-                                }
-                                UIMessage::WindowClosed => {
-                                    stream.close();
-                                    break;
-                                }
+            #[cfg(feature = "ui")]
+            {
+                println!("Building UI message handler");
+                let message_handler = tokio::spawn(async move {
+                    println!("Finished UI message handler");
+                    let mut stream = tokio_stream::wrappers::ReceiverStream::new(receiver);
+                    while let Some(ui_message) = stream.next().await {
+                        match ui_message {
+                            UIMessage::MessageFromUI { value } => {
+                                println!("TODO: Handle UIMessage {value}");
+                            }
+                            UIMessage::WindowClosed => {
+                                stream.close();
+                                break;
                             }
                         }
-
-                        println!("Ending UI message handler");
-                    });
-                    UIWindow::Running {
-                        sender,
-                        message_handler,
                     }
+
+                    println!("Ending UI message handler");
+                });
+                UIWindow::Running {
+                    sender,
+                    message_handler,
                 }
-            } else {
+            }
+            #[cfg(not(feature = "ui"))]
+            {
                 println!("TODO: 'UI feature not activated' Warning");
                 UIWindow::Closed
             }
@@ -90,7 +98,7 @@ pub(super) struct ApplicationRunner {
 }
 
 impl ApplicationRunner {
-    fn run_new(input: Input, _options: GenerationOptions) -> (Option<Flags>, JoinHandle<()>) {
+    fn run_new(input: Input, _options: GenerationOptions) -> (Option<UIFlags>, JoinHandle<()>) {
         let mut runner = ApplicationRunner {
             watch: None,
             window: UIWindow::Closed,
@@ -131,29 +139,31 @@ impl ApplicationRunner {
         (ui_flags, handle)
     }
 
-    fn setup_output(&mut self, options: &OutputOptions) -> Option<Flags> {
-        let mut ui_flags = None;
-        if options.ui {
-            if cfg!(feature = "ui") {
-                #[cfg(feature = "ui")]
-                {
-                    let (to_ui_sender, to_ui_receiver) = mpsc::channel::<UICommand>(100);
-                    let (from_ui_sender, from_ui_receiver) = mpsc::channel::<UIMessage>(100);
+    fn setup_output(&mut self, options: &OutputOptions) -> Option<UIFlags> {
+        let ui_flags = if options.ui {
+            #[cfg(feature = "ui")]
+            {
+                let (to_ui_sender, to_ui_receiver) = mpsc::channel::<UICommand>(100);
+                let (from_ui_sender, from_ui_receiver) = mpsc::channel::<UIMessage>(100);
 
-                    let flags = run_ui::Flags {
-                        sender: from_ui_sender,
-                        reciever: to_ui_receiver,
-                    };
-                    self.window = UIWindow::SetUp {
-                        sender: to_ui_sender,
-                        receiver: from_ui_receiver,
-                    };
-                    ui_flags = Some(flags);
-                }
-            } else {
-                println!("TODO: ui-features not implemented");
+                let flags = UIFlags {
+                    sender: from_ui_sender,
+                    reciever: to_ui_receiver,
+                };
+                self.window = UIWindow::SetUp {
+                    sender: to_ui_sender,
+                    receiver: from_ui_receiver,
+                };
+                Some(flags)
             }
-        }
+            #[cfg(not(feature = "ui"))]
+            {
+                println!("TODO: ui-features not implemented");
+                None
+            }
+        } else {
+            None
+        };
         if let Some(format) = &options.export_format {
             println!("TODO: handle output Format {format:?}");
         }
@@ -179,7 +189,7 @@ impl ApplicationRunner {
 
 #[derive(Debug)]
 pub(super) struct MainRunner {
-    ui_flags: Option<run_ui::Flags>,
+    ui_flags: Option<UIFlags>,
     logic_thread_handler: std::thread::JoinHandle<()>,
 }
 
@@ -194,6 +204,7 @@ impl MainRunner {
 
     fn run_ui(mut self) -> MainRunner {
         println!("Run UI with {:?}", self.ui_flags);
+        #[cfg(feature = "ui")]
         if let Some(flags) = self.ui_flags {
             run_ui::run(flags);
         }

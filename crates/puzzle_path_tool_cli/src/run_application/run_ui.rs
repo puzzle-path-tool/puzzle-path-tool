@@ -12,12 +12,6 @@ use puzzle_core::explorer_collection::{ExplorerId, ExplorerObject};
 use super::{UICommand, UIMessage};
 mod views;
 
-#[derive(Debug)]
-pub(super) struct Flags {
-    pub(super) sender: mpsc::Sender<UIMessage>,
-    pub(super) reciever: mpsc::Receiver<UICommand>,
-}
-
 #[derive(Debug, Clone, Copy)]
 enum ExplorerViewState<'a> {
     NonExistent,
@@ -192,7 +186,7 @@ impl State {
         self.title.clone()
     }
 
-    fn new(flags: Flags) -> (Self, iced::Task<Message>) {
+    fn new(flags: super::UIFlags) -> (Self, iced::Task<Message>) {
         let reciever = tokio_stream::wrappers::ReceiverStream::new(flags.reciever);
         let task = iced::Task::run(reciever, |c| Message::Command { command: c });
         (
@@ -322,7 +316,7 @@ fn load_icon() -> anyhow::Result<Icon> {
     Ok(icon)
 }
 
-pub(super) fn run(flags: Flags) {
+pub(super) fn run(flags: super::UIFlags) {
     println!("Starting Gui...");
     let window_settings = window::Settings {
         icon: load_icon().ok(),
