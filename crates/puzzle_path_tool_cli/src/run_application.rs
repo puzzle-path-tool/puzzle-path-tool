@@ -158,6 +158,7 @@ impl ApplicationRunner {
             }
             #[cfg(not(feature = "ui"))]
             {
+                let _ = self;
                 println!("TODO: ui-features not implemented");
                 None
             }
