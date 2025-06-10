@@ -38,6 +38,7 @@ puzzle-formats = { workspace = true }
 puzzle-path-tool = { workspace = true }
 
 [build-dependencies]
+anyhow = "1.0.98"
 puzzle-core-build = { workspace = true }
 
 [target.'cfg(windows)'.build-dependencies]
