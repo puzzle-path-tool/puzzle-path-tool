@@ -169,7 +169,7 @@ impl ApplicationRunner {
             println!("TODO: handle output Format {format:?}");
         }
         if let Some(path) = &options.json_path {
-            println!("TODO: handle output Json path {path:?}");
+            println!("TODO: handle output Json path {}", path.display());
         }
 
         ui_flags
