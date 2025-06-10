@@ -34,7 +34,12 @@ ui = ["dep:iced", "dep:image"]
 [dependencies]
 anyhow = "1.0.98"
 clap = { version = "4.5.38", features = ["derive"] }
-iced = { version = "0.13.1", features = ["canvas", "image", "advanced", "smol"], optional = true }
+iced = { version = "0.13.1", features = [
+  "canvas",
+  "image",
+  "advanced",
+  "smol",
+], optional = true }
 image = { version = "0.25.6", optional = true }
 notify = { version = "8.0.0", features = ["serde"] }
 puzzle-core = { workspace = true }
