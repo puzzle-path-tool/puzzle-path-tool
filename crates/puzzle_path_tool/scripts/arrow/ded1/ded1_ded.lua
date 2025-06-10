@@ -1,6 +1,6 @@
 local values = {
-    id = IdField.new(),
-    n = IntField.new()
+    id = field.id(),
+    n = field.int()
 }
 
 local tables = {

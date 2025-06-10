@@ -1,63 +1,40 @@
 ---@meta
 
----@class Field
-
----@class IntField: Field
-
-IntField = {}
+field = {}
 
 ---@return IntField
-function IntField.new() end
-
-
----@class IdField: Field
-
-IdField = {}
+function field.int() end
 
 ---@return IdField
-function IdField.new() end
-
-
----@class CharField: Field
-
-CharField = {}
+function field.id() end
 
 ---@return CharField
-function CharField.new() end
-
-
----@class FloatField: Field
-
-FloatField = {}
+function field.char() end
 
 ---@return FloatField
-function FloatField.new() end
-
-
----@class BoolField: Field
-
-BoolField = {}
+function field.float() end
 
 ---@return BoolField
-function BoolField.new() end
-
-
----@class RefField: Field
-
-RefField = {}
+function field.bool() end
 
 ---@param id IdField
 ---@return RefField
-function RefField.new(id) end
-
----@class RootEntry
-local root_entry = {}
-
-RootEntry = {}
+function field.ref(id) end
 
 ---@param id IdField
 ---@return RootEntry
-function RootEntry.new(id) end
+function field.root(id) end
+
+---@class Field
+---@class IntField: Field
+---@class IdField: Field
+---@class CharField: Field
+---@class FloatField: Field
+---@class BoolField: Field
+---@class RefField: Field
+
+---@class RootEntry
+local root_entry = {}
 
 ---@return RootEntryInstance
 function root_entry:any() end

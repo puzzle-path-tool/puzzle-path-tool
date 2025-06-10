@@ -11,12 +11,6 @@
     ".github",
     "target"
   ],
-  "nameStyle.config": {
-    "global_variable_name_style": [
-      "pascal_case",
-      "upper_snake_case"
-    ]
-  },
   "workspace.ignoreSubmodules": false,
   "diagnostics.disable": [],
   "diagnostics.neededFileStatus": {

@@ -1,14 +1,14 @@
 local arrow = {
-    id = IdField.new(),
-    x = IntField.new(),
-    y = IntField.new(),
+    id = field.id(),
+    x = field.int(),
+    y = field.int(),
 }
 
 local line_cell = {
-    id = IdField.new(),
-    x = IntField.new(),
-    y = IntField.new(),
-    arrow = RefField.new(arrow.id),
+    id = field.id(),
+    x = field.int(),
+    y = field.int(),
+    arrow = field.ref(arrow.id),
 }
 
 local tables = {
