@@ -49,6 +49,7 @@ skip = [
   { name = "windows_i686_msvc" },
   { name = "windows_x86_64_gnu" },
   { name = "windows_x86_64_msvc" },
+  { name = "itertools" },
 ]
 
 skip-tree = [

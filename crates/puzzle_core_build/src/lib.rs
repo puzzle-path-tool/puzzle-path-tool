@@ -1,6 +1,8 @@
 use std::{
     env::{self, VarError},
+    fmt::Display,
     path::PathBuf,
+    process,
 };
 
 use thiserror::Error;
@@ -89,4 +91,14 @@ pub fn rerun_if_changed_any() {
 
 pub fn rerun_if_changed(pattern: &str) {
     println!("cargo:rerun-if-changed={pattern}");
+}
+
+pub fn handle_build_result<E>(res: Result<(), E>)
+where
+    E: Display,
+{
+    if let Err(err) = res {
+        eprintln!("{err}");
+        process::exit(1);
+    }
 }

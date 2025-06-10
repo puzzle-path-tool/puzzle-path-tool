@@ -12,59 +12,91 @@ env:
 
 jobs:
   test:
-    name: "Test: [${{ matrix.arch.short-name }}] [${{ matrix.mode.short-name }}/${{ matrix.toolchain.short-name }}]"
-    runs-on: "${{ matrix.arch.os }}-latest"
+    name: "Test: [${{ matrix.profile.name }}]"
+    runs-on: "${{ matrix.profile.os }}-latest"
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - os: "ubuntu"
+        profile:
+          - name: "default"
+            os: "ubuntu"
             target: "x86_64-unknown-linux-gnu"
-            short-name: "linux/gnu"
-
-          # - os: "ubuntu"
-          #   target: "x86_64-unknown-linux-musl"
-          #   short-name: "linux/musl"
-
-          - os: "ubuntu"
-            target: "aarch64-unknown-linux-gnu"
-            short-name: "linux/arm"
-
-          - os: "windows"
-            target: "x86_64-pc-windows-msvc"
-            short-name: "win/msvc"
-
-          - os: "macos"
-            target: "x86_64-apple-darwin"
-            short-name: "mac/x86"
-
-          - os: "macos"
-            target: "aarch64-apple-darwin"
-            short-name: "mac/arm"
-
-        toolchain:
-          - name: "stable"
-            short-name: "stb"
-
-          - name: "beta"
-            short-name: "beta"
-
-          - name: "nightly"
-            short-name: "ngt"
-
-        mode:
-          - name: "debug"
-            flag: ""
-            dir: "debug"
-            short-name: "dbg"
-
-          - name: "release"
-            flag: "--release"
+            toolchain: "stable"
+            flags: "--all-features --release"
             dir: "release"
-            short-name: "rl"
+          
+          - name: "arch: linux/musl"
+            os: "ubuntu"
+            target: "x86_64-unknown-linux-musl"
+            toolchain: "stable"
+            flags: "--all-features --release"
+            dir: "release"
+
+          - name: "arch: linux/arm"
+            os: "ubuntu"
+            target: "aarch64-unknown-linux-gnu"
+            toolchain: "stable"
+            flags: "--all-features --release"
+            dir: "release"
+
+          - name: "arch: windows"
+            os: "windows"
+            target: "x86_64-pc-windows-msvc"
+            toolchain: "stable"
+            flags: "--all-features --release"
+            dir: "release"
+
+          - name: "arch: macos/x86"
+            os: "macos"
+            target: "x86_64-apple-darwin"
+            toolchain: "stable"
+            flags: "--all-features --release"
+            dir: "release"
+          
+          - name: "arch: macos/arm"
+            os: "macos"
+            target: "aarch64-apple-darwin"
+            toolchain: "stable"
+            flags: "--all-features --release"
+            dir: "release"
+
+          - name: "profile: debug"
+            os: "ubuntu"
+            target: "x86_64-unknown-linux-gnu"
+            toolchain: "stable"
+            flags: "--all-features"
+            dir: "debug"
+
+          - name: "toolchain: beta"
+            os: "ubuntu"
+            target: "x86_64-unknown-linux-gnu"
+            toolchain: "beta"
+            flags: "--all-features --release"
+            dir: "release"
+
+          - name: "toolchain: nightly"
+            os: "ubuntu"
+            target: "x86_64-unknown-linux-gnu"
+            toolchain: "nightly"
+            flags: "--all-features --release"
+            dir: "release"
+
+          - name: "features: default"
+            os: "ubuntu"
+            target: "x86_64-unknown-linux-gnu"
+            toolchain: "stable"
+            flags: "--release"
+            dir: "release"
+
+          - name: "features: none"
+            os: "ubuntu"
+            target: "x86_64-unknown-linux-gnu"
+            toolchain: "stable"
+            flags: "--no-default-features --release"
+            dir: "release"
 
     env:
-      PUZZLE_OUT_DIR: target/${{ matrix.arch.target }}/${{ matrix.mode.dir }}
+      PUZZLE_OUT_DIR: target/${{ matrix.profile.target }}/${{ matrix.profile.dir }}
     defaults:
       run:
         shell: bash
@@ -75,9 +107,9 @@ jobs:
         uses: houseabsolute/actions-rust-cross@v1
         with:
           command: build
-          target: ${{ matrix.arch.target }}
-          toolchain: ${{ matrix.toolchain.name }}
-          args: "--locked ${{ matrix.mode.flag }}"
+          target: ${{ matrix.profile.target }}
+          toolchain: ${{ matrix.profile.toolchain }}
+          args: "--locked ${{ matrix.profile.flags }}"
 
       - name: Show Build Files
         run: ls -lahs $PUZZLE_OUT_DIR
@@ -86,9 +118,9 @@ jobs:
         uses: houseabsolute/actions-rust-cross@v1
         with:
           command: test
-          target: ${{ matrix.arch.target }}
-          toolchain: ${{ matrix.toolchain.name }}
-          args: "--locked ${{ matrix.mode.flag }}"
+          target: ${{ matrix.profile.target }}
+          toolchain: ${{ matrix.profile.toolchain }}
+          args: "--locked ${{ matrix.profile.flags }}"
   clippy:
     name: "Clippy"
     runs-on: ubuntu-latest

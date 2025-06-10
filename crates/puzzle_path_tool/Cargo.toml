@@ -20,11 +20,18 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[[bench]]
+name = "benchmark"
+harness = false
+
 [lints]
 workspace = true
 
-[dependencies]
-mlua = { version = "0.10.3", features = ["luajit", "vendored"] }
+[dependencies] 
+mlua = { version = "0.10.3", features = ["lua54", "vendored"] }
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
+
+[dev-dependencies]
+divan = "0.1.21"

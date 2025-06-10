@@ -20,14 +20,35 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[features]
+default = ["reqwest", "tokio-rusqlite"]
+reqwest = ["dep:reqwest"]
+reqwest-blocking = ["reqwest/blocking"]
+rusqlite = ["dep:rusqlite"]
+tokio-rusqlite = ["dep:tokio-rusqlite", "dep:rusqlite"]
+tokio = ["dep:tokio"]
+
 [lints]
 workspace = true
 
 [dependencies]
+async-trait = "0.1.88"
+csscolorparser = { version = "0.7.1", features = ["serde"]}
+ctreg = "1.0.3"
+itertools = "0.14.0"
 lz-str = "0.2.1"
+num_enum = "0.7.3"
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
-reqwest = { version = "0.12.15", default-features = false, features = ["rustls-tls-native-roots", "blocking"] }
+regex = "1.11.1"
+reqwest = { version = "0.12.15", optional = true, default-features = false, features = ["rustls-tls-native-roots"] }
+rusqlite = { version = "0.32.0", optional = true, features = ["bundled"]}
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
+thiserror = "2.0.12"
+tokio = { version = "1.45.0", optional = true }
+tokio-rusqlite = { version = "0.6.0", optional = true, features = ["bundled"]}
 url = "2.5.4"
+
+[dev-dependencies]
+tokio = { version = "1.45.0", features = ["macros"]}
