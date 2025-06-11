@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use quickjs_runtime::{
     builder::QuickJsRuntimeBuilder,
     jsutils::{JsError, Script, ScriptPreProcessor},
@@ -46,6 +48,6 @@ mod tests {
 
     #[test]
     fn it_works() {
-        assert!(do_stuff(), Some(JsValueFacade::Undefined))
+        assert!(do_stuff(), Ok(JsValueFacade::Undefined))
     }
 }
