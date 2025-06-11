@@ -50,7 +50,10 @@ mod tests {
     fn it_works() {
         assert_eq!(
             format!("{:?}", do_stuff()),
-            format!("{:?}", Ok(JsValueFacade::Undefined))
+            format!(
+                "{:?}",
+                Ok::<JsValueFacade, JsError>(JsValueFacade::Undefined)
+            )
         )
     }
 }
