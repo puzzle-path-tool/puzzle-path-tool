@@ -48,6 +48,6 @@ mod tests {
 
     #[test]
     fn it_works() {
-        assert!(do_stuff(), Ok(JsValueFacade::Undefined))
+        assert_eq!(do_stuff(), Ok(JsValueFacade::Undefined))
     }
 }
