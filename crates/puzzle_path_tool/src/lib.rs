@@ -49,8 +49,8 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(
-            format!({}, do_stuff()),
-            format!({}, Ok(JsValueFacade::Undefined))
+            format!({:?}, do_stuff()),
+            format!({:?}, Ok(JsValueFacade::Undefined))
         )
     }
 }
