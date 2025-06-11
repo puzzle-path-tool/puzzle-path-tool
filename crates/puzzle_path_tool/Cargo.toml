@@ -32,6 +32,7 @@ mlua = { version = "0.10.3", features = ["lua54", "vendored"] }
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
+quickjs_runtime = { version = "0.15.3", default-features = false, features = ["quickjs-ng", "typescript"]}
 
 [dev-dependencies]
 divan = "0.1.21"

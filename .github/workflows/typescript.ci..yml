@@ -1,0 +1,36 @@
+name: "Typescript"
+
+on:
+  push:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  compile:
+    name: "Compile"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install
+        run: "echo TODO"
+
+  lint:
+    name: "EsLint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install
+        run: "echo TODO"
+
+  format:
+    name: "Format"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install
+        run: "echo TODO"
