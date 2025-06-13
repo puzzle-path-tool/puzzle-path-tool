@@ -2,7 +2,7 @@
 
 use std::error::Error;
 
-use rquickjs::{Context, Module, Runtime, Value};
+use rquickjs::{Context, Module, Object, Runtime, Value};
 
 #[allow(clippy::unwrap_used)]
 fn main() -> Result<(), Box<dyn Error>> {
@@ -10,14 +10,30 @@ fn main() -> Result<(), Box<dyn Error>> {
     let ctx = Context::full(&rt)?;
 
     ctx.with(|ctx| -> Result<(), Box<dyn Error>> {
-        let module = Module::declare(
-            ctx,
-            "test",
-            r#"
-            export const x = 3;
-            export const y = "Hello";
-        "#,
-        )?;
+        let globals = ctx.globals();
+
+        let lib = Object::new(ctx.clone())?;
+        lib.set("val1", 1)?;
+
+        globals.set("lib", lib)?;
+
+        let code = r#"
+            export const a: number = 3;
+
+            export const b = "Hello";
+
+            let temp1 = 5;
+            temp1++;
+            export const c = temp1;
+
+            export const d = lib.val1;
+        "#;
+
+        let module = Module::declare(ctx.clone(), "test", code);
+
+        assert!(module.is_ok(), "{:?}", ctx.catch());
+
+        let module = module?;
 
         let (module, _promise) = module.eval()?;
         let namespace = module.namespace()?;
