@@ -32,6 +32,14 @@ puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
 rquickjs = "0.9.0"
+swc = "26.0.0"
+swc_common = { version = "12.0.1", features = ["sourcemap"] }
+swc_ecma_ast = "12.0.0"
+swc_ecma_codegen = "14.0.0"
+swc_ecma_parser = "15.0.1"
+swc_ecma_transforms_base = "16.0.0"
+swc_ecma_transforms_typescript = "18.0.0"
+swc_ecma_visit = "12.0.0"
 
 [dev-dependencies]
 divan = "0.1.21"
