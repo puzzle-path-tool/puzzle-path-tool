@@ -8,12 +8,7 @@ readme.workspace = true
 keywords = ["sudoku", "gamedev", "generator", "random", "tool"]
 categories = ["game-development", "development-tools"]
 
-include = [
-  "../LICENSE-APACHE",
-  "../LICENSE-MIT",
-  "**/*.rs",
-  "Cargo.toml"
-]
+include = ["../../LICENSE-APACHE", "../../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 
 version.workspace = true
 edition.workspace = true

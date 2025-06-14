@@ -9,8 +9,8 @@ keywords = ["sudoku", "gamedev", "generator", "random", "tool"]
 categories = ["command-line-utilities", "game-development", "development-tools"]
 
 include = [
-  "../LICENSE-APACHE",
-  "../LICENSE-MIT",
+  "../../LICENSE-APACHE",
+  "../../LICENSE-MIT",
   "**/*.rs",
   "Cargo.toml",
   "assets/**/*",

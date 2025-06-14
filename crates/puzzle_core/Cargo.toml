@@ -8,12 +8,7 @@ readme.workspace = true
 keywords = ["internal"]
 categories = ["development-tools"]
 
-include = [
-  "../LICENSE-APACHE",
-  "../LICENSE-MIT",
-  "**/*.rs",
-  "Cargo.toml"
-]
+include = ["../../LICENSE-APACHE", "../../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 
 version.workspace = true
 edition.workspace = true
