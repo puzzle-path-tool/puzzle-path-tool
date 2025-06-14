@@ -1,3 +1,3 @@
 import { x } from "./test.ts";
 
-const y = x;
+const y: null = x;
