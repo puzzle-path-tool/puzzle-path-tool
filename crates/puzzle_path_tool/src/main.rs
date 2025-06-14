@@ -10,6 +10,22 @@ use swc_ecma_parser::{Parser, StringInput, Syntax, TsSyntax};
 use swc_ecma_transforms_typescript::strip;
 use swc_ecma_visit::{Fold, FoldWith};
 
+
+struct File {
+    name: Box<str>,
+    content: Box<str>
+}
+
+fn transpile(_files: impl IntoIterator<Item = File>) -> Vec<File> {
+    todo!()
+}
+
+fn run_module(_file: File) {
+    todo!()
+}
+
+
+
 #[allow(clippy::unwrap_used)]
 fn main() -> Result<(), Box<dyn Error>> {
     let rt = Runtime::new()?;
