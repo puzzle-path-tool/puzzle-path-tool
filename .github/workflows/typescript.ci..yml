@@ -8,23 +8,68 @@ permissions:
   pull-requests: read
 
 jobs:
-  compile:
-    name: "Compile"
+  check:
+    name: "Check"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install
-        run: "echo TODO"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: crates/puzzle_path_tool/package-lock.json
+
+      - name: Install packages
+        working-directory: crates/puzzle_path_tool
+        run: npm install
+
+      - name: Run check
+        working-directory: crates/puzzle_path_tool
+        run: npm run check
 
   lint:
-    name: "EsLint"
+    name: "Lint"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install
-        run: "echo TODO"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: crates/puzzle_path_tool/package-lock.json
+
+      - name: Install packages
+        working-directory: crates/puzzle_path_tool
+        run: npm install
+
+      - name: Run lint
+        working-directory: crates/puzzle_path_tool
+        run: npm run lint
+
+  test:
+    name: "Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: crates/puzzle_path_tool/package-lock.json
+
+      - name: Install packages
+        working-directory: crates/puzzle_path_tool
+        run: npm install
+
+      - name: Run test
+        working-directory: crates/puzzle_path_tool
+        run: npm run test
 
   format:
     name: "Format"
@@ -32,5 +77,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install
-        run: "echo TODO"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: crates/puzzle_path_tool/package-lock.json
+
+      - name: Install packages
+        working-directory: crates/puzzle_path_tool
+        run: npm install
+
+      - name: Run format-check
+        working-directory: crates/puzzle_path_tool
+        run: npm run format-check

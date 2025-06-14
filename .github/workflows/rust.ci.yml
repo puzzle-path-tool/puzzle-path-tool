@@ -24,7 +24,7 @@ jobs:
             toolchain: "stable"
             flags: "--all-features --release"
             dir: "release"
-          
+
           - name: "arch: linux/musl"
             os: "ubuntu"
             target: "x86_64-unknown-linux-musl"
@@ -52,7 +52,7 @@ jobs:
             toolchain: "stable"
             flags: "--all-features --release"
             dir: "release"
-          
+
           - name: "arch: macos/arm"
             os: "macos"
             target: "aarch64-apple-darwin"

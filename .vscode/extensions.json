@@ -7,6 +7,7 @@
     "tamasfe.even-better-toml",
     "sumneko.lua",
     "redhat.vscode-yaml",
-    "hediet.vscode-drawio"
+    "hediet.vscode-drawio",
+    "esbenp.prettier-vscode"
   ]
 }

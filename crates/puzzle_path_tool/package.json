@@ -3,15 +3,19 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "puzzpt",
+    "start": "echo puzzpt",
+    "test": "echo puzzpt test-scripts",
     "check": "tsc",
     "check-watch": "tsc --watch",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "prettier . --write",
+    "format-check": "prettier . --check"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
     "eslint": "^9.29.0",
     "globals": "^16.2.0",
+    "prettier": "3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
   }
