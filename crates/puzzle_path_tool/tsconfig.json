@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    // Target
+    "rootDir": "scripts",
+    "target": "es2020",
+    "module": "es2020",
+    "moduleResolution": "classic",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    // Code Style
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "scripts/**/*.ts"
+  ]
+}

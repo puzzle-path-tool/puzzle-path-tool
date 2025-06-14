@@ -1,3 +1,4 @@
-import { x, Rule } from "./test.ts"
+import { x } from "./test.ts";
+
 
 x

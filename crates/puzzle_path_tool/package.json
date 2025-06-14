@@ -1,0 +1,12 @@
+{
+  "name": "puzzpt_script_template",
+  "version": "1.0.0",
+  "scripts": {
+    "run": "echo TODO",
+    "watch": "echo TODO"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {}
+}

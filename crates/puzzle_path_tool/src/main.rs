@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut emitter = Emitter {
             cfg: Config::default()
                 .with_minify(true)
-                .with_target(EsVersion::Es5),
+                .with_target(EsVersion::Es2020),
             cm: cm.clone(),
             comments: None,
             wr: writer,
