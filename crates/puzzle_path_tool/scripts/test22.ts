@@ -6,7 +6,7 @@ type A = 1;
 const x: ExamplePuzzptApi = {
     value: "",
     number: 1,
-    number2: 3,
+    stuff: { type: "StuffA", value: 1 },
 };
 
 const y = do_stuff(x);
