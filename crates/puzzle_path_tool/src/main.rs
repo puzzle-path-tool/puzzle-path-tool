@@ -1,19 +1,20 @@
 #![allow(dead_code)]
+#![allow(unused)]
 
 use std::{error::Error, sync::Arc};
 
+use puzzle_core::ts_api::examples::Example;
 use rquickjs::{Context, Module, Object, Runtime, Value};
-use swc_common::{source_map::SourceMap, FileName, Globals, Mark, GLOBALS};
+use swc_common::{FileName, GLOBALS, Globals, Mark, source_map::SourceMap};
 use swc_ecma_ast::EsVersion;
 use swc_ecma_codegen::{Config, Emitter, text_writer::JsWriter};
 use swc_ecma_parser::{Parser, StringInput, Syntax, TsSyntax};
 use swc_ecma_transforms_typescript::strip;
 use swc_ecma_visit::{Fold, FoldWith};
 
-
 struct File {
     name: Box<str>,
-    content: Box<str>
+    content: Box<str>,
 }
 
 fn transpile(_files: impl IntoIterator<Item = File>) -> Vec<File> {
@@ -23,8 +24,6 @@ fn transpile(_files: impl IntoIterator<Item = File>) -> Vec<File> {
 fn run_module(_file: File) {
     todo!()
 }
-
-
 
 #[allow(clippy::unwrap_used)]
 fn main() -> Result<(), Box<dyn Error>> {
@@ -67,17 +66,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             None,
         );
         let module = parser.parse_module().unwrap();
-        let program = parser.parse_program().unwrap().apply(pass);
+        // let program = parser.parse_program().unwrap().apply(pass);
 
         let globals2 = Globals::default();
         GLOBALS.set(&globals2, || {
             let unresolved_mark = Mark::new();
-            let top_level_mark = Mark::new(); 
+            let top_level_mark = Mark::new();
 
-            let module = module.apply()
+            // let module = module.apply()
         });
         let visitor = swc_ecma_transforms_typescript::strip_type();
-        module.fol
+        // module.fol
 
         let mut buf = vec![];
 
@@ -106,7 +105,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (module, _promise) = module.eval()?;
         let namespace = module.namespace()?;
 
-        let props = namespace.as_object().unwrap().props::<String, Value>();
+        let props = namespace.props::<String, Value>();
+        let json = ctx
+            .json_stringify(namespace)
+            .unwrap()
+            .unwrap()
+            .get::<String>()
+            .unwrap();
+
+        // Replace with faster native version: https://github.com/DelSkayn/rquickjs/issues/47
+
+        let example: Example = serde_json::from_str(json.as_str()).unwrap();
 
         for prop in props {
             let (key, value) = prop?;

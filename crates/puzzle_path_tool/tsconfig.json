@@ -22,7 +22,9 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "skipLibCheck": true
+    "skipLibCheck": false,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
   },
   "include": ["scripts/**/*.ts"]
 }

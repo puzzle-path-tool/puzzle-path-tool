@@ -13,6 +13,7 @@ include = [
   "../../LICENSE-MIT",
   "**/*.rs",
   "Cargo.toml",
+  "assets/**/*",
   ".gitignore",
   "eslint.config.js",
   "package-lock.json",
@@ -37,6 +38,8 @@ puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
 rquickjs = "0.9.0"
+serde = "1.0.219"
+serde_json = "1.0.140"
 swc = "26.0.0"
 swc_common = { version = "12.0.1", features = ["sourcemap"] }
 swc_ecma_ast = "12.0.0"
@@ -48,3 +51,6 @@ swc_ecma_visit = "12.0.0"
 
 [dev-dependencies]
 divan = "0.1.21"
+
+[build-dependencies]
+puzzle-core = { workspace = true }

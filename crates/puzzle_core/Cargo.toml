@@ -19,3 +19,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+itertools = "0.14.0"
+linkme = "0.3.33"
+serde = { version = "1.0.219", features = ["derive"] }
+ts-rs = "11.0.1"
