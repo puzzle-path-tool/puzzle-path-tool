@@ -4242,6 +4242,7 @@ dependencies = [
  "puzzle-core-macros",
  "puzzle-formats",
  "rquickjs",
+ "rquickjs-serde",
  "serde",
  "serde_json",
  "swc",
@@ -4720,6 +4721,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e82e0ca83028ad5b533b53b96c395bbaab905a5774de4aaf1004eeacafa3d85d"
 dependencies = [
  "rquickjs-sys",
+]
+
+[[package]]
+name = "rquickjs-serde"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4875d3bdb30931bd1d63612793aa4bacc462314d354786acd5d6719087237809"
+dependencies = [
+ "rquickjs",
+ "serde",
 ]
 
 [[package]]

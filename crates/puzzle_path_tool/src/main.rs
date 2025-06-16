@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let module_name = "test.ts";
         let code: &'static str = r#"
-            export const a: number = 3;
+            export const a = 3;
 
             export const b = "Hello";
 
@@ -53,6 +53,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             export const e = 44;
             export default e; 
+            export const r1 = {
+                puzzpt_export: {
+                    export_tag: "ExamplePuzzptApi",
+                    value: "HEY",
+                    number: 1,
+                    stuff: { tag: "StuffA", value: 1 },
+                }
+            };
         "#;
 
         let filename = Arc::new(FileName::Custom(module_name.into()));
@@ -118,23 +126,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             let Ok(value) = value.get::<_, Value>("puzzpt_export") else {
                 continue;
             };
-            let Some(value) = value.as_object() else {
+            let Ok(value) = rquickjs_serde::from_value::<serde_json::Value>(value) else {
+                println!("Err: failed to deserialize export as json");
+                //TODO: Err: failed to deserialize export as json
                 continue;
             };
-            let Ok(Some(value)) = ctx.json_stringify(value.clone()) else {
-                continue;
-            };
-            let Ok(value) = value.get::<String>() else {
-                continue;
-            };
-            let Ok(value) = serde_json::from_str::<serde_json::Value>(value.as_str()) else {
-                continue;
-            };
-            // Replace with faster native version: https://github.com/DelSkayn/rquickjs/issues/47
-            // TODO: error handling
 
             if Example::has_tag(&value) {
                 let Ok(item) = Example::deserialize(value) else {
+                    //TODO: Err: failed to deserialize export as Example
+                    println!("Err: failed to deserialize export as Example");
                     continue;
                 };
                 println!("load {item:?}");
