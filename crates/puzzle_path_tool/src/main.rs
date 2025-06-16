@@ -61,6 +61,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                     stuff: { tag: "StuffA", value: 1 },
                 }
             };
+
+            class Example {
+                constructor() {
+                    this.puzzpt_export = {
+                        export_tag: "ExamplePuzzptApi",
+                        value: "Another",
+                        number: 33,
+                        stuff: { tag: "StuffC" },
+                    };
+                }
+            }
+
+            export const r2 = new Example();
         "#;
 
         let filename = Arc::new(FileName::Custom(module_name.into()));
