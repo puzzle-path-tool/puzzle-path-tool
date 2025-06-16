@@ -3,8 +3,9 @@
 
 use std::{error::Error, sync::Arc};
 
-use puzzle_core::ts_api::examples::Example;
+use puzzle_core::ts_api::{PuzzptApiExport, examples::Example};
 use rquickjs::{Context, Module, Object, Runtime, Value};
+use serde::Deserialize;
 use swc_common::{FileName, GLOBALS, Globals, Mark, source_map::SourceMap};
 use swc_ecma_ast::EsVersion;
 use swc_ecma_codegen::{Config, Emitter, text_writer::JsWriter};
@@ -106,20 +107,38 @@ fn main() -> Result<(), Box<dyn Error>> {
         let namespace = module.namespace()?;
 
         let props = namespace.props::<String, Value>();
-        let json = ctx
-            .json_stringify(namespace)
-            .unwrap()
-            .unwrap()
-            .get::<String>()
-            .unwrap();
-
-        // Replace with faster native version: https://github.com/DelSkayn/rquickjs/issues/47
-
-        let example: Example = serde_json::from_str(json.as_str()).unwrap();
 
         for prop in props {
             let (key, value) = prop?;
             println!("export {key} = {value:?}");
+
+            let Some(value) = value.as_object() else {
+                continue;
+            };
+            let Ok(value) = value.get::<_, Value>("puzzpt_export") else {
+                continue;
+            };
+            let Some(value) = value.as_object() else {
+                continue;
+            };
+            let Ok(Some(value)) = ctx.json_stringify(value.clone()) else {
+                continue;
+            };
+            let Ok(value) = value.get::<String>() else {
+                continue;
+            };
+            let Ok(value) = serde_json::from_str::<serde_json::Value>(value.as_str()) else {
+                continue;
+            };
+            // Replace with faster native version: https://github.com/DelSkayn/rquickjs/issues/47
+            // TODO: error handling
+
+            if Example::has_tag(&value) {
+                let Ok(item) = Example::deserialize(value) else {
+                    continue;
+                };
+                println!("load {item:?}");
+            }
         }
 
         Ok(())

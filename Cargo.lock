@@ -4182,6 +4182,7 @@ dependencies = [
  "itertools 0.14.0",
  "linkme",
  "serde",
+ "serde_json",
  "ts-rs",
 ]
 
