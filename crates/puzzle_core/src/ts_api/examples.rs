@@ -26,19 +26,13 @@ impl PuzzptApiExport for Example {
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-#[serde(tag = "tag")]
+#[serde(tag = "tag", content = "value")]
 #[serde(rename = "ExampleStuffPuzzptApi")]
 pub enum ExampleStuff {
     #[serde(rename = "StuffA")]
-    StuffA {
-        #[serde(rename = "value")]
-        value: i32,
-    },
+    StuffA(i32),
     #[serde(rename = "StuffB")]
-    StuffB {
-        #[serde(rename = "cond")]
-        cond: bool,
-    },
+    StuffB(bool),
     #[serde(rename = "StuffC")]
     StuffC,
 }
