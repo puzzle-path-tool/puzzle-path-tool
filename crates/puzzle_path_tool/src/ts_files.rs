@@ -16,6 +16,7 @@ pub struct TsFiles {
 
 const GITIGNORE_EXTRA: &str = "\
 scripts/api/
+scripts/core/
 ";
 
 macro_rules! include_str_ts {
