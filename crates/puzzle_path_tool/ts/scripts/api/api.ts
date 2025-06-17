@@ -87,7 +87,7 @@ type IntegerArr<T extends number[]> = {
     [K in keyof T]: Integer<T[K]>;
 };
 
-type IntObj = {};
+// type IntObj = {};
 
 const numbers = [22] as const;
 
