@@ -8,7 +8,7 @@ readme = "README.md"
 keywords = ["sudoku", "data"]
 categories = ["parser-implementations", "game-development", "development-tools"]
 
-include = ["../../LICENSE-APACHE", "../../LICENSE-MIT", "**/*.rs", "Cargo.toml"]
+include = ["**/*.rs", "Cargo.toml"]
 
 version.workspace = true
 edition.workspace = true

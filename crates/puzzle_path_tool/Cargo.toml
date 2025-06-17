@@ -9,13 +9,18 @@ keywords = ["sudoku", "gamedev", "generator", "random", "tool"]
 categories = ["game-development", "development-tools"]
 
 include = [
-  "../../LICENSE-APACHE",
-  "../../LICENSE-MIT",
   "**/*.rs",
   "Cargo.toml",
-  "ts/*.*",
+  "ts/.editorconfig",
+  "ts/.gitignore",
+  "ts/eslint.config.js",
+  "ts/package.json",
+  "ts/package-lock.json",
+  "ts/tsconfig.json",
   "ts/scripts/**/*.ts",
   "!ts/scripts/api/puzzpt_api.ts",
+  "!ts/scripts/node_modules",
+  "!ts/scripts/node_modules/**/*",
 ]
 
 version.workspace = true
