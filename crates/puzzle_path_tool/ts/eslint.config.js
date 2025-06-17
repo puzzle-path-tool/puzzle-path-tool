@@ -3,7 +3,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
 
-const files = ["scripts/**/*.ts", "generated/**/*.ts"];
+const files = ["packs/**/*.ts"];
 
 export default defineConfig([
     {

@@ -17,10 +17,10 @@ include = [
   "ts/package.json",
   "ts/package-lock.json",
   "ts/tsconfig.json",
-  "ts/scripts/**/*.ts",
-  "!ts/scripts/api/puzzpt_api.ts",
-  "!ts/scripts/node_modules",
-  "!ts/scripts/node_modules/**/*",
+  "ts/packs/**/*.ts",
+  "!ts/packs/api/puzzpt_api.ts",
+  "!ts/node_modules",
+  "!ts/node_modules/**/*",
 ]
 
 version.workspace = true

@@ -11,12 +11,12 @@ pub struct TsFiles {
     pub package_json: &'static str,
     pub package_lock: &'static str,
     pub tsconfig: &'static str,
-    pub scripts: Dir<'static>,
+    pub packs: Dir<'static>,
 }
 
 const GITIGNORE_EXTRA: &str = "\
-scripts/api/
-scripts/core/
+packs/api/
+packs/core/
 ";
 
 macro_rules! include_str_ts {
@@ -40,13 +40,13 @@ impl TsFiles {
             package_json: include_str_ts!("package.json"),
             package_lock: include_str_ts!("package-lock.json"),
             tsconfig: include_str_ts!("tsconfig.json"),
-            scripts: include_dir!("$CARGO_MANIFEST_DIR/ts/scripts"),
+            packs: include_dir!("$CARGO_MANIFEST_DIR/ts/packs"),
         }
     }
 
     #[allow(clippy::expect_used, clippy::missing_panics_doc)]
     pub fn script_files(&self) -> impl Iterator<Item = TsFile<'static>> {
-        let entries = self.scripts.find("**/*.ts").expect("invalid Pattern");
+        let entries = self.packs.find("**/*.ts").expect("invalid Pattern");
 
         entries.filter_map(|entry| {
             let path = entry.path();
@@ -91,11 +91,11 @@ impl TsFiles {
     }
 
     pub fn all_files(&self) -> impl Iterator<Item = TsFile<'static>> {
-        let scripts_dir = Path::new("scripts/");
+        let packs_dir = Path::new("packs/");
 
         self.config_files()
             .chain(self.script_files().map(|file| TsFile {
-                path: scripts_dir.join(file.path),
+                path: packs_dir.join(file.path),
                 content: file.content,
             }))
     }
