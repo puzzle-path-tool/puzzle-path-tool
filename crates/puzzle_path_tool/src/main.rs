@@ -119,12 +119,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         let code = new_code;
 
         let module = Module::declare(ctx.clone(), module_name, code);
-
         assert!(module.is_ok(), "{:?}", ctx.catch());
 
         let module = module?;
 
-        let (module, _promise) = module.eval()?;
+        let eval_res = module.eval();
+        assert!(eval_res.is_ok(), "{:?}", ctx.catch());
+
+        let (module, _promise) = eval_res?;
+
         let namespace = module.namespace()?;
 
         let props = namespace.props::<String, Value>();

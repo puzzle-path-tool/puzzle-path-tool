@@ -22,19 +22,25 @@ export function do_stuff(param: ExamplePuzzptApi): string {
 // }
 
 export class Rule {
-    private puzzpt_export = null;
+    private readonly puzzpt_export = null;
 }
 
-export class Deduction<T> {
-    private puzzpt_export = null;
+export class Deduction<const T> {
+    private readonly puzzpt_export = null;
+
+    readonly data: T;
+
+    constructor(data: T) {
+        this.data = data;
+    }
 }
 
 export class LogicStep {
-    private puzzpt_export = null;
+    private readonly puzzpt_export = null;
 }
 
 export class ScriptModule {
-    private puzzpt_export = null;
+    private readonly puzzpt_export = null;
 
     readonly author_id: string;
     readonly id: string;
