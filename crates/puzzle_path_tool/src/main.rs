@@ -32,11 +32,15 @@ fn run_module(_file: File) {
 fn main() -> Result<(), Box<dyn Error>> {
     let ts_files = TsFiles::load();
     println!("\n###>\n{}\n###>\n", ts_files.gitignore);
-    for file in ts_files.script_files() {
+    for file in ts_files.all_files() {
         println!(
-            "{}: \n\t{}...\n",
+            "{}:\n\t{}...\n",
             file.path.display(),
-            file.content.chars().take(20).collect::<String>()
+            file.content
+                .chars()
+                .map(|c| { if c == '\n' { '|' } else { c } })
+                .take(20)
+                .collect::<String>()
         );
     }
 
