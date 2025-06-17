@@ -4,6 +4,99 @@ export function do_stuff(param: ExamplePuzzptApi): string {
     return "";
 }
 
+// Int
+// Char [SingleChar]
+// Bool [boolean]
+// Enum [one of const string]
+// Object<T> (Position) (many types, many fields)
+// Array<T> (dyn lenth, one type)
+
+// Enum (no values) [Int?]
+// Position [Object?]
+
+// Tagging System
+// Int ("Up" -> 0, "Down" -> 1, "Left" -> 2, "Right" -> 3)
+// "Up"|"Down"|"Left"|"Right" -> Int
+
+
+const directions = ["UP", "DOWN", "LEFT", "RIGHT"] as const;
+
+type SingleChar<T extends string> = T extends `${infer TFirstChar}${infer TRest}`
+  ? TRest extends ""
+    ? T & TFirstChar
+    : never
+  : never;
+
+const v = "A" + ""
+
+takeChar("e")
+// takeChar(v)
+
+const a = "A"
+type X = SingleChar<typeof a>
+
+function takeChar<const T extends string>(char: SingleChar<T>) {
+
+}
+
+type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+type IntegerRec<N, TAcc extends string> = TAcc extends `${infer TFirstDigit}${infer TRest}`
+    ? TFirstDigit extends Digit
+      ? IntegerRec<N, TRest>
+      : never
+    : N
+
+type PositiveInteger<N extends number> = IntegerRec<N, `${N}`>
+
+type NonZeroPositiveInteger<N extends number> = N extends 0 
+    ? never
+    : PositiveInteger<N>
+
+type NegativeInteger<N extends number> = `${N}` extends `-${infer TInt}`
+    ? IntegerRec<N, `${TInt}`>
+    : never
+
+type NonZeroNegativeInteger<N extends number>  = N extends 0 
+    ? never
+    : NegativeInteger<N>
+
+type Integer<N extends number> = PositiveInteger<N> | NegativeInteger<N>
+
+
+function takeInt<const T extends number>(int: Integer<T>) {
+
+}
+
+type IntObj = {} 
+
+const numbers = [
+    22
+] as const satisfies Integer<infer T>[]
+
+const h1 = 0xF9
+type x = typeof h1 
+
+const v2 = takeInt(9)
+
+
+const direction = {
+    "UP": 0,
+    "DOWN": 1,
+    "LEFT": 2,
+    "RIGHT": 2
+} as const
+
+
+
+const x = mapSomething(["A", "B"])
+
+
+function mapSomething<const T extends readonly string[]>(direction: T): T[number] | undefined {
+    return direction[0]
+}
+
+
 // type Int = { readonly __marker_rule: "Int" };
 // type Position = { readonly __marker_rule: "Position" };
 // type FieldArray<T extends Field<?>> = { readonly __marker_rule: "FieldArray", item: T };
@@ -23,6 +116,8 @@ export function do_stuff(param: ExamplePuzzptApi): string {
 
 export class Rule {
     private readonly puzzpt_export = null;
+
+    
 }
 
 export class Deduction<const T> {
