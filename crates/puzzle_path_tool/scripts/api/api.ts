@@ -47,26 +47,36 @@ type IntegerRec<N, TAcc extends string> = TAcc extends `${infer TFirstDigit}${in
       : never
     : N
 
-type PositiveInteger<N extends number> = IntegerRec<N, `${N}`>
+type PositiveIntegerInternal<N extends number> = IntegerRec<N, `${N}`>
 
 type NonZeroPositiveInteger<N extends number> = N extends 0 
     ? never
-    : PositiveInteger<N>
+    : PositiveIntegerInternal<N>
 
-type NegativeInteger<N extends number> = `${N}` extends `-${infer TInt}`
+type PositiveInteger<N extends number> = NonZeroPositiveInteger<N> | 0
+
+type NegativeIntegerInternal<N extends number> = `${N}` extends `-${infer TInt}`
     ? IntegerRec<N, `${TInt}`>
     : never
 
 type NonZeroNegativeInteger<N extends number>  = N extends 0 
     ? never
-    : NegativeInteger<N>
+    : NegativeIntegerInternal<N>
+
+type NegativeInteger<N extends number> = NonZeroNegativeInteger<N> | 0
 
 type Integer<N extends number> = PositiveInteger<N> | NegativeInteger<N>
 
 
-function takeInt<const T extends number>(int: Integer<T>) {
-
+function takeInt<const T extends number>(int: Integer<T>): T extends PositiveInteger<T> ? true : false {
+    throw ""
 }
+
+function takeNegativeInt<const T extends number>(int: NegativeInteger<T>) {
+    takeInt(int)
+}
+
+takeInt(-33)
 
 type IntegerObject<T extends Record<string, number>> = {
     [K in keyof T]: Integer<T[K]>;
