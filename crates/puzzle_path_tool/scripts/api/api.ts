@@ -68,11 +68,38 @@ function takeInt<const T extends number>(int: Integer<T>) {
 
 }
 
+type IntegerObject<T extends Record<string, number>> = {
+    [K in keyof T]: Integer<T[K]>;
+}
+type IntegerArr<T extends number[]> = {
+    [K in keyof T]: Integer<T[K]>;
+}
+
 type IntObj = {} 
 
 const numbers = [
     22
-] as const satisfies Integer<infer T>[]
+] as const
+
+takeInts({
+    x: 4,
+    y: 1
+})
+
+takeIntArr([
+    2,
+    4,
+    5,
+    -4
+])
+
+function takeInts<const T extends Record<string, number>>(ints: IntegerObject<T>) {
+
+}
+
+function takeIntArr<const T extends number[]>(ints: IntegerArr<T>) {
+
+}
 
 const h1 = 0xF9
 type x = typeof h1 
@@ -117,7 +144,8 @@ function mapSomething<const T extends readonly string[]>(direction: T): T[number
 export class Rule {
     private readonly puzzpt_export = null;
 
-    
+    // Deduction
+    // Renderer
 }
 
 export class Deduction<const T> {
