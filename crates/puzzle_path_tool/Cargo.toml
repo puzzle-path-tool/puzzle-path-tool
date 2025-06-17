@@ -13,12 +13,8 @@ include = [
   "../../LICENSE-MIT",
   "**/*.rs",
   "Cargo.toml",
-  "assets/**/*",
-  ".gitignore",
-  "eslint.config.js",
-  "package-lock.json",
-  "package.json",
-  "tsconfig.json",
+  "ts/*.*",
+  "ts/scripts/**/*.ts",
 ]
 
 version.workspace = true

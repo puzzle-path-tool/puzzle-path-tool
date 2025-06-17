@@ -132,4 +132,4 @@ dist
 .pnp.*
 
 generated/
-scripts/api/*.generated.ts
+scripts/api/puzzpt_api.ts

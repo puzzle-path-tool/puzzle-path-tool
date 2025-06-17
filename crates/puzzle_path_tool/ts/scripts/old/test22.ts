@@ -1,5 +1,5 @@
 import { do_stuff } from "api/api";
-import type { ExamplePuzzptApi } from "api/puzzpt_api.generated";
+import type { ExamplePuzzptApi } from "../api/puzzpt_api";
 
 type A = 1;
 

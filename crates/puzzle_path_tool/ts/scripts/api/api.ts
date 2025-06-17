@@ -1,4 +1,4 @@
-import type { ExamplePuzzptApi } from "./puzzpt_api.generated";
+import type { ExamplePuzzptApi } from "./puzzpt_api";
 
 export function do_stuff(param: ExamplePuzzptApi): string {
     return "";
@@ -18,121 +18,111 @@ export function do_stuff(param: ExamplePuzzptApi): string {
 // Int ("Up" -> 0, "Down" -> 1, "Left" -> 2, "Right" -> 3)
 // "Up"|"Down"|"Left"|"Right" -> Int
 
-
 const directions = ["UP", "DOWN", "LEFT", "RIGHT"] as const;
 
-type SingleChar<T extends string> = T extends `${infer TFirstChar}${infer TRest}`
-  ? TRest extends ""
-    ? T & TFirstChar
-    : never
-  : never;
+type SingleChar<T extends string> =
+    T extends `${infer TFirstChar}${infer TRest}`
+        ? TRest extends ""
+            ? T & TFirstChar
+            : never
+        : never;
 
-const v = "A" + ""
+const v = "A" + "";
 
-takeChar("e")
+takeChar("e");
 // takeChar(v)
 
-const a = "A"
-type X = SingleChar<typeof a>
+const a = "A";
+type X = SingleChar<typeof a>;
 
-function takeChar<const T extends string>(char: SingleChar<T>) {
+function takeChar<const T extends string>(char: SingleChar<T>) {}
 
-}
+type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
-type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-
-type IntegerRec<N, TAcc extends string> = TAcc extends `${infer TFirstDigit}${infer TRest}`
+type IntegerRec<
+    N,
+    TAcc extends string,
+> = TAcc extends `${infer TFirstDigit}${infer TRest}`
     ? TFirstDigit extends Digit
-      ? IntegerRec<N, TRest>
-      : never
-    : N
+        ? IntegerRec<N, TRest>
+        : never
+    : N;
 
-type PositiveIntegerInternal<N extends number> = IntegerRec<N, `${N}`>
+type PositiveIntegerInternal<N extends number> = IntegerRec<N, `${N}`>;
 
-type NonZeroPositiveInteger<N extends number> = N extends 0 
+type NonZeroPositiveInteger<N extends number> = N extends 0
     ? never
-    : PositiveIntegerInternal<N>
+    : PositiveIntegerInternal<N>;
 
-type PositiveInteger<N extends number> = NonZeroPositiveInteger<N> | 0
+type PositiveInteger<N extends number> = NonZeroPositiveInteger<N> | 0;
 
 type NegativeIntegerInternal<N extends number> = `${N}` extends `-${infer TInt}`
     ? IntegerRec<N, `${TInt}`>
-    : never
+    : never;
 
-type NonZeroNegativeInteger<N extends number>  = N extends 0 
+type NonZeroNegativeInteger<N extends number> = N extends 0
     ? never
-    : NegativeIntegerInternal<N>
+    : NegativeIntegerInternal<N>;
 
-type NegativeInteger<N extends number> = NonZeroNegativeInteger<N> | 0
+type NegativeInteger<N extends number> = NonZeroNegativeInteger<N> | 0;
 
-type Integer<N extends number> = PositiveInteger<N> | NegativeInteger<N>
+type Integer<N extends number> = PositiveInteger<N> | NegativeInteger<N>;
 
-
-function takeInt<const T extends number>(int: Integer<T>): T extends PositiveInteger<T> ? true : false {
-    throw ""
+function takeInt<const T extends number>(
+    int: Integer<T>,
+): T extends PositiveInteger<T> ? true : false {
+    throw "";
 }
 
 function takeNegativeInt<const T extends number>(int: NegativeInteger<T>) {
-    takeInt(int)
+    takeInt(int);
 }
 
-takeInt(-33)
+takeInt(-33);
 
 type IntegerObject<T extends Record<string, number>> = {
     [K in keyof T]: Integer<T[K]>;
-}
+};
 type IntegerArr<T extends number[]> = {
     [K in keyof T]: Integer<T[K]>;
-}
+};
 
-type IntObj = {} 
+type IntObj = {};
 
-const numbers = [
-    22
-] as const
+const numbers = [22] as const;
 
 takeInts({
     x: 4,
-    y: 1
-})
+    y: 1,
+});
 
-takeIntArr([
-    2,
-    4,
-    5,
-    -4
-])
+takeIntArr([2, 4, 5, -4]);
 
-function takeInts<const T extends Record<string, number>>(ints: IntegerObject<T>) {
+function takeInts<const T extends Record<string, number>>(
+    ints: IntegerObject<T>,
+) {}
 
-}
+function takeIntArr<const T extends number[]>(ints: IntegerArr<T>) {}
 
-function takeIntArr<const T extends number[]>(ints: IntegerArr<T>) {
+const h1 = 0xf9;
+type x = typeof h1;
 
-}
-
-const h1 = 0xF9
-type x = typeof h1 
-
-const v2 = takeInt(9)
-
+const v2 = takeInt(9);
 
 const direction = {
-    "UP": 0,
-    "DOWN": 1,
-    "LEFT": 2,
-    "RIGHT": 2
-} as const
+    UP: 0,
+    DOWN: 1,
+    LEFT: 2,
+    RIGHT: 2,
+} as const;
 
+const x = mapSomething(["A", "B"]);
 
-
-const x = mapSomething(["A", "B"])
-
-
-function mapSomething<const T extends readonly string[]>(direction: T): T[number] | undefined {
-    return direction[0]
+function mapSomething<const T extends readonly string[]>(
+    direction: T,
+): T[number] | undefined {
+    return direction[0];
 }
-
 
 // type Int = { readonly __marker_rule: "Int" };
 // type Position = { readonly __marker_rule: "Position" };
