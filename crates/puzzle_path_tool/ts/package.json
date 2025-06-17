@@ -3,7 +3,7 @@
   "private": "true",
   "version": "1.0.0",
   "type": "module",
-  "packs": {
+  "scripts": {
     "start": "echo puzzpt",
     "test": "echo puzzpt test-packs",
     "check": "tsc",
