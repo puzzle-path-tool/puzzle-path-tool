@@ -11,6 +11,7 @@ pub struct TsFiles {
     pub package_json: &'static str,
     pub package_lock: &'static str,
     pub tsconfig: &'static str,
+    pub example_puzzle: &'static str,
     pub packs: Dir<'static>,
 }
 
@@ -40,6 +41,7 @@ impl TsFiles {
             package_json: include_str_ts!("package.json"),
             package_lock: include_str_ts!("package-lock.json"),
             tsconfig: include_str_ts!("tsconfig.json"),
+            example_puzzle: include_str_ts!("puzzles/example.ts"),
             packs: include_dir!("$CARGO_MANIFEST_DIR/ts/packs"),
         }
     }
@@ -85,6 +87,10 @@ impl TsFiles {
             TsFile {
                 path: Path::new("tsconfig.json").to_path_buf(),
                 content: self.tsconfig,
+            },
+            TsFile {
+                path: Path::new("puzzles/example.ts").to_path_buf(),
+                content: self.example_puzzle,
             },
         ]
         .into_iter()
