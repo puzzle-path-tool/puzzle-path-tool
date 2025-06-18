@@ -80,21 +80,57 @@ function takeNegativeInt<const T extends number>(int: NegativeInteger<T>) {
 
 takeInt(-33);
 
+
 type IntegerObject<T extends Record<string, number>> = {
     [K in keyof T]: Integer<T[K]>;
 };
 type IntegerArr<T extends number[]> = {
     [K in keyof T]: Integer<T[K]>;
 };
+/*
+type Enum = string[];
 
-// type IntObj = {};
+type ObjectConst<T> = T extends number
+    ? Integer<T>
+    : T extends string
+      ? SingleChar<T>
+      : T extends Record<string, any>
+        ? ValueObject<T>
+        : T extends Enum
+          ? Enum
+          : T extends (infer TInner)[]
+            ? TInner extends ObjectConst<TInner>
+                ? ConstArray<TInner>
+                : never
+            : never;
+
+type ConstArray1<T extends any[]> = T extends number[]
+    ? { [K in keyof T]: Integer<T[K]> }
+    : T extends string
+      ? { [K in keyof T]: SingleChar<T[K]> }
+      : T extends boolean[]
+        ? boolean[]
+        : T extends Enum
+          ? Enum
+          : T extends any[][]
+            ? { [K in keyof T]: ConstArray<T[K]> }
+            : never;
+
+type ConstArray<T> = T extends ObjectConst<T> ? T[] : never;
+
+type ValueObject<T extends Record<string, any>> = {
+    [K in keyof T]: ObjectConst<T[K]>;
+};
+
+function takeObjectValue<const T>(int: ObjectConst<T>) {}
 
 const numbers = [22] as const;
 
-takeInts({
-    x: 4,
-    y: 1,
-});
+takeObjectValue({
+    x: 3,
+    y: [1, 3, 1],
+    y2: [-1, -2, "e"]
+});*/
 
 takeIntArr([2, 4, 5, -4]);
 
