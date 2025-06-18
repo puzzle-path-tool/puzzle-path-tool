@@ -80,7 +80,6 @@ function takeNegativeInt<const T extends number>(int: NegativeInteger<T>) {
 
 takeInt(-33);
 
-
 type IntegerObject<T extends Record<string, number>> = {
     [K in keyof T]: Integer<T[K]>;
 };
@@ -149,10 +148,19 @@ const direction = {
     UP: 0,
     DOWN: 1,
     LEFT: 2,
-    RIGHT: 2,
+    RIGHT: 3,
 } as const;
 
-const x = mapSomething(["A", "B"]);
+const variants = ["A", "B"] as const;
+
+type EnumField<T extends readonly string[]> = {};
+
+
+const x = 1;
+
+type Ranged<A extends number, B extends number> = {readonly __ranged_marker: unique symbol, min: A, max: B};
+
+const x = mapSomething(variants);
 
 function mapSomething<const T extends readonly string[]>(
     direction: T,
