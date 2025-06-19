@@ -31,7 +31,7 @@ fn run_module(_file: File) {
 #[allow(clippy::too_many_lines)]
 fn main() -> Result<(), Box<dyn Error>> {
     let ts_files = TsFiles::load();
-    println!("\n###>\n{}\n###>\n", ts_files.gitignore);
+    println!("\n###>\n{}\n###>\n", ts_files.gitignore.content);
     for file in ts_files.all_files() {
         println!(
             "{}:\n\t{}...\n",
