@@ -1,5 +1,4 @@
-#![allow(clippy::expect_used, clippy::unwrap_used)] // [[test-clippy-cfg]]
-#![allow(dead_code)]
+#![allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-test-cfg")]
 
 use ignore::WalkBuilder;
 use itertools::Itertools;
@@ -10,18 +9,17 @@ use std::{
     path::PathBuf,
 };
 
-const BUILD_SCRIPT_CLIPPY_CONF: &str =
-    "#![allow(clippy::expect_used, clippy::unwrap_used)] // [[build-clippy-cfg]]";
+const CLIPPY_BUILD_CONF: &str =
+    r#"[allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-build-cfg")]"#;
 
-const TEST_CLIPPY_CONF: &str =
-    "#[allow(clippy::expect_used, clippy::unwrap_used)] // [[test-clippy-cfg]]";
-
-const INTEGRATION_TEST_CLIPPY_CONF: &str =
-    "#![allow(clippy::expect_used, clippy::unwrap_used)] // [[test-clippy-cfg]]";
+const CLIPPY_TEST_CONF: &str =
+    r#"[allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-test-cfg")]"#;
 
 #[test]
 fn check_build_scripts() {
     let workspace_root = concat!(env!("CARGO_MANIFEST_DIR"), "/../");
+    let conf_string = "#!".to_string() + CLIPPY_BUILD_CONF;
+
     let walk = WalkBuilder::new(workspace_root).hidden(false).build();
 
     let mut failed_scripts: Vec<PathBuf> = vec![];
@@ -41,14 +39,14 @@ fn check_build_scripts() {
             .unwrap_or(Ok(String::new()))
             .expect("Error reading file: Invalid UTF8?");
 
-        if line.trim() != BUILD_SCRIPT_CLIPPY_CONF {
+        if line.trim() != conf_string {
             failed_scripts.push(entry.path().to_path_buf());
         }
     }
 
     assert!(
         failed_scripts.is_empty(),
-        "These build scripts do not contain the required clippy config as first line:\n\n{BUILD_SCRIPT_CLIPPY_CONF}\n\n{}\n",
+        "These build scripts do not contain the required clippy config as first line:\n\n{conf_string}\n\n{}\n",
         failed_scripts
             .iter()
             .map(|s| diff_paths(s, workspace_root)
@@ -63,6 +61,8 @@ fn check_build_scripts() {
 #[test]
 fn check_integration_tests() {
     let workspace_root = concat!(env!("CARGO_MANIFEST_DIR"), "/../");
+    let conf_string = "#!".to_string() + CLIPPY_TEST_CONF;
+
     let walk = WalkBuilder::new(workspace_root).hidden(false).build();
 
     let mut failed_scripts: Vec<PathBuf> = vec![];
@@ -100,14 +100,14 @@ fn check_integration_tests() {
             .unwrap_or(Ok(String::new()))
             .expect("Error reading file: Invalid UTF8?");
 
-        if line.trim() != INTEGRATION_TEST_CLIPPY_CONF {
+        if line.trim() != conf_string {
             failed_scripts.push(entry.path().to_path_buf());
         }
     }
 
     assert!(
         failed_scripts.is_empty(),
-        "These integration tests do not contain the required clippy config as first line:\n\n{INTEGRATION_TEST_CLIPPY_CONF}\n\n{}\n",
+        "These integration tests do not contain the required clippy config as first line:\n\n{conf_string}\n\n{}\n",
         failed_scripts
             .iter()
             .map(|s| diff_paths(s, workspace_root)
@@ -122,3 +122,12 @@ fn check_integration_tests() {
 //TODO: Add Test for Tests
 //TODO: Clean up logic
 //TODO: Make Line Requirement more lenient (eg. anywhere before the first non macro line)
+
+// Params:
+//  file_filter: path -> bool // Which files are tested
+//  item_selector: syn-root -> Vec<syn-item> // Which items are required to have the config
+//  config-name: String
+//  config: String // The last two might be a struct
+// Returns:
+//  outdated: Vec<String>
+//  missing: Vec<String>
