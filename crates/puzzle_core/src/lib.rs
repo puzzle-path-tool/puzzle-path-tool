@@ -4,7 +4,6 @@ pub fn add(left: u64, right: u64) -> u64 {
 }
 
 pub mod explorer_collection;
-pub mod ts_api;
 
 #[cfg(test)]
 mod tests {

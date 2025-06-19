@@ -1,7 +1,7 @@
 [package]
-name = "puzzle-path-tool"
+name = "puzzle-pack-scripts"
 
-description = "Programmatically construct and generate Sudoku puzzles."
+description = "Typescript scripts and engine for `puzzle-path-tool` crate."
 repository.workspace = true
 homepage.workspace = true
 readme.workspace = true
@@ -29,10 +29,6 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
-[[bench]]
-name = "benchmark"
-harness = false
-
 [lints]
 workspace = true
 
@@ -43,7 +39,6 @@ puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
 puzzle-pack-bindings = { workspace = true }
-puzzle-pack-scripts = { workspace = true }
 rquickjs = "0.9.0"
 rquickjs-serde = "0.1.0"
 serde = "1.0.219"
@@ -57,8 +52,5 @@ swc_ecma_transforms_base = "16.0.0"
 swc_ecma_transforms_typescript = "18.0.0"
 swc_ecma_visit = "12.0.0"
 
-[dev-dependencies]
-divan = "0.1.21"
-
 [build-dependencies]
-puzzle-pack-scripts = { workspace = true }
+puzzle-pack-bindings = { workspace = true }

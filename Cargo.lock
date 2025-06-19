@@ -4241,13 +4241,6 @@ dependencies = [
 [[package]]
 name = "puzzle-core"
 version = "0.1.0"
-dependencies = [
- "itertools 0.14.0",
- "linkme",
- "serde",
- "serde_json",
- "ts-rs",
-]
 
 [[package]]
 name = "puzzle-core-build"
@@ -4297,6 +4290,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "puzzle-pack-bindings"
+version = "0.1.0"
+dependencies = [
+ "itertools 0.14.0",
+ "linkme",
+ "puzzle-core",
+ "puzzle-core-macros",
+ "puzzle-formats",
+ "serde",
+ "serde_json",
+ "ts-rs",
+]
+
+[[package]]
+name = "puzzle-pack-scripts"
+version = "0.1.0"
+dependencies = [
+ "const_format",
+ "include_dir",
+ "puzzle-core",
+ "puzzle-core-macros",
+ "puzzle-formats",
+ "puzzle-pack-bindings",
+ "rquickjs",
+ "rquickjs-serde",
+ "serde",
+ "serde_json",
+ "swc",
+ "swc_common",
+ "swc_ecma_ast",
+ "swc_ecma_codegen",
+ "swc_ecma_parser",
+ "swc_ecma_transforms_base",
+ "swc_ecma_transforms_typescript",
+ "swc_ecma_visit",
+]
+
+[[package]]
 name = "puzzle-path-tool"
 version = "0.1.0"
 dependencies = [
@@ -4306,6 +4337,8 @@ dependencies = [
  "puzzle-core",
  "puzzle-core-macros",
  "puzzle-formats",
+ "puzzle-pack-bindings",
+ "puzzle-pack-scripts",
  "rquickjs",
  "rquickjs-serde",
  "serde",

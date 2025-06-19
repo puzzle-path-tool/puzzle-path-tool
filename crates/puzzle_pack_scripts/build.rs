@@ -4,7 +4,7 @@ use std::{
     io::Write,
 };
 
-use puzzle_core::ts_api;
+use puzzle_pack_bindings::ts_api;
 
 fn main() {
     let types = ts_api::load_types();

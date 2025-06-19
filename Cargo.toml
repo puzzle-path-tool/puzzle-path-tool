@@ -31,4 +31,6 @@ puzzle-core = { version = "0.1.0", path = "crates/puzzle_core" }
 puzzle-core-build = { version = "0.1.0", path = "crates/puzzle_core_build" }
 puzzle-core-macros = { version = "0.1.0", path = "crates/puzzle_core_macros" }
 puzzle-formats = { version = "0.1.0", path = "crates/puzzle_formats" }
+puzzle-pack-bindings = { version = "0.1.0", path = "crates/puzzle_pack_bindings" }
+puzzle-pack-scripts = { version = "0.1.0", path = "crates/puzzle_pack_scripts" }
 puzzle-path-tool = { version = "0.1.0", path = "crates/puzzle_path_tool" }

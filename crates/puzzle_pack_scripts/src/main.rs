@@ -3,8 +3,8 @@
 
 use std::{error::Error, sync::Arc};
 
-use puzzle_core::ts_api::{PuzzptApiExport, examples::Example};
-use puzzle_path_tool::ts_files::{self, TsFiles};
+use puzzle_pack_bindings::ts_api::{PuzzptApiExport, examples::Example};
+use puzzle_pack_scripts::ts_files::{self, TsFiles};
 use rquickjs::{Context, Module, Object, Runtime, Value};
 use serde::Deserialize;
 use swc_common::{FileName, GLOBALS, Globals, Mark, source_map::SourceMap};

@@ -20,7 +20,7 @@ jobs:
           && rustup default stable
 
       - name: Build Rust
-        working-directory: crates/puzzle_path_tool
+        working-directory: crates/puzzle_pack_scripts
         run: cargo build
 
       - name: Setup Node
@@ -28,14 +28,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: crates/puzzle_path_tool/ts/package-lock.json
+          cache-dependency-path: crates/puzzle_pack_scripts/ts/package-lock.json
 
       - name: Install packages
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm install
 
       - name: Run check
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm run check
 
   lint:
@@ -49,14 +49,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: crates/puzzle_path_tool/ts/package-lock.json
+          cache-dependency-path: crates/puzzle_pack_scripts/ts/package-lock.json
 
       - name: Install packages
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm install
 
       - name: Run lint
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm run lint
 
   test:
@@ -70,14 +70,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: crates/puzzle_path_tool/ts/package-lock.json
+          cache-dependency-path: crates/puzzle_pack_scripts/ts/package-lock.json
 
       - name: Install packages
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm install
 
       - name: Run test
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm run test
 
   format:
@@ -91,12 +91,12 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: crates/puzzle_path_tool/ts/package-lock.json
+          cache-dependency-path: crates/puzzle_pack_scripts/ts/package-lock.json
 
       - name: Install packages
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm install
 
       - name: Run format-check
-        working-directory: crates/puzzle_path_tool/ts
+        working-directory: crates/puzzle_pack_scripts/ts
         run: npm run format-check
