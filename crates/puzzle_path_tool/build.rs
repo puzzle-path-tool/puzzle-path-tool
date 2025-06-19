@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used, clippy::unwrap_used)] // [[build-clippy-cfg]]
 use std::{
     fs::{self, File},
     io::Write,

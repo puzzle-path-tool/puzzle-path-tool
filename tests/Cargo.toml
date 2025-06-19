@@ -1,0 +1,25 @@
+[package]
+name = "puzzle-tests"
+
+description = "Testing crate for workspace"
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+
+publish = false
+
+include = ["**/*.rs"]
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+ignore = "0.4.23"
+itertools = "0.14.0"
+pathdiff = "0.2.3"

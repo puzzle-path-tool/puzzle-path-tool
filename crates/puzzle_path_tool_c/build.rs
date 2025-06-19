@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used, clippy::unwrap_used)] // [[build-clippy-cfg]]
 use puzzle_core_build as cb;
 
 fn main() {
