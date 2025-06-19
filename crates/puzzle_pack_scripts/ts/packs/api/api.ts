@@ -140,7 +140,7 @@ function takeInts<const T extends Record<string, number>>(
 function takeIntArr<const T extends number[]>(ints: IntegerArr<T>) {}
 
 const h1 = 0xf9;
-type x = typeof h1;
+type x11 = typeof h1;
 
 const v2 = takeInt(9);
 
@@ -153,12 +153,15 @@ const direction = {
 
 const variants = ["A", "B"] as const;
 
-type EnumField<T extends readonly string[]> = {};
+// type EnumField<T extends readonly string[]> = {};
 
+const x12 = 1;
 
-const x = 1;
-
-type Ranged<A extends number, B extends number> = {readonly __ranged_marker: unique symbol, min: A, max: B};
+type Ranged<A extends number, B extends number> = {
+    readonly __ranged_marker: unique symbol;
+    min: A;
+    max: B;
+};
 
 const x = mapSomething(variants);
 

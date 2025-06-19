@@ -1,5 +1,5 @@
-import { do_stuff } from "api/api";
-import type { ExamplePuzzptApi } from "../api/puzzpt_api";
+import { do_stuff } from "packs/api/api";
+import type { ExamplePuzzptApi } from "packs/api/puzzpt_api";
 
 type A = 1;
 

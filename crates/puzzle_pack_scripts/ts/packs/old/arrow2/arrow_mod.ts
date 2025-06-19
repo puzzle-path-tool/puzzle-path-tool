@@ -1,4 +1,4 @@
-import { ScriptModule } from "../../api/api";
+import { ScriptModule } from "packs/api/api";
 
 export const arrowMod = ScriptModule.create({
     id: "arrow",

@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     // Target
-    "rootDir": "packs",
-    "baseUrl": "packs",
+    "rootDir": ".",
+    "baseUrl": ".",
     "target": "es2020",
     "module": "es2020",
     "moduleResolution": "classic",
@@ -27,5 +27,5 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["packs/**/*.ts"]
+  "include": ["packs/**/*.ts", "puzzles/**/*.ts"]
 }
