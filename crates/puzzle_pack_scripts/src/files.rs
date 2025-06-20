@@ -57,7 +57,7 @@ paths = '''
         "
     )]
     pub struct LoadedConfigFile {
-        pub relative_path: &'static str,
+        relative_path: &'static str,
         contents_str: &'static str,
     }
 
