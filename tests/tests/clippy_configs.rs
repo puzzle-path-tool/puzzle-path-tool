@@ -124,16 +124,109 @@ fn check_test_clippy_conf() {
     );
 }
 
-#[derive(Debug, Default, Clone)]
-struct IncorrectConfigs {
-    outdated: Vec<String>,
-    missing: Vec<String>,
+fn assert_correct_configs(
+    incorrect_configs: &IncorrectConfigs,
+    config: &Config,
+    message: &str,
+    macro_prefix: &str,
+) {
+    let missing_message = format_config_list(&incorrect_configs.missing, "Missing Configs at:");
+    let outdated_message = format_config_list(&incorrect_configs.outdated, "Outdated Configs at:");
+
+    assert!(
+        incorrect_configs.missing.is_empty() && incorrect_configs.outdated.is_empty(),
+        indoc! {
+            r#"
+
+                {}
+
+                Config: 
+                {}[allow({}, reason = "{}")]
+
+                {}{}
+            "#
+        },
+        message,
+        macro_prefix,
+        config.values.join(", "),
+        config.name,
+        missing_message,
+        outdated_message,
+    );
+}
+
+fn format_config_list(configs: &[String], message: &str) -> String {
+    if configs.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "{}\n{}\n\n",
+            message,
+            configs.iter().map(|c| format!(">  {c}")).join("\n"),
+        )
+    }
+}
+
+fn find_incorrect_clippy_configs(
+    file_filter: impl Fn(&DirEntry) -> bool,
+    item_selector: impl for<'a> Fn(&'a syn::File) -> Vec<SelectorValue<'a>>,
+    config: &Config,
+) -> IncorrectConfigs {
+    let workspace_root = concat!(env!("CARGO_MANIFEST_DIR"), "/../");
+
+    let walk = WalkBuilder::new(workspace_root).hidden(false).build();
+
+    let mut incorrect_configs = IncorrectConfigs::default();
+
+    for entry in walk {
+        let entry = entry.expect("Error traversing files");
+
+        if !file_filter(&entry) {
+            continue;
+        }
+
+        let path = entry.path();
+
+        let display_path = diff_paths(path, workspace_root).expect("Invalid Path");
+        let display_path = display_path.to_string_lossy();
+
+        let content = fs::read_to_string(path).expect("Error reading file");
+
+        let Ok(file) = syn::parse_file(&content) else {
+            continue;
+        };
+
+        let selector_values = item_selector(&file);
+
+        for selector_value in selector_values {
+            let item = selector_value.as_item();
+
+            let attr_status = has_config_attr(item.attributes, config);
+
+            let display_file_location = format!("{}:{}:{}", display_path, item.line, item.column);
+
+            match attr_status {
+                ConfigAttrStatus::Missing => incorrect_configs.missing.push(display_file_location),
+                ConfigAttrStatus::Outdated => {
+                    incorrect_configs.outdated.push(display_file_location);
+                }
+                ConfigAttrStatus::Present => {}
+            }
+        }
+    }
+    incorrect_configs
 }
 
 #[derive(Debug, Clone)]
 struct Config {
     name: &'static str,
     values: &'static [&'static str],
+}
+
+#[derive(Debug, Default, Clone)]
+struct IncorrectConfigs {
+    outdated: Vec<String>,
+    missing: Vec<String>,
 }
 
 #[derive(Clone)]
@@ -187,56 +280,6 @@ struct SelectorItem<'a> {
     line: usize,
     column: usize,
     attributes: &'a [Attribute],
-}
-
-fn find_incorrect_clippy_configs(
-    file_filter: impl Fn(&DirEntry) -> bool,
-    item_selector: impl for<'a> Fn(&'a syn::File) -> Vec<SelectorValue<'a>>,
-    config: &Config,
-) -> IncorrectConfigs {
-    let workspace_root = concat!(env!("CARGO_MANIFEST_DIR"), "/../");
-
-    let walk = WalkBuilder::new(workspace_root).hidden(false).build();
-
-    let mut incorrect_configs = IncorrectConfigs::default();
-
-    for entry in walk {
-        let entry = entry.expect("Error traversing files");
-
-        if !file_filter(&entry) {
-            continue;
-        }
-
-        let path = entry.path();
-
-        let display_path = diff_paths(path, workspace_root).expect("Invalid Path");
-        let display_path = display_path.to_string_lossy();
-
-        let content = fs::read_to_string(path).expect("Error reading file");
-
-        let Ok(file) = syn::parse_file(&content) else {
-            continue;
-        };
-
-        let selector_values = item_selector(&file);
-
-        for selector_value in selector_values {
-            let item = selector_value.as_item();
-
-            let attr_status = has_config_attr(item.attributes, config);
-
-            let display_file_location = format!("{}:{}:{}", display_path, item.line, item.column);
-
-            match attr_status {
-                ConfigAttrStatus::Missing => incorrect_configs.missing.push(display_file_location),
-                ConfigAttrStatus::Outdated => {
-                    incorrect_configs.outdated.push(display_file_location);
-                }
-                ConfigAttrStatus::Present => {}
-            }
-        }
-    }
-    incorrect_configs
 }
 
 enum ConfigAttrStatus {
@@ -347,48 +390,3 @@ fn expr_contains_test(expr: &Expr) -> bool {
         _ => false,
     }
 }
-
-fn assert_correct_configs(
-    incorrect_configs: &IncorrectConfigs,
-    config: &Config,
-    message: &str,
-    macro_prefix: &str,
-) {
-    let missing_message = format_config_list(&incorrect_configs.missing, "Missing Configs at:");
-    let outdated_message = format_config_list(&incorrect_configs.outdated, "Outdated Configs at:");
-
-    assert!(
-        incorrect_configs.missing.is_empty() && incorrect_configs.outdated.is_empty(),
-        indoc! {
-            r#"
-
-                {}
-
-                Config: 
-                {}[allow({}, reason = "{}")]
-
-                {}{}
-            "#
-        },
-        message,
-        macro_prefix,
-        config.values.join(", "),
-        config.name,
-        missing_message,
-        outdated_message,
-    );
-}
-
-fn format_config_list(configs: &[String], message: &str) -> String {
-    if configs.is_empty() {
-        String::new()
-    } else {
-        format!(
-            "{}\n{}\n\n",
-            message,
-            configs.iter().map(|c| format!(">  {c}")).join("\n"),
-        )
-    }
-}
-
-//TODO: clean up ordering an maybe names
