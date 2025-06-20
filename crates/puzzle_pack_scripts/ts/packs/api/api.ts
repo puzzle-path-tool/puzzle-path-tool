@@ -155,13 +155,26 @@ const variants = ["A", "B"] as const;
 
 // type EnumField<T extends readonly string[]> = {};
 
-const x12 = 1;
-
-type Ranged<A extends number, B extends number> = {
+type RangedField<A extends number, B extends number> = {
     readonly __ranged_marker: unique symbol;
     min: A;
     max: B;
 };
+
+const INT_MARKER: unique symbol = Symbol("INT");
+const BOOL_MARKER: unique symbol = Symbol("BOOL");
+const ENUM_MARKER: unique symbol = Symbol("ENUM");
+const ARRAY_MARKER: unique symbol = Symbol("ARRAY");
+const OBJECT_MARKER: unique symbol = Symbol("OBJECT");
+type IntField = { readonly __int_marker: typeof INT_MARKER };
+type BoolField = { readonly __bool_marker: typeof BOOL_MARKER };
+type EnumField = { readonly __enum_marker: typeof ENUM_MARKER , enums: string[]};
+type ArrayField = { readonly __array_marker: typeof ARRAY_MARKER , item_type: Field };
+type ObjectField = {readonly __object_marker: typeof OBJECT_MARKER , fields: Record<string, Field> };
+
+type Field = IntField | BoolField | EnumField | ArrayField | ObjectField
+
+let p: IntField = { __int_marker: INT_MARKER };
 
 const x = mapSomething(variants);
 
@@ -188,11 +201,16 @@ function mapSomething<const T extends readonly string[]>(
 //     }
 // }
 
-export class Rule {
+export class Rule<const T> {
     private readonly puzzpt_export = null;
 
-    // Deduction
+    readonly deduction: Deduction<T>;
+    // Rule Placement
     // Renderer
+
+    constructor(data: T) {
+        this.deduction = new Deduction(data);
+    }
 }
 
 export class Deduction<const T> {
@@ -207,6 +225,9 @@ export class Deduction<const T> {
 
 export class LogicStep {
     private readonly puzzpt_export = null;
+
+    // match statement
+    // output statement
 }
 
 export class ScriptModule {
@@ -234,13 +255,13 @@ export class ScriptModule {
         return new ScriptModule(props);
     }
 
-    createRule(): Rule {
-        return new Rule();
+    createRule<const T>(props: T): Rule<T> {
+        return new Rule<T>(props);
     }
 
-    // createDeduction<const T>(props: T): Deduction {
-    //     return new Deduction();
-    // }
+    createDeduction<const T>(props: T): Deduction<T> {
+        return new Deduction<T>(props);
+    }
 
     createLogicStep(): LogicStep {
         return new LogicStep();
