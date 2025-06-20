@@ -170,7 +170,7 @@ type NumberMatchingOperator = "EQUALS" | "SMALLER" | "BIGGER";
 type SetMatchingOperator = "IS_SUBSET" | "IS_TRUE_SUBSET";
 type GeneralMatch<T extends ObjectField[]> = {
     operator: GeneralMatchingOperator;
-    input: NumberInput<T> | ObjectInput<T> | BoolInput<T>;
+    input: NumberInput<T> | ObjectInput<T> | BoolInput<T> | SetInput<T>;
 };
 type BoolMatch<T extends ObjectField[]> = {
     operator: BoolMatchingOperator;
