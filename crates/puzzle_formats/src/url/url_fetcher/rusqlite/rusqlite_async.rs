@@ -111,8 +111,8 @@ impl UrlFetcher for RusqliteUrlFetcherCache {
     }
 }
 
-#[allow(clippy::unwrap_used, clippy::expect_used)]
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-test-cfg")]
 mod test {
     use tokio_rusqlite::Connection;
     use url::Url;

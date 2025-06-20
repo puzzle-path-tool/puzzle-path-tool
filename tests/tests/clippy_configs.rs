@@ -1,12 +1,11 @@
 #![allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-test-cfg")]
-#![allow(clippy::all, dead_code, unused_imports)] //TODO: REMOVE
 
 use ignore::{DirEntry, WalkBuilder};
 use indoc::indoc;
 use itertools::Itertools;
 use pathdiff::diff_paths;
 use std::fs::{self};
-use syn::{Attribute, Expr, Item, LitStr, spanned::Spanned};
+use syn::{Attribute, Expr, Item, ItemMod, LitStr, spanned::Spanned, visit::Visit};
 
 const CLIPPY_BUILD_CONFIG: Config = Config {
     name: "clippy-build-cfg",
@@ -32,6 +31,7 @@ fn check_build_script_clippy_conf() {
         &incorrect_configs,
         &config,
         "These build scripts do not contain the correct clippy config",
+        "#!",
     );
 }
 
@@ -78,10 +78,11 @@ fn check_integration_test_clippy_conf() {
         &incorrect_configs,
         &config,
         "These tests do not contain the correct clippy config",
+        "#!",
     );
 }
 
-// #[test] //TODO: UNCOMMENT
+#[test]
 fn check_test_clippy_conf() {
     let config = CLIPPY_TEST_CONFIG;
 
@@ -101,8 +102,14 @@ fn check_test_clippy_conf() {
         |file| {
             let mut selector_values: Vec<SelectorValue> = vec![];
 
-            //TODO: Search for all items with cfg(test) attr
-            selector_values.push(SelectorValue::File(file));
+            if has_test_attr(&file.attrs) {
+                selector_values.push(SelectorValue::File(file));
+            }
+
+            let mut collector = TestItemCollector::default();
+            collector.visit_file(file);
+
+            selector_values.extend(collector.items.iter().map(|item| SelectorValue::Item(item)));
 
             selector_values
         },
@@ -113,6 +120,7 @@ fn check_test_clippy_conf() {
         &incorrect_configs,
         &config,
         "These tests do not contain the correct clippy config",
+        "#",
     );
 }
 
@@ -285,6 +293,31 @@ fn has_config_attr(attributes: &[Attribute], config: &Config) -> ConfigAttrStatu
     ConfigAttrStatus::Missing
 }
 
+#[derive(Default)]
+struct TestItemCollector<'a> {
+    pub items: Vec<&'a Item>,
+}
+
+impl<'a> Visit<'a> for TestItemCollector<'a> {
+    fn visit_item(&mut self, item: &'a Item) {
+        let attrs = get_attrs(item);
+
+        if has_test_attr(attrs) {
+            self.items.push(item);
+        }
+
+        if let Item::Mod(ItemMod {
+            content: Some((_, items)),
+            ..
+        }) = item
+        {
+            for item in items {
+                self.visit_item(item);
+            }
+        }
+    }
+}
+
 fn has_test_attr(attributes: &[Attribute]) -> bool {
     for attr in attributes {
         if !attr.path().is_ident("cfg") {
@@ -315,7 +348,12 @@ fn expr_contains_test(expr: &Expr) -> bool {
     }
 }
 
-fn assert_correct_configs(incorrect_configs: &IncorrectConfigs, config: &Config, message: &str) {
+fn assert_correct_configs(
+    incorrect_configs: &IncorrectConfigs,
+    config: &Config,
+    message: &str,
+    macro_prefix: &str,
+) {
     let missing_message = format_config_list(&incorrect_configs.missing, "Missing Configs at:");
     let outdated_message = format_config_list(&incorrect_configs.outdated, "Outdated Configs at:");
 
@@ -327,12 +365,13 @@ fn assert_correct_configs(incorrect_configs: &IncorrectConfigs, config: &Config,
                 {}
 
                 Config: 
-                #![allow({}, reason = "{}")]
+                {}[allow({}, reason = "{}")]
 
                 {}{}
             "#
         },
         message,
+        macro_prefix,
         config.values.join(", "),
         config.name,
         missing_message,

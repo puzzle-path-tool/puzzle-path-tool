@@ -6,6 +6,7 @@ pub fn add(left: u64, right: u64) -> u64 {
 pub mod explorer_collection;
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-test-cfg")]
 mod tests {
     use super::*;
 

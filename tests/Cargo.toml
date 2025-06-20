@@ -25,4 +25,4 @@ indoc = "2.0.6"
 itertools = "0.14.0"
 pathdiff = "0.2.3"
 proc-macro2 = { version = "1.0.95", features = ["span-locations"] }
-syn = { version = "2.0.103", features = ["full"] }
+syn = { version = "2.0.103", features = ["full", "visit"] }
