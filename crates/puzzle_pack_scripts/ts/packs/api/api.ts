@@ -86,50 +86,6 @@ type IntegerObject<T extends Record<string, number>> = {
 type IntegerArr<T extends number[]> = {
     [K in keyof T]: Integer<T[K]>;
 };
-/*
-type Enum = string[];
-
-type ObjectConst<T> = T extends number
-    ? Integer<T>
-    : T extends string
-      ? SingleChar<T>
-      : T extends Record<string, any>
-        ? ValueObject<T>
-        : T extends Enum
-          ? Enum
-          : T extends (infer TInner)[]
-            ? TInner extends ObjectConst<TInner>
-                ? ConstArray<TInner>
-                : never
-            : never;
-
-type ConstArray1<T extends any[]> = T extends number[]
-    ? { [K in keyof T]: Integer<T[K]> }
-    : T extends string
-      ? { [K in keyof T]: SingleChar<T[K]> }
-      : T extends boolean[]
-        ? boolean[]
-        : T extends Enum
-          ? Enum
-          : T extends any[][]
-            ? { [K in keyof T]: ConstArray<T[K]> }
-            : never;
-
-type ConstArray<T> = T extends ObjectConst<T> ? T[] : never;
-
-type ValueObject<T extends Record<string, any>> = {
-    [K in keyof T]: ObjectConst<T[K]>;
-};
-
-function takeObjectValue<const T>(int: ObjectConst<T>) {}
-
-const numbers = [22] as const;
-
-takeObjectValue({
-    x: 3,
-    y: [1, 3, 1],
-    y2: [-1, -2, "e"]
-});*/
 
 takeIntArr([2, 4, 5, -4]);
 
@@ -166,15 +122,69 @@ const BOOL_MARKER: unique symbol = Symbol("BOOL");
 const ENUM_MARKER: unique symbol = Symbol("ENUM");
 const ARRAY_MARKER: unique symbol = Symbol("ARRAY");
 const OBJECT_MARKER: unique symbol = Symbol("OBJECT");
-type IntField = { readonly __int_marker: typeof INT_MARKER };
-type BoolField = { readonly __bool_marker: typeof BOOL_MARKER };
-type EnumField = { readonly __enum_marker: typeof ENUM_MARKER , enums: string[]};
-type ArrayField = { readonly __array_marker: typeof ARRAY_MARKER , item_type: Field };
-type ObjectField = {readonly __object_marker: typeof OBJECT_MARKER , fields: Record<string, Field> };
+type IntField = { readonly __type_marker: typeof INT_MARKER };
+type BoolField = { readonly __type_marker: typeof BOOL_MARKER };
+type EnumField = {
+    readonly __type_marker: typeof ENUM_MARKER;
+    enums: string[];
+};
+type ArrayField = {
+    readonly __type_marker: typeof ARRAY_MARKER;
+    item_type: Field;
+};
+type ObjectField = {
+    readonly __type_marker: typeof OBJECT_MARKER;
+    fields: Record<string, Field>;
+};
 
-type Field = IntField | BoolField | EnumField | ArrayField | ObjectField
+type Field = IntField | BoolField | EnumField | ArrayField | ObjectField;
 
-let p: IntField = { __int_marker: INT_MARKER };
+type NumberPath<T extends ObjectField[]> = {}; //ToDo
+type BoolPath<T extends ObjectField[]> = {}; //ToDo
+type Path<T extends ObjectField[]> = {} | NumberPath<T> | BoolPath<T>; //ToDo
+
+type SetBuilder<T extends ObjectField[]> = {}; //ToDo
+
+type MathOperator = "PLUS" | "MINUS" | "MULTIPLY" | "DIVIDE_DOWN" | "DIVIDE_UP"
+type MathOperation<T extends ObjectField[]> = {
+    operator: MathOperator,
+    input: NumberInput<T>
+}
+type NumberInput<T extends ObjectField[]> = {
+    first: NumberPath<T> | MathOperation<T> | Integer<number>;
+    second: NumberPath<T> | MathOperation<T> | Integer<number>;
+};
+type BoolInput<T extends ObjectField[]> = {
+    first: BoolPath<T> | Match<T>;
+    second: BoolPath<T> | Match<T>;
+};
+type SetInput<T extends ObjectField[]> = {
+    first: SetBuilder<T>;
+    second: SetBuilder<T>;
+};
+type ObjectInput<T extends ObjectField[]> = { first: Path<T>; second: Path<T> };
+
+type GeneralMatchingOperator = "EQUAL" | "UNEQUAL";
+type BoolMatchingOperator = "AND" | "OR";
+type NumberMatchingOperator = "EQUALS" | "SMALLER" | "BIGGER";
+type SetMatchingOperator = "IS_SUBSET" | "IS_TRUE_SUBSET";
+type GeneralMatch<T extends ObjectField[]> = {
+    operator: GeneralMatchingOperator;
+    input: NumberInput<T> | ObjectInput<T> | BoolInput<T>;
+};
+type BoolMatch<T extends ObjectField[]> = {
+    operator: BoolMatchingOperator;
+    input: BoolInput<T>;
+};
+type NumberMatch<T extends ObjectField[]> = {
+    operator: NumberMatchingOperator;
+    input: NumberInput<T>;
+};
+type SetMatch<T extends ObjectField[]> = {
+    operator: SetMatchingOperator;
+    input: SetInput<T>;
+}
+type Match<T extends ObjectField[]> = GeneralMatch<T> | BoolMatch<T> | NumberMatch<T> | SetMatch<T>;
 
 const x = mapSomething(variants);
 
@@ -183,23 +193,6 @@ function mapSomething<const T extends readonly string[]>(
 ): T[number] | undefined {
     return direction[0];
 }
-
-// type Int = { readonly __marker_rule: "Int" };
-// type Position = { readonly __marker_rule: "Position" };
-// type FieldArray<T extends Field<?>> = { readonly __marker_rule: "FieldArray", item: T };
-// type FieldObject<O extends {[key: string]: Field<?>}> = { readonly __marker_rule: "FieldObject", fields: O };
-
-// export class Field<T> {
-//     static int(): Field<Int> {
-//         return new Field();
-//     }
-//     static position(): Field<Position> {
-//         return new Field();
-//     }
-//     static array<const T extends Field<?>>(field: T): Field<FieldArray<T>> {
-//         return new Field();
-//     }
-// }
 
 export class Rule<const T> {
     private readonly puzzpt_export = null;
