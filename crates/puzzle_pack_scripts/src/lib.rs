@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-pub mod ts_files;
+pub mod files;
 
 fn do_stuff() {}
 

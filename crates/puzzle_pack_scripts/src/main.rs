@@ -4,7 +4,7 @@
 use std::{error::Error, sync::Arc};
 
 use puzzle_pack_bindings::ts_api::{PuzzptApiExport, examples::Example};
-use puzzle_pack_scripts::ts_files::{self, TsFiles};
+use puzzle_pack_scripts::files::print_file_paths;
 use rquickjs::{Context, Module, Object, Runtime, Value};
 use serde::Deserialize;
 use swc_common::{FileName, GLOBALS, Globals, Mark, source_map::SourceMap};
@@ -27,23 +27,13 @@ fn run_module(_file: File) {
     todo!()
 }
 
+fn main() {
+    print_file_paths();
+}
+
 #[allow(clippy::unwrap_used)]
 #[allow(clippy::too_many_lines)]
-fn main() -> Result<(), Box<dyn Error>> {
-    let ts_files = TsFiles::load();
-    println!("\n###>\n{}\n###>\n", ts_files.gitignore.content);
-    for file in ts_files.all_files() {
-        println!(
-            "{}:\n\t{}...\n",
-            file.path.display(),
-            file.content
-                .chars()
-                .map(|c| { if c == '\n' { '|' } else { c } })
-                .take(20)
-                .collect::<String>()
-        );
-    }
-
+fn main2() -> Result<(), Box<dyn Error>> {
     let rt = Runtime::new()?;
     let ctx = Context::full(&rt)?;
 

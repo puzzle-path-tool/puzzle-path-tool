@@ -34,7 +34,9 @@ workspace = true
 
 [dependencies]
 const_format = "0.2.34"
-include_dir = { version = "0.7.4", features = ["glob"] }
+iftree = "1.0.6"
+indoc = "2.0.6"
+itertools = "0.14.0"
 puzzle-core = { workspace = true }
 puzzle-core-macros = { workspace = true }
 puzzle-formats = { workspace = true }
