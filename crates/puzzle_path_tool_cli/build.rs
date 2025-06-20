@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used, clippy::unwrap_used)] // [[build-clippy-cfg]]
+#![allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-build-cfg")]
 #![allow(clippy::unnecessary_wraps)]
 
 use puzzle_core_build as cb;

@@ -1,28 +1,25 @@
 #![allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-test-cfg")]
-#![allow(clippy::all, dead_code, unused_imports)]
+#![allow(clippy::all, dead_code, unused_imports)] //TODO: REMOVE
 
 use ignore::{DirEntry, WalkBuilder};
+use indoc::indoc;
 use itertools::Itertools;
 use pathdiff::diff_paths;
-use std::{
-    fs::{self, File},
-    io::{BufRead, BufReader},
-    path::PathBuf,
-};
-use syn::{Attribute, Item, spanned::Spanned};
+use std::fs::{self};
+use syn::{Attribute, Expr, Item, LitStr, spanned::Spanned};
 
 const CLIPPY_BUILD_CONFIG: Config = Config {
     name: "clippy-build-cfg",
-    values: "clippy::expect_used, clippy::unwrap_used",
+    values: &["clippy::expect_used", "clippy::unwrap_used"],
 };
 
 const CLIPPY_TEST_CONFIG: Config = Config {
     name: "clippy-test-cfg",
-    values: "clippy::expect_used, clippy::unwrap_used",
+    values: &["clippy::expect_used", "clippy::unwrap_used"],
 };
 
-// #[test]
-fn check_build_scripts() {
+#[test]
+fn check_build_script_clippy_conf() {
     let config = CLIPPY_BUILD_CONFIG;
 
     let incorrect_configs = find_incorrect_clippy_configs(
@@ -38,8 +35,8 @@ fn check_build_scripts() {
     );
 }
 
-// #[test]
-fn check_integration_tests() {
+#[test]
+fn check_integration_test_clippy_conf() {
     let config = CLIPPY_TEST_CONFIG;
 
     let incorrect_configs = find_incorrect_clippy_configs(
@@ -71,7 +68,7 @@ fn check_integration_tests() {
                 return false;
             }
 
-            return true;
+            true
         },
         |file| vec![SelectorValue::File(file)],
         &config,
@@ -84,8 +81,8 @@ fn check_integration_tests() {
     );
 }
 
-// #[test]
-fn check_tests() {
+// #[test] //TODO: UNCOMMENT
+fn check_test_clippy_conf() {
     let config = CLIPPY_TEST_CONFIG;
 
     let incorrect_configs = find_incorrect_clippy_configs(
@@ -128,61 +125,65 @@ struct IncorrectConfigs {
 #[derive(Debug, Clone)]
 struct Config {
     name: &'static str,
-    values: &'static str,
+    values: &'static [&'static str],
 }
 
 #[derive(Clone)]
-enum SelectorValue {
-    Item(Item),
-    File(syn::File),
+enum SelectorValue<'a> {
+    Item(&'a Item),
+    File(&'a syn::File),
 }
 
-impl SelectorValue {
-    fn into_item(self) -> SelectorItem {
+fn get_attrs(item: &Item) -> &[Attribute] {
+    match item {
+        Item::Const(item) => &item.attrs,
+        Item::Enum(item) => &item.attrs,
+        Item::ExternCrate(item) => &item.attrs,
+        Item::Fn(item) => &item.attrs,
+        Item::ForeignMod(item) => &item.attrs,
+        Item::Impl(item) => &item.attrs,
+        Item::Macro(item) => &item.attrs,
+        Item::Mod(item) => &item.attrs,
+        Item::Static(item) => &item.attrs,
+        Item::Struct(item) => &item.attrs,
+        Item::Trait(item) => &item.attrs,
+        Item::TraitAlias(item) => &item.attrs,
+        Item::Type(item) => &item.attrs,
+        Item::Union(item) => &item.attrs,
+        Item::Use(item) => &item.attrs,
+        _ => &[],
+    }
+}
+
+impl SelectorValue<'_> {
+    fn as_item(&self) -> SelectorItem {
         match self {
             Self::Item(item) => {
                 let pos = item.span().start();
                 SelectorItem {
                     line: pos.line,
                     column: pos.column,
-                    attributes: match item {
-                        Item::Const(item) => item.attrs,
-                        Item::Enum(item) => item.attrs,
-                        Item::ExternCrate(item) => item.attrs,
-                        Item::Fn(item) => item.attrs,
-                        Item::ForeignMod(item) => item.attrs,
-                        Item::Impl(item) => item.attrs,
-                        Item::Macro(item) => item.attrs,
-                        Item::Mod(item) => item.attrs,
-                        Item::Static(item) => item.attrs,
-                        Item::Struct(item) => item.attrs,
-                        Item::Trait(item) => item.attrs,
-                        Item::TraitAlias(item) => item.attrs,
-                        Item::Type(item) => item.attrs,
-                        Item::Union(item) => item.attrs,
-                        Item::Use(item) => item.attrs,
-                        _ => vec![],
-                    },
+                    attributes: get_attrs(item),
                 }
             }
             Self::File(file) => SelectorItem {
                 line: 1,
                 column: 0,
-                attributes: file.attrs,
+                attributes: &file.attrs,
             },
         }
     }
 }
 
-struct SelectorItem {
+struct SelectorItem<'a> {
     line: usize,
     column: usize,
-    attributes: Vec<Attribute>,
+    attributes: &'a [Attribute],
 }
 
 fn find_incorrect_clippy_configs(
     file_filter: impl Fn(&DirEntry) -> bool,
-    item_selector: impl Fn(syn::File) -> Vec<SelectorValue>,
+    item_selector: impl for<'a> Fn(&'a syn::File) -> Vec<SelectorValue<'a>>,
     config: &Config,
 ) -> IncorrectConfigs {
     let workspace_root = concat!(env!("CARGO_MANIFEST_DIR"), "/../");
@@ -209,41 +210,146 @@ fn find_incorrect_clippy_configs(
             continue;
         };
 
-        let selector_values = item_selector(file);
+        let selector_values = item_selector(&file);
 
         for selector_value in selector_values {
-            let item = selector_value.into_item();
+            let item = selector_value.as_item();
 
-            // item.attributes.iter().find(|attr| {
-            //     attr.style
-            // })
-            //TODO: Check if the attribute is there
-            println!("{config:?} {:?}", item.attributes.len());
+            let attr_status = has_config_attr(item.attributes, config);
+
             let display_file_location = format!("{}:{}:{}", display_path, item.line, item.column);
-            incorrect_configs.missing.push(display_file_location);
+
+            match attr_status {
+                ConfigAttrStatus::Missing => incorrect_configs.missing.push(display_file_location),
+                ConfigAttrStatus::Outdated => {
+                    incorrect_configs.outdated.push(display_file_location);
+                }
+                ConfigAttrStatus::Present => {}
+            }
         }
     }
     incorrect_configs
 }
 
+enum ConfigAttrStatus {
+    Missing,
+    Outdated,
+    Present,
+}
+
+fn has_config_attr(attributes: &[Attribute], config: &Config) -> ConfigAttrStatus {
+    for attr in attributes {
+        if !attr.path().is_ident("allow") {
+            continue;
+        }
+        let mut items = config.values.iter();
+        let mut reason_found = false;
+        let mut mismatch_found = false;
+
+        let _ = attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("reason") {
+                if let Ok(Ok(value)) = meta.value().map(syn::parse::ParseBuffer::parse::<LitStr>) {
+                    if value.value() == config.name {
+                        reason_found = true;
+                        if items.next().is_some() {
+                            mismatch_found = true;
+                        }
+                    }
+                }
+            } else {
+                let parsed_item = meta
+                    .path
+                    .segments
+                    .iter()
+                    .map(|seg| seg.ident.to_string().trim().to_string())
+                    .join("::");
+
+                if let Some(required_item) = items.next() {
+                    if *required_item != parsed_item {
+                        mismatch_found = true;
+                    }
+                } else {
+                    mismatch_found = true;
+                }
+            }
+            Ok(())
+        });
+
+        if reason_found {
+            if mismatch_found {
+                return ConfigAttrStatus::Outdated;
+            }
+            return ConfigAttrStatus::Present;
+        }
+    }
+    ConfigAttrStatus::Missing
+}
+
+fn has_test_attr(attributes: &[Attribute]) -> bool {
+    for attr in attributes {
+        if !attr.path().is_ident("cfg") {
+            continue;
+        }
+        let Ok(expr) = attr.parse_args::<Expr>() else {
+            continue;
+        };
+        if expr_contains_test(&expr) {
+            return true;
+        }
+    }
+    false
+}
+
+fn expr_contains_test(expr: &Expr) -> bool {
+    match expr {
+        Expr::Path(path) => path.path.is_ident("test"),
+        Expr::Call(call) => {
+            for arg in &call.args {
+                if expr_contains_test(arg) {
+                    return true;
+                }
+            }
+            false
+        }
+        _ => false,
+    }
+}
+
 fn assert_correct_configs(incorrect_configs: &IncorrectConfigs, config: &Config, message: &str) {
+    let missing_message = format_config_list(&incorrect_configs.missing, "Missing Configs at:");
+    let outdated_message = format_config_list(&incorrect_configs.outdated, "Outdated Configs at:");
+
     assert!(
         incorrect_configs.missing.is_empty() && incorrect_configs.outdated.is_empty(),
-        r#"
-        {}
+        indoc! {
+            r#"
 
-        Config: #![allow({}, reason = "{}")]
+                {}
 
-        Missing Config in:
-        {}
+                Config: 
+                #![allow({}, reason = "{}")]
 
-        Outdated Config in:
-        {}
-        "#,
+                {}{}
+            "#
+        },
         message,
-        config.values,
+        config.values.join(", "),
         config.name,
-        incorrect_configs.missing.join("\n"),
-        incorrect_configs.outdated.join("\n"),
+        missing_message,
+        outdated_message,
     );
 }
+
+fn format_config_list(configs: &[String], message: &str) -> String {
+    if configs.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "{}\n{}\n\n",
+            message,
+            configs.iter().map(|c| format!(">  {c}")).join("\n"),
+        )
+    }
+}
+
+//TODO: clean up ordering an maybe names

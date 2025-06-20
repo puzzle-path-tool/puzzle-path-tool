@@ -5,8 +5,8 @@ description = "Typescript scripts and engine for `puzzle-path-tool` crate."
 repository.workspace = true
 homepage.workspace = true
 readme.workspace = true
-keywords = ["sudoku", "gamedev", "generator", "random", "tool"]
-categories = ["game-development", "development-tools"]
+keywords = ["internal"]
+categories = ["development-tools"]
 
 include = [
   "**/*.rs",

@@ -2754,6 +2754,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "indoc"
+version = "2.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4c7245a08504955605670dbf141fceab975f15ca21570696aebe9d2e71576bd"
+
+[[package]]
 name = "inotify"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4331,26 +4337,12 @@ dependencies = [
 name = "puzzle-path-tool"
 version = "0.1.0"
 dependencies = [
- "const_format",
  "divan",
- "include_dir",
  "puzzle-core",
  "puzzle-core-macros",
  "puzzle-formats",
  "puzzle-pack-bindings",
  "puzzle-pack-scripts",
- "rquickjs",
- "rquickjs-serde",
- "serde",
- "serde_json",
- "swc",
- "swc_common",
- "swc_ecma_ast",
- "swc_ecma_codegen",
- "swc_ecma_parser",
- "swc_ecma_transforms_base",
- "swc_ecma_transforms_typescript",
- "swc_ecma_visit",
 ]
 
 [[package]]
@@ -4387,6 +4379,7 @@ name = "puzzle-tests"
 version = "0.1.0"
 dependencies = [
  "ignore",
+ "indoc",
  "itertools 0.14.0",
  "pathdiff",
  "proc-macro2",
