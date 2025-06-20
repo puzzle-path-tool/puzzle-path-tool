@@ -145,11 +145,11 @@ type Path<T extends ObjectField[]> = {} | NumberPath<T> | BoolPath<T>; //ToDo
 
 type SetBuilder<T extends ObjectField[]> = {}; //ToDo
 
-type MathOperator = "PLUS" | "MINUS" | "MULTIPLY" | "DIVIDE_DOWN" | "DIVIDE_UP"
+type MathOperator = "PLUS" | "MINUS" | "MULTIPLY" | "DIVIDE_DOWN" | "DIVIDE_UP";
 type MathOperation<T extends ObjectField[]> = {
-    operator: MathOperator,
-    input: NumberInput<T>
-}
+    operator: MathOperator;
+    input: NumberInput<T>;
+};
 type NumberInput<T extends ObjectField[]> = {
     first: NumberPath<T> | MathOperation<T> | Integer<number>;
     second: NumberPath<T> | MathOperation<T> | Integer<number>;
@@ -183,8 +183,12 @@ type NumberMatch<T extends ObjectField[]> = {
 type SetMatch<T extends ObjectField[]> = {
     operator: SetMatchingOperator;
     input: SetInput<T>;
-}
-type Match<T extends ObjectField[]> = GeneralMatch<T> | BoolMatch<T> | NumberMatch<T> | SetMatch<T>;
+};
+type Match<T extends ObjectField[]> =
+    | GeneralMatch<T>
+    | BoolMatch<T>
+    | NumberMatch<T>
+    | SetMatch<T>;
 
 const x = mapSomething(variants);
 
