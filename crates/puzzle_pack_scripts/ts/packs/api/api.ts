@@ -117,74 +117,82 @@ type RangedField<A extends number, B extends number> = {
     max: B;
 };
 
-const INT_MARKER: unique symbol = Symbol("INT");
-const BOOL_MARKER: unique symbol = Symbol("BOOL");
-const ENUM_MARKER: unique symbol = Symbol("ENUM");
-const ARRAY_MARKER: unique symbol = Symbol("ARRAY");
-const OBJECT_MARKER: unique symbol = Symbol("OBJECT");
-type IntField = { readonly __type_marker: typeof INT_MARKER };
-type BoolField = { readonly __type_marker: typeof BOOL_MARKER };
-type EnumField = {
+export const INT_MARKER: unique symbol = Symbol("INT");
+export const BOOL_MARKER: unique symbol = Symbol("BOOL");
+export const ENUM_MARKER: unique symbol = Symbol("ENUM");
+export const ARRAY_MARKER: unique symbol = Symbol("ARRAY");
+export const OBJECT_MARKER: unique symbol = Symbol("OBJECT");
+export type IntField = { readonly __type_marker: typeof INT_MARKER };
+export type BoolField = { readonly __type_marker: typeof BOOL_MARKER };
+export type EnumField = {
     readonly __type_marker: typeof ENUM_MARKER;
     enums: string[];
 };
-type ArrayField = {
+export type ArrayField = {
     readonly __type_marker: typeof ARRAY_MARKER;
     item_type: Field;
 };
-type ObjectField = {
+export type ObjectField = {
     readonly __type_marker: typeof OBJECT_MARKER;
     fields: Record<string, Field>;
 };
 
-type Field = IntField | BoolField | EnumField | ArrayField | ObjectField;
+export type Field = IntField | BoolField | EnumField | ArrayField | ObjectField;
 
-type NumberPath<T extends ObjectField[]> = {}; //ToDo
-type BoolPath<T extends ObjectField[]> = {}; //ToDo
-type Path<T extends ObjectField[]> = {} | NumberPath<T> | BoolPath<T>; //ToDo
+export type NumberPath<T extends ObjectField[]> = {}; //ToDo
+export type BoolPath<T extends ObjectField[]> = {}; //ToDo
+export type Path<T extends ObjectField[]> = {} | NumberPath<T> | BoolPath<T>; //ToDo
 
-type SetBuilder<T extends ObjectField[]> = {}; //ToDo
+export type SetBuilder<T extends ObjectField[]> = {}; //ToDo
 
-type MathOperator = "PLUS" | "MINUS" | "MULTIPLY" | "DIVIDE_DOWN" | "DIVIDE_UP";
-type MathOperation<T extends ObjectField[]> = {
+export type MathOperator =
+    | "PLUS"
+    | "MINUS"
+    | "MULTIPLY"
+    | "DIVIDE_DOWN"
+    | "DIVIDE_UP";
+export type MathOperation<T extends ObjectField[]> = {
     operator: MathOperator;
     input: NumberInput<T>;
 };
-type NumberInput<T extends ObjectField[]> = {
+export type NumberInput<T extends ObjectField[]> = {
     first: NumberPath<T> | MathOperation<T> | Integer<number>;
     second: NumberPath<T> | MathOperation<T> | Integer<number>;
 };
-type BoolInput<T extends ObjectField[]> = {
+export type BoolInput<T extends ObjectField[]> = {
     first: BoolPath<T> | Match<T>;
     second: BoolPath<T> | Match<T>;
 };
-type SetInput<T extends ObjectField[]> = {
+export type SetInput<T extends ObjectField[]> = {
     first: SetBuilder<T>;
     second: SetBuilder<T>;
 };
-type ObjectInput<T extends ObjectField[]> = { first: Path<T>; second: Path<T> };
+export type ObjectInput<T extends ObjectField[]> = {
+    first: Path<T>;
+    second: Path<T>;
+};
 
-type GeneralMatchingOperator = "EQUAL" | "UNEQUAL";
-type BoolMatchingOperator = "AND" | "OR";
-type NumberMatchingOperator = "EQUALS" | "SMALLER" | "BIGGER";
-type SetMatchingOperator = "IS_SUBSET" | "IS_TRUE_SUBSET";
-type GeneralMatch<T extends ObjectField[]> = {
+export type GeneralMatchingOperator = "EQUAL" | "UNEQUAL";
+export type BoolMatchingOperator = "AND" | "OR";
+export type NumberMatchingOperator = "EQUALS" | "SMALLER" | "BIGGER";
+export type SetMatchingOperator = "IS_SUBSET" | "IS_TRUE_SUBSET";
+export type GeneralMatch<T extends ObjectField[]> = {
     operator: GeneralMatchingOperator;
     input: NumberInput<T> | ObjectInput<T> | BoolInput<T> | SetInput<T>;
 };
-type BoolMatch<T extends ObjectField[]> = {
+export type BoolMatch<T extends ObjectField[]> = {
     operator: BoolMatchingOperator;
     input: BoolInput<T>;
 };
-type NumberMatch<T extends ObjectField[]> = {
+export type NumberMatch<T extends ObjectField[]> = {
     operator: NumberMatchingOperator;
     input: NumberInput<T>;
 };
-type SetMatch<T extends ObjectField[]> = {
+export type SetMatch<T extends ObjectField[]> = {
     operator: SetMatchingOperator;
     input: SetInput<T>;
 };
-type Match<T extends ObjectField[]> =
+export type Match<T extends ObjectField[]> =
     | GeneralMatch<T>
     | BoolMatch<T>
     | NumberMatch<T>
@@ -198,7 +206,7 @@ function mapSomething<const T extends readonly string[]>(
     return direction[0];
 }
 
-export class Rule<const T> {
+export class Rule<const T extends ObjectField> {
     private readonly puzzpt_export = null;
 
     readonly deduction: Deduction<T>;
@@ -210,7 +218,7 @@ export class Rule<const T> {
     }
 }
 
-export class Deduction<const T> {
+export class Deduction<const T extends ObjectField> {
     private readonly puzzpt_export = null;
 
     readonly data: T;
@@ -220,11 +228,15 @@ export class Deduction<const T> {
     }
 }
 
-export class LogicStep {
+export class LogicStep<const Input extends ObjectField[], const Output> {
     private readonly puzzpt_export = null;
 
-    // match statement
+    readonly match_statement: Match<Input>;
     // output statement
+
+    constructor(match_statement: Match<Input>) {
+        this.match_statement = match_statement;
+    }
 }
 
 export class ScriptModule {
@@ -252,15 +264,17 @@ export class ScriptModule {
         return new ScriptModule(props);
     }
 
-    createRule<const T>(props: T): Rule<T> {
+    createRule<const T extends ObjectField>(props: T): Rule<T> {
         return new Rule<T>(props);
     }
 
-    createDeduction<const T>(props: T): Deduction<T> {
+    createDeduction<const T extends ObjectField>(props: T): Deduction<T> {
         return new Deduction<T>(props);
     }
 
-    createLogicStep(): LogicStep {
-        return new LogicStep();
+    createLogicStep<const T extends ObjectField[], N>(
+        match_statement: Match<T>,
+    ): LogicStep<T, N> {
+        return new LogicStep(match_statement);
     }
 }
