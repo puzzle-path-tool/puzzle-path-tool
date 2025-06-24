@@ -6,12 +6,13 @@
   "scripts": {
     "start": "echo puzzpt",
     "test": "echo puzzpt test-packs",
-    "test-api": "tsc --project tsconfig.test.json && node out/tests/test.js",
     "check": "tsc",
     "check-watch": "tsc --watch",
     "lint": "eslint",
     "format": "prettier . --write",
-    "format-check": "prettier . --check"
+    "format-check": "prettier . --check",
+    "dev": "echo DEV-ONLY",
+    "test-api": "tsc --project tsconfig.test.json && node out/tests/test.js && echo DEV-ONLY"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

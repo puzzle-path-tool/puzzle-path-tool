@@ -50,8 +50,6 @@ paths = '''
 /package-lock.json
 /package.json
 /tsconfig.json
-/tsconfig.test.json
-/tests/**/*.ts
 
 !node_modules
 !node_modules/**/*
@@ -74,6 +72,39 @@ paths = '''
         fn contents(&self) -> Cow<str> {
             if self.is(base::_GITIGNORE) {
                 Cow::Owned(format!("{}{}", self.contents_str, GITIGNORE_EXTRA))
+            } else if self.is(base::PACKAGE_JSON) {
+                const FIRST: &str = r#"    "dev": "echo DEV-ONLY","#;
+                const LAST: &str = r"  },";
+
+                let mut transformed_json = String::new();
+                let mut lines = self.contents_str.lines();
+
+                for line in lines.by_ref() {
+                    if line == FIRST {
+                        if let Some(str) = transformed_json.strip_suffix(",\n") {
+                            transformed_json = str.to_string();
+                            transformed_json.push('\n');
+                        }
+                        break;
+                    }
+                    transformed_json.push_str(line);
+                    transformed_json.push('\n');
+                }
+
+                for line in lines.by_ref() {
+                    if line == LAST {
+                        transformed_json.push_str(line);
+                        transformed_json.push('\n');
+                        break;
+                    }
+                }
+
+                for line in lines {
+                    transformed_json.push_str(line);
+                    transformed_json.push('\n');
+                }
+
+                Cow::Owned(transformed_json)
             } else {
                 Cow::Borrowed(self.contents_str)
             }
@@ -160,7 +191,7 @@ pub fn all_assets() -> impl Iterator<Item = CommonLoadedFile<'static>> {
 }
 
 pub fn print_file_paths() {
-    let file = configs::base::_GITIGNORE.contents();
+    let file = configs::base::PACKAGE_JSON.contents();
     println!("{file}\n\n|\n");
 
     let assets = &packs::ASSETS;
