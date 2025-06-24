@@ -282,6 +282,7 @@ export const z13 = b;
         println!("{code}");
         // let code = new_code;
 
+        //TODO: inject console.log as global context
         let module = Module::declare(ctx.clone(), module_name, code);
         assert!(module.is_ok(), "{:?}", ctx.catch());
 
