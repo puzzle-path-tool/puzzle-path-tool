@@ -6,8 +6,15 @@
     "target": "es2020",
     "module": "es2020",
     "moduleResolution": "classic",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
+    //
+    // Production
+    // "allowImportingTsExtensions": true,
+    // "noEmit": true,
+    //
+    // Testing
+    "outDir": "out",
+    "allowArbitraryExtensions": true,
+    //
     // Code Style
     "forceConsistentCasingInFileNames": true,
     "strict": true,

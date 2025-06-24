@@ -29,6 +29,7 @@ fn run_module(_file: File) {
 
 fn main() {
     print_file_paths();
+    main2();
 }
 
 #[allow(clippy::unwrap_used)]
@@ -46,7 +47,7 @@ fn main2() -> Result<(), Box<dyn Error>> {
         globals.set("lib", lib)?;
 
         let module_name = "test.ts";
-        let code: &'static str = r#"
+        let code22: &'static str = r#"
             export const a = 3;
 
             export const b = "Hello";
@@ -81,6 +82,135 @@ fn main2() -> Result<(), Box<dyn Error>> {
 
             export const r2 = new Example();
         "#;
+        let code = r#"// Opaque Data test
+
+                                             
+class AWrapper {
+                     data       ;
+    constructor(data       ) {
+        this.data = data;
+    }
+    static unwrap(value          )        {
+        return value.data;
+    }
+    static wrap(value       )           {
+        return new AWrapper(value);
+    }
+}
+                         
+
+export function doStuff(value   ) {
+    const v = AWrapper.unwrap(value);
+
+    //TODO
+}
+
+// Opaque Data test 2
+
+                                          
+
+                                                               
+                                      
+                                                
+  
+
+function wrapProxy                                                 (
+    base       ,
+    extra                           ,
+)                 {
+    return new Proxy(base, {
+        get(target, prop, receiver) {
+            const extraObj = extra(target);
+
+            if (typeof prop === "string" && prop in extraObj) {
+                return extraObj[prop];
+            }
+            return Reflect.get(target, prop, receiver);
+        },
+        has(target, p) {
+            if (Reflect.has(target, p)) {
+                return true;
+            }
+
+            const extraObj = extra(target);
+
+            return Reflect.has(extraObj, p);
+        },
+        ownKeys(target) {
+            const extraObj = extra(target);
+
+            return Array.from(
+                new Set([
+                    ...Reflect.ownKeys(target),
+                    ...Reflect.ownKeys(extraObj),
+                ]),
+            );
+        },
+        getOwnPropertyDescriptor(target, p) {
+            const extraObj = extra(target);
+
+            if (Reflect.has(extraObj, p)) {
+                return Reflect.getOwnPropertyDescriptor(extraObj, p);
+            }
+            return Reflect.getOwnPropertyDescriptor(target, p);
+        },
+    })                  ;
+}
+
+function wrapFields                            (
+    obj   ,
+    id        ,
+)             {
+    const x = Object.entries(obj).map(([key, value]) => {
+        return [key, { id: id, value: value }];
+    });
+    return Object.fromEntries(x);
+}
+
+class BWrapper                       {
+             #data          ;
+             ww         = 1;
+            constructor(data          ) {
+        this.#data = data;
+    }
+    static unwrap                      (value      )           {
+        return value.#data;
+    }
+    static wrap                            (value          )       {
+        return wrapProxy(new BWrapper(value), (target) => {
+            return wrapFields(target.#data.fields, target.#data.name);
+        });
+    }
+}
+                                                               
+
+export const b = BWrapper.wrap({
+    name: "SomeName",
+    fields: {
+        x: 1,
+        y: 2,
+        value: 3,
+        toString: 4,
+        _ee2: 5,
+        [1.2e2]: 6,
+    },
+});
+
+// console.log({ ...b });
+// console.log(b.x.id);
+// console.log(b.x.value);
+
+export const a11 = b.x.id
+export const a12 = b.x.value
+export const a13 = b.x
+
+/*
+Run in Console:
+
+npm run check; node out/packs/core/modules/opaque_test.js
+
+*/
+"#;
 
         let filename = Arc::new(FileName::Custom(module_name.into()));
         let cm: Arc<SourceMap> = Arc::default();
