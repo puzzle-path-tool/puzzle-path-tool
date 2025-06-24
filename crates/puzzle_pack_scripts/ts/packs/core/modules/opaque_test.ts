@@ -77,19 +77,19 @@ function wrapFields<const T extends RecordType>(
     obj: T,
     id: string,
 ): BFields<T> {
-    const x = Object.entries(obj).map(([key, value]) => {
-        const oldValue = value as T[keyof T];
+    const x: [keyof BFields<T>, BFields<T>[keyof BFields<T>]][] =
+        Object.entries(obj).map(([k, v]) => {
+            const key = k as keyof T;
+            const value = v as T[keyof T];
 
-        const newValue = {
-            id: id,
-            value: oldValue,
-        };
-
-        return [key, newValue] satisfies [
-            keyof BFields<T>,
-            BFields<T>[keyof BFields<T>],
-        ];
-    });
+            return [
+                key,
+                {
+                    id: id,
+                    value: value,
+                },
+            ];
+        });
 
     return Object.fromEntries(x) as BFields<T>;
 }
