@@ -16,3 +16,12 @@ type CmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<";
 
 type IntOp = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
 type BitOp = "&" | "|" | "^" | ">>" | "<<" | ">>>" | "<<<" | ">>>";
+
+class Op {
+    static cmp<T>(a: T, op: "==", b: T): boolean;
+    static cmp(a: unknown, op: CmpOp, b: unknown): unknown {
+        return a;
+    }
+}
+
+export const op = Op;

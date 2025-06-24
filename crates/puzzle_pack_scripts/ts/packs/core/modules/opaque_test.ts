@@ -85,7 +85,6 @@ function wrapFields<const T extends RecordType>(
 
 class BWrapper<T extends RecordType> {
     readonly #data: BData<T>;
-    readonly ww: number = 1;
     private constructor(data: BData<T>) {
         this.#data = data;
     }

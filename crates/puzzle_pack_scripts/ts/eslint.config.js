@@ -14,7 +14,7 @@ export default defineConfig([
     tseslint.configs.recommended.map((c) => ({ files: files, ...c })),
     {
         files: files,
-        languageOptions: { globals: globals.es2020 },
+        languageOptions: { globals: globals.es2022 },
         rules: {
             "no-unused-vars": "off",
             "@typescript-eslint/no-unused-vars": "off",

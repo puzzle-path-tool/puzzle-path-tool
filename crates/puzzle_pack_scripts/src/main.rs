@@ -5,7 +5,7 @@ use std::{error::Error, sync::Arc};
 
 use puzzle_pack_bindings::ts_api::{PuzzptApiExport, examples::Example};
 use puzzle_pack_scripts::files::print_file_paths;
-use rquickjs::{Context, Module, Object, Runtime, Value};
+use rquickjs::{Context, Module, Object, Runtime, Value, context};
 use serde::Deserialize;
 use swc_common::{FileName, GLOBALS, Globals, Mark, source_map::SourceMap};
 use swc_ecma_ast::EsVersion;
@@ -27,9 +27,9 @@ fn run_module(_file: File) {
     todo!()
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     print_file_paths();
-    main2();
+    main2()
 }
 
 #[allow(clippy::unwrap_used)]
@@ -83,108 +83,139 @@ fn main2() -> Result<(), Box<dyn Error>> {
             export const r2 = new Example();
         "#;
         let code = r#"// Opaque Data test
-
-                                             
-class AWrapper {
-                     data       ;
-    constructor(data       ) {
-        this.data = data;
+function _check_private_redeclaration(obj, privateCollection) {
+    if (privateCollection.has(obj)) {
+        throw new TypeError("Cannot initialize the same private elements twice on an object");
     }
-    static unwrap(value          )        {
+}
+function _class_apply_descriptor_get(receiver, descriptor) {
+    if (descriptor.get) {
+        return descriptor.get.call(receiver);
+    }
+    return descriptor.value;
+}
+function _class_apply_descriptor_set(receiver, descriptor, value) {
+    if (descriptor.set) {
+        descriptor.set.call(receiver, value);
+    } else {
+        if (!descriptor.writable) {
+            throw new TypeError("attempted to set read only private field");
+        }
+        descriptor.value = value;
+    }
+}
+function _class_extract_field_descriptor(receiver, privateMap, action) {
+    if (!privateMap.has(receiver)) {
+        throw new TypeError("attempted to " + action + " private field on non-instance");
+    }
+    return privateMap.get(receiver);
+}
+function _class_private_field_get(receiver, privateMap) {
+    var descriptor = _class_extract_field_descriptor(receiver, privateMap, "get");
+    return _class_apply_descriptor_get(receiver, descriptor);
+}
+function _class_private_field_init(obj, privateMap, value) {
+    _check_private_redeclaration(obj, privateMap);
+    privateMap.set(obj, value);
+}
+function _class_private_field_set(receiver, privateMap, value) {
+    var descriptor = _class_extract_field_descriptor(receiver, privateMap, "set");
+    _class_apply_descriptor_set(receiver, descriptor, value);
+    return value;
+}
+function _define_property(obj, key, value) {
+    if (key in obj) {
+        Object.defineProperty(obj, key, {
+            value: value,
+            enumerable: true,
+            configurable: true,
+            writable: true
+        });
+    } else {
+        obj[key] = value;
+    }
+    return obj;
+}
+class AWrapper {
+    static unwrap(value) {
         return value.data;
     }
-    static wrap(value       )           {
+    static wrap(value) {
         return new AWrapper(value);
     }
+    constructor(data){
+        _define_property(this, "data", void 0);
+        this.data = data;
+    }
 }
-                         
-
-export function doStuff(value   ) {
+export function doStuff(value) {
     const v = AWrapper.unwrap(value);
-
-    //TODO
+//TODO
 }
-
-// Opaque Data test 2
-
-                                          
-
-                                                               
-                                      
-                                                
-  
-
-function wrapProxy                                                 (
-    base       ,
-    extra                           ,
-)                 {
+function wrapProxy(base, extra) {
     return new Proxy(base, {
-        get(target, prop, receiver) {
+        get (target, prop, receiver) {
             const extraObj = extra(target);
-
             if (typeof prop === "string" && prop in extraObj) {
                 return extraObj[prop];
             }
             return Reflect.get(target, prop, receiver);
         },
-        has(target, p) {
+        has (target, p) {
             if (Reflect.has(target, p)) {
                 return true;
             }
-
             const extraObj = extra(target);
-
             return Reflect.has(extraObj, p);
         },
-        ownKeys(target) {
+        ownKeys (target) {
             const extraObj = extra(target);
-
-            return Array.from(
-                new Set([
-                    ...Reflect.ownKeys(target),
-                    ...Reflect.ownKeys(extraObj),
-                ]),
-            );
+            return Array.from(new Set([
+                ...Reflect.ownKeys(target),
+                ...Reflect.ownKeys(extraObj)
+            ]));
         },
-        getOwnPropertyDescriptor(target, p) {
+        getOwnPropertyDescriptor (target, p) {
             const extraObj = extra(target);
-
             if (Reflect.has(extraObj, p)) {
                 return Reflect.getOwnPropertyDescriptor(extraObj, p);
             }
             return Reflect.getOwnPropertyDescriptor(target, p);
-        },
-    })                  ;
+        }
+    });
 }
-
-function wrapFields                            (
-    obj   ,
-    id        ,
-)             {
-    const x = Object.entries(obj).map(([key, value]) => {
-        return [key, { id: id, value: value }];
+function wrapFields(obj, id) {
+    const x = Object.entries(obj).map(([key, value])=>{
+        return [
+            key,
+            {
+                id: id,
+                value: value
+            }
+        ];
     });
     return Object.fromEntries(x);
 }
-
-class BWrapper                       {
-             #data          ;
-             ww         = 1;
-            constructor(data          ) {
-        this.#data = data;
+var _data = /*#__PURE__*/ new WeakMap();
+class BWrapper {
+    static unwrap(value) {
+        return _class_private_field_get(value, _data);
     }
-    static unwrap                      (value      )           {
-        return value.#data;
-    }
-    static wrap                            (value          )       {
-        return wrapProxy(new BWrapper(value), (target) => {
-            return wrapFields(target.#data.fields, target.#data.name);
+    static wrap(value) {
+        return wrapProxy(new BWrapper(value), (target)=>{
+            return wrapFields(_class_private_field_get(target, _data).fields, _class_private_field_get(target, _data).name);
         });
     }
+    constructor(data){
+        _class_private_field_init(this, _data, {
+            writable: true,
+            value: void 0
+        });
+        _define_property(this, "ww", 1);
+        _class_private_field_set(this, _data, data);
+    }
 }
-                                                               
-
-export const b = BWrapper.wrap({
+const b = BWrapper.wrap({
     name: "SomeName",
     fields: {
         x: 1,
@@ -192,24 +223,20 @@ export const b = BWrapper.wrap({
         value: 3,
         toString: 4,
         _ee2: 5,
-        [1.2e2]: 6,
-    },
+        [1.2e2]: 6
+    }
 });
-
-// console.log({ ...b });
-// console.log(b.x.id);
-// console.log(b.x.value);
-
-export const a11 = b.x.id
-export const a12 = b.x.value
-export const a13 = b.x
-
 /*
 Run in Console:
 
 npm run check; node out/packs/core/modules/opaque_test.js
 
-*/
+*/ 
+
+export const z11 = b.x.id;
+export const z12 = b.y.value;
+export const z13 = b;
+
 "#;
 
         let filename = Arc::new(FileName::Custom(module_name.into()));
@@ -243,7 +270,7 @@ npm run check; node out/packs/core/modules/opaque_test.js
         let mut emitter = Emitter {
             cfg: Config::default()
                 .with_minify(true)
-                .with_target(EsVersion::Es2020),
+                .with_target(EsVersion::Es2022),
             cm: cm.clone(),
             comments: None,
             wr: writer,
@@ -251,8 +278,9 @@ npm run check; node out/packs/core/modules/opaque_test.js
 
         emitter.emit_module(&module)?;
         let new_code = String::from_utf8(buf)?;
-        println!("{new_code}");
-        let code = new_code;
+        // println!("{new_code}");
+        println!("{code}");
+        // let code = new_code;
 
         let module = Module::declare(ctx.clone(), module_name, code);
         assert!(module.is_ok(), "{:?}", ctx.catch());
@@ -264,12 +292,18 @@ npm run check; node out/packs/core/modules/opaque_test.js
 
         let (module, _promise) = eval_res?;
 
-        let namespace = module.namespace()?;
+        let namespace = module.namespace();
+        assert!(namespace.is_ok(), "{:?}", ctx.catch());
+
+        let namespace = namespace?;
 
         let props = namespace.props::<String, Value>();
 
         for prop in props {
-            let (key, value) = prop?;
+            let Ok((key, value)) = prop else {
+                println!("{:?}", ctx.catch());
+                continue;
+            };
             println!("export {key} = {value:?}");
 
             let Some(value) = value.as_object() else {

@@ -3,13 +3,14 @@
     // Target
     "rootDir": ".",
     "baseUrl": ".",
-    "target": "es2020",
-    "module": "es2020",
+    "target": "es2022",
+    "module": "es2022",
     "moduleResolution": "classic",
     //
     // Production
     // "allowImportingTsExtensions": true,
     // "noEmit": true,
+    // "lib": ["es2022"],
     //
     // Testing
     "outDir": "out",
