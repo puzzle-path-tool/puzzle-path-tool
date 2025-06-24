@@ -7,12 +7,12 @@ import {
 } from "packs/api/api";
 import { cell_type, cells_type, values_type } from "../classic_mod";
 
-type AllowedValue = {
-    __type_marker: typeof OBJECT_MARKER,
+export type AllowedValue = {
+    __type_marker: typeof OBJECT_MARKER;
     fields: {
-        values: typeof values_type,
-        cell: typeof cell_type,
-    },
+        values: typeof values_type;
+        cell: typeof cell_type;
+    };
 };
 
 const allowed_values_obj: AllowedValue = {
@@ -23,14 +23,16 @@ const allowed_values_obj: AllowedValue = {
     },
 };
 
-export const allowed_values: Deduction<AllowedValue> = new Deduction(allowed_values_obj)
+export const allowed_values: Deduction<AllowedValue> = new Deduction(
+    allowed_values_obj,
+);
 
 type RequiredValue = {
-    __type_marker: typeof OBJECT_MARKER,
+    __type_marker: typeof OBJECT_MARKER;
     fields: {
-        value: { __type_marker: typeof INT_MARKER },
-        cells: typeof cells_type,
-    },
+        value: { __type_marker: typeof INT_MARKER };
+        cells: typeof cells_type;
+    };
 };
 
 const required_values_obj: RequiredValue = {
@@ -41,13 +43,15 @@ const required_values_obj: RequiredValue = {
     },
 };
 
-export const required_values: Deduction<RequiredValue> = new Deduction(required_values_obj)
+export const required_values: Deduction<RequiredValue> = new Deduction(
+    required_values_obj,
+);
 
 type MatchingCells = {
-    __type_marker: typeof OBJECT_MARKER,
+    __type_marker: typeof OBJECT_MARKER;
     fields: {
-        cells: typeof cells_type,
-    },
+        cells: typeof cells_type;
+    };
 };
 
 const matching_cells_obj: MatchingCells = {
@@ -57,13 +61,15 @@ const matching_cells_obj: MatchingCells = {
     },
 };
 
-export const matching_cells: Deduction<MatchingCells> = new Deduction(matching_cells_obj)
+export const matching_cells: Deduction<MatchingCells> = new Deduction(
+    matching_cells_obj,
+);
 
 type NonRepeatSet = {
-    __type_marker: typeof OBJECT_MARKER,
+    __type_marker: typeof OBJECT_MARKER;
     fields: {
-        cells: typeof cells_type,
-    },
+        cells: typeof cells_type;
+    };
 };
 
 const non_repeat_set_obj: NonRepeatSet = {
@@ -73,14 +79,16 @@ const non_repeat_set_obj: NonRepeatSet = {
     },
 };
 
-export const non_repeat_set: Deduction<NonRepeatSet> = new Deduction(non_repeat_set_obj)
+export const non_repeat_set: Deduction<NonRepeatSet> = new Deduction(
+    non_repeat_set_obj,
+);
 
-type FullSet = {
-    __type_marker: typeof OBJECT_MARKER,
+export type FullSet = {
+    __type_marker: typeof OBJECT_MARKER;
     fields: {
-        values: typeof values_type,
-        cells: typeof cells_type,
-    },
+        values: typeof values_type;
+        cells: typeof cells_type;
+    };
 };
 
 const full_set_obj: FullSet = {
@@ -91,4 +99,11 @@ const full_set_obj: FullSet = {
     },
 };
 
-export const full_set: Deduction<FullSet> = new Deduction(full_set_obj)
+export const full_set: Deduction<FullSet> = new Deduction(full_set_obj);
+
+type Error = { __type_marker: typeof OBJECT_MARKER; fields: {} };
+
+export const error: Deduction<Error> = new Deduction({
+    __type_marker: OBJECT_MARKER,
+    fields: {},
+});

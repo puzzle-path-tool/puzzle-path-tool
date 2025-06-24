@@ -139,64 +139,117 @@ export type ObjectField = {
 
 export type Field = IntField | BoolField | EnumField | ArrayField | ObjectField;
 
-export type NumberPath<T extends ObjectField[]> = {}; //ToDo
-export type BoolPath<T extends ObjectField[]> = {}; //ToDo
-export type Path<T extends ObjectField[]> = {} | NumberPath<T> | BoolPath<T>; //ToDo
+export type NumberPath<
+    T extends (ObjectField | ObjectField[])[],
+    I extends Integer<number>,
+    P extends string[],
+> = T[I] extends ObjectField 
+? { index: I; path: P, d: "NUMBER_PATH" } 
+: never;
+export type BoolPath<
+    T extends (ObjectField | ObjectField[])[],
+    I extends Integer<number>,
+    P extends string[],
+> = T[I] extends ObjectField ? { index: I; path: P, d: "BOOL_PATH" } : never;
+export type SetPath<
+    T extends (ObjectField | ObjectField[])[],
+    N extends MatchingValue<T>,
+    I extends Integer<number>,
+    P extends string[],
+> = T[I] extends ObjectField ? { index: I; path: P, d: "SET_PATH" } : never;
+export type Path<
+    T extends (ObjectField | ObjectField[])[],
+    I extends Integer<number>,
+    P extends string[],
+> = T[I] extends ObjectField ? { index: I; path: P } : never;
 
-export type SetBuilder<T extends ObjectField[]> = {}; //ToDo
-
+export type SetMapping<
+    T extends (ObjectField | ObjectField[])[],
+    N extends MatchingValue<T>,
+> = {
+    d: "SET_MAP";
+}; //ToDo
+export type Count<T extends (ObjectField | ObjectField[])[]> = {
+    count: SetMatchingValue<T, MatchingValue<T>>;
+};
+export type SetOperatior = "UNION" | "INTERSECTION" | "DIFFERENCE";
+export type SetOperation<
+    T extends (ObjectField | ObjectField[])[],
+    N extends MatchingValue<T>,
+> = {
+    operator: SetOperatior;
+    input:
+        | SetMatchingValue<T, N>[]
+        | SetMatchingValue<T, SetMatchingValue<T, N>>;
+};
 export type MathOperator =
     | "PLUS"
     | "MINUS"
     | "MULTIPLY"
     | "DIVIDE_DOWN"
     | "DIVIDE_UP";
-export type MathOperation<T extends ObjectField[]> = {
+export type MathOperation<T extends (ObjectField | ObjectField[])[]> = {
     operator: MathOperator;
-    input: NumberInput<T>;
+    first: NumberMatchingValue<T>;
+    second: NumberMatchingValue<T>;
 };
-export type NumberInput<T extends ObjectField[]> = {
-    first: NumberPath<T> | MathOperation<T> | Integer<number>;
-    second: NumberPath<T> | MathOperation<T> | Integer<number>;
-};
-export type BoolInput<T extends ObjectField[]> = {
-    first: BoolPath<T> | Match<T>;
-    second: BoolPath<T> | Match<T>;
-};
-export type SetInput<T extends ObjectField[]> = {
-    first: SetBuilder<T>;
-    second: SetBuilder<T>;
-};
-export type ObjectInput<T extends ObjectField[]> = {
-    first: Path<T>;
-    second: Path<T>;
+export type SetInput<
+    T extends (ObjectField | ObjectField[])[],
+    N extends MatchingValue<T>,
+> = {
+    first: SetMatchingValue<T, N>;
+    second: SetMatchingValue<T, N>;
 };
 
 export type GeneralMatchingOperator = "EQUAL" | "UNEQUAL";
 export type BoolMatchingOperator = "AND" | "OR";
 export type NumberMatchingOperator = "EQUALS" | "SMALLER" | "BIGGER";
 export type SetMatchingOperator = "IS_SUBSET" | "IS_TRUE_SUBSET";
-export type GeneralMatch<T extends ObjectField[]> = {
+export type GeneralMatch<T extends (ObjectField | ObjectField[])[]> = {
     operator: GeneralMatchingOperator;
-    input: NumberInput<T> | ObjectInput<T> | BoolInput<T> | SetInput<T>;
+    first: MatchingValue<T>;
+    second: MatchingValue<T>;
 };
-export type BoolMatch<T extends ObjectField[]> = {
+export type BoolMatch<T extends (ObjectField | ObjectField[])[]> = {
     operator: BoolMatchingOperator;
-    input: BoolInput<T>;
+    first: BoolMatchingValue<T>;
+    second: BoolMatchingValue<T>;
 };
-export type NumberMatch<T extends ObjectField[]> = {
+export type NumberMatch<T extends (ObjectField | ObjectField[])[]> = {
     operator: NumberMatchingOperator;
-    input: NumberInput<T>;
+    first: NumberMatchingValue<T>;
+    second: NumberMatchingValue<T>;
 };
-export type SetMatch<T extends ObjectField[]> = {
+export type SetMatch<T extends (ObjectField | ObjectField[])[]> = {
     operator: SetMatchingOperator;
-    input: SetInput<T>;
+    input: SetInput<T, MatchingValue<T>>;
 };
-export type Match<T extends ObjectField[]> =
+export type Match<T extends (ObjectField | ObjectField[])[]> =
     | GeneralMatch<T>
     | BoolMatch<T>
     | NumberMatch<T>
     | SetMatch<T>;
+
+type BoolMatchingValue<T extends (ObjectField | ObjectField[])[]> =
+    | BoolPath<T, Integer<number>, string[]>
+    | Match<T>;
+type NumberMatchingValue<T extends (ObjectField | ObjectField[])[]> =
+    | NumberPath<T, Integer<number>, string[]>
+    | MathOperation<T>
+    | Integer<number>
+    | Count<T>;
+type SetMatchingValue<
+    T extends (ObjectField | ObjectField[])[],
+    N extends MatchingValue<T>,
+> = SetOperation<T, N> | SetPath<T, N, Integer<number>, string[]> | SetMapping<T, N>;
+type MatchingValue<T extends (ObjectField | ObjectField[])[]> =
+    | BoolMatchingValue<T>
+    | NumberMatchingValue<T>
+    | Path<T, Integer<number>, string[]>
+    | SetMatchingValue<
+          T,
+          BoolMatchingValue<T> | NumberMatchingValue<T> | Path<T, Integer<number>, string[]>
+      >;
 
 const x = mapSomething(variants);
 
