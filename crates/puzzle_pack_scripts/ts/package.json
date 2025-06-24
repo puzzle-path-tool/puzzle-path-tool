@@ -6,6 +6,7 @@
   "scripts": {
     "start": "echo puzzpt",
     "test": "echo puzzpt test-packs",
+    "test-api": "tsc --project tsconfig.test.json && node out/tests/test.js",
     "check": "tsc",
     "check-watch": "tsc --watch",
     "lint": "eslint",

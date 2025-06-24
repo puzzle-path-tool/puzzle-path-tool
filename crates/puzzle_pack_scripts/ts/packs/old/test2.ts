@@ -1,3 +1,3 @@
-import { x } from "./test.ts";
+import { x } from "./test";
 
 const y = x;

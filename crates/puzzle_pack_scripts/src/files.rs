@@ -50,9 +50,11 @@ paths = '''
 /package-lock.json
 /package.json
 /tsconfig.json
+/tsconfig.test.json
+/tests/**/*.ts
 
-!ts/node_modules
-!ts/node_modules/**/*
+!node_modules
+!node_modules/**/*
 '''
         "
     )]

@@ -7,14 +7,7 @@
     "module": "es2022",
     "lib": ["es2022"],
     "moduleResolution": "classic",
-    //
-    // Production
-    // "allowImportingTsExtensions": true,
-    // "noEmit": true,
-    //
-    // Testing
-    "outDir": "out",
-    "allowArbitraryExtensions": true,
+    "noEmit": true,
     //
     // Code Style
     "forceConsistentCasingInFileNames": true,
@@ -33,7 +26,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "skipLibCheck": false,
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": false
   },
-  "include": ["packs/**/*.ts", "puzzles/**/*.ts"]
+  "include": ["packs/**/*.ts", "puzzles/**/*.ts", "tests/**/*.ts"]
 }

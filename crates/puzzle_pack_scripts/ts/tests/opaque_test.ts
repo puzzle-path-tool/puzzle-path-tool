@@ -125,10 +125,3 @@ const b = BWrapper.wrap({
 console.log({ ...b });
 console.log(b.x.id);
 console.log(b.x.value);
-
-/*
-Run in Console:
-
-npm run check; node out/packs/core/modules/opaque_test.js
-
-*/
