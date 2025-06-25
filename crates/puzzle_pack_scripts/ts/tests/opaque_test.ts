@@ -30,7 +30,7 @@ type BFields<T extends RecordType> = {
     [K in keyof T]: { id: string; value: T[K] };
 };
 
-function wrapProxy<TBase extends object, TExtra extends RecordType>(
+function wrapProxyDyn<TBase extends object, TExtra extends RecordType>(
     base: TBase,
     extra: (target: TBase) => TExtra,
 ): TBase & TExtra {
@@ -38,7 +38,11 @@ function wrapProxy<TBase extends object, TExtra extends RecordType>(
         get(target, prop, receiver) {
             const extraObj = extra(target);
 
-            if (typeof prop === "string" && prop in extraObj) {
+            if (
+                typeof prop === "string" &&
+                prop in extraObj &&
+                prop != "_private_data"
+            ) {
                 return extraObj[prop];
             }
             return Reflect.get(target, prop, receiver);
@@ -73,6 +77,13 @@ function wrapProxy<TBase extends object, TExtra extends RecordType>(
     }) as TBase & TExtra;
 }
 
+function wrapProxy<TBase extends object, TExtra extends RecordType>(
+    base: TBase,
+    extra: TExtra,
+): TBase & TExtra {
+    return wrapProxyDyn(base, () => extra);
+}
+
 function wrapFields<const T extends RecordType>(
     obj: T,
     id: string,
@@ -95,17 +106,18 @@ function wrapFields<const T extends RecordType>(
 }
 
 class BWrapper<T extends RecordType> {
-    readonly #data: BData<T>;
+    private readonly _private_data: BData<T>;
     private constructor(data: BData<T>) {
-        this.#data = data;
+        this._private_data = data;
     }
     static unwrap<T extends RecordType>(value: B<T>): BData<T> {
-        return value.#data;
+        return value._private_data;
     }
     static wrap<const T extends RecordType>(value: BData<T>): B<T> {
-        return wrapProxy(new BWrapper(value), (target) => {
-            return wrapFields(target.#data.fields, target.#data.name);
-        });
+        return wrapProxy(
+            new BWrapper(value),
+            wrapFields(value.fields, value.name),
+        );
     }
 }
 export type B<T extends RecordType> = BWrapper<T> & BFields<T>;
@@ -125,3 +137,6 @@ const b = BWrapper.wrap({
 console.log({ ...b });
 console.log(b.x.id);
 console.log(b.x.value);
+
+console.log(b instanceof BWrapper);
+console.log(BWrapper.unwrap(b));
