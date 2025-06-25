@@ -1,4 +1,4 @@
-// Opaque Data test
+// #region [[Opaque Data test]]
 
 type AData = { name: string; value: number };
 class AWrapper {
@@ -21,7 +21,8 @@ export function doStuff(value: A) {
     //TODO
 }
 
-// Opaque Data test 2
+// #endregion
+// #region [[Opaque Data test 2]]
 
 type RecordType<T = unknown> = Record<string, T>;
 
@@ -151,8 +152,10 @@ console.log(b.x.value);
 
 console.log(b instanceof BWrapper);
 console.log(BWrapper.unwrap(b));
+// #endregion
+// #region [[Field Declarations]]
 
-// Field Declarations
+// #region [Field Type Declaration]
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type FieldDeclaration =
@@ -187,7 +190,8 @@ class FieldDeclUtil {
     }
 }
 
-// Int Field Declaration
+// #endregion
+// #region [Int Field Declaration]
 
 type IntFieldDeclarationData = object;
 class IntFieldDeclarationWrapper {
@@ -204,7 +208,8 @@ class IntFieldDeclarationWrapper {
 }
 export type IntFieldDeclaration = IntFieldDeclarationWrapper;
 
-// Bool Field Declaration
+// #endregion
+// #region [Bool Field Declaration]
 
 type BoolFieldDeclarationData = object;
 class BoolFieldDeclarationWrapper {
@@ -221,7 +226,8 @@ class BoolFieldDeclarationWrapper {
 }
 export type BoolFieldDeclaration = BoolFieldDeclarationWrapper;
 
-// Enum Field Declaration
+// #endregion
+// #region [Enum Field Declaration]
 
 interface EnumFieldDeclarationData<T extends readonly string[]> {
     values: T;
@@ -246,7 +252,8 @@ class EnumFieldDeclarationWrapper<T extends readonly string[]> {
 export type EnumFieldDeclaration<T extends readonly string[]> =
     EnumFieldDeclarationWrapper<T>;
 
-// Object Field Declaration
+// #endregion
+// #region [Object Field Declaration]
 
 interface ObjectFieldDeclarationData<T extends RecordType<FieldDeclaration>> {
     fields: T;
@@ -270,7 +277,8 @@ class ObjectFieldDeclarationWrapper<T extends RecordType<FieldDeclaration>> {
 export type ObjectFieldDeclaration<T extends RecordType<FieldDeclaration>> =
     ObjectFieldDeclarationWrapper<T>;
 
-// Array Field Declaration
+// #endregion
+// #region [Array Field Declaration]
 
 interface ArrayFieldDeclarationData<T extends FieldDeclaration> {
     item: T;
@@ -294,7 +302,10 @@ class ArrayFieldDeclarationWrapper<T extends FieldDeclaration> {
 export type ArrayFieldDeclaration<T extends FieldDeclaration> =
     ArrayFieldDeclarationWrapper<T>;
 
-// Test
+// #endregion
+
+// #endregion
+// #region [[Test]]
 
 const field = {
     decl: {
@@ -353,3 +364,5 @@ const b2 = field.decl.obj.wrap({
         b: field.decl.bool.wrap({}),
     },
 });
+
+// #endregion
