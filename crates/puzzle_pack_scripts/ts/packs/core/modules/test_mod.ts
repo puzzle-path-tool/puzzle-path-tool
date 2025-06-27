@@ -20,6 +20,8 @@ export function position(props?: TODO) {
     );
 }
 
+function int() {}
+
 const arrow = test_mod.deduction({
     name: "arrow",
     data: {
@@ -196,20 +198,92 @@ const step4 = test_mod.step({
     name: "step4",
     logic: (binding: TODO, step: TODO) => {
         const set1 = binding.get_one(full_set);
+        const max_value = binding.get_one(int());
+        const value_sum = binding.get_one(int());
 
         return step.define({
-            condition: op.quantor.all((binding: TODO) => {
-                const value = binding.get_one(full_set.type.values.item);
+            condition: op.and(
+                op.cmp(
+                    op.set.sum((binding: TODO) => {
+                        const value = binding.get_one(
+                            full_set.type.values.item,
+                        ); //TODO: this doesnt work
 
-                return op.and(
-                    op.set(value, "element of", set1.values),
-                    op.cmp(value, ">", 1),
-                );
-            }),
+                        return value;
+                    }),
+                    "==",
+                    value_sum,
+                ),
+                op.quantor.all((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    return op.and(
+                        op.set(value, "element of", set1.values), // TODO: This needs to be before colon, because of the "for all" x where A : B
+                        // eg. A filters out
+                        // B rejects the entire condition
+                        op.cmp(value, ">", 1),
+                        op.cmp(value, "<=", max_value),
+                    );
+                }),
+                op.quantor.exists((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    // TODO: This is not bound
+                    return op.and(op.cmp(value, "==", max_value));
+                }),
+            ),
             results: [
-                step.new(full_set, {
-                    values: set1.values,
-                    cells: set1.cells,
+                step.new(another_ded, {
+                    max: max_value,
+                    sum: value_sum,
+                }),
+            ],
+        });
+    },
+});
+
+const step5 = test_mod.step({
+    name: "step5",
+    logic: (binding: TODO, step: TODO) => {
+        const set1 = binding.get_one(full_set);
+        const max_value = binding.get_one(int());
+        const value_sum = binding.get_one(int());
+
+        return step.define({
+            condition: op.and(
+                op.cmp(
+                    op.set.sum((binding: TODO) => {
+                        const value = binding.get_one(
+                            full_set.type.values.item,
+                        ); //TODO: this doesnt work
+
+                        return value;
+                    }),
+                    "==",
+                    value_sum,
+                ),
+                op.quantor.all((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    return op.and(
+                        op.set(value, "element of", set1.values), // TODO: This needs to be before colon, because of the "for all" x where A : B
+                        // eg. A filters out
+                        // B rejects the entire condition
+                        op.cmp(value, ">", 1),
+                        op.cmp(value, "<=", max_value),
+                    );
+                }),
+                op.quantor.exists((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    // TODO: This is not bound
+                    return op.and(op.cmp(value, "==", max_value));
+                }),
+            ),
+            results: [
+                step.new(another_ded, {
+                    max: max_value,
+                    sum: value_sum,
                 }),
             ],
         });
