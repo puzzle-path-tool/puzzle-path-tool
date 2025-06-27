@@ -1,35 +1,8 @@
-// #region [[Opaque Data test]]
+// #region [[Definitions]]
 
-type AData = { name: string; value: number };
-class AWrapper {
-    private readonly data: AData;
-    constructor(data: AData) {
-        this.data = data;
-    }
-    static unwrap(value: AWrapper): AData {
-        return value.data;
-    }
-    static wrap(value: AData): AWrapper {
-        return new AWrapper(value);
-    }
-}
-export type A = AWrapper;
-
-export function doStuff(value: A) {
-    const v = AWrapper.unwrap(value);
-
-    //TODO
-}
-
-// #endregion
-// #region [[Opaque Data test 2]]
+const classData = Symbol("classData");
 
 type RecordType<T = unknown> = Record<string, T>;
-
-type BData<T extends RecordType> = { name: string; fields: T };
-type BFields<T extends RecordType> = {
-    [K in keyof T]: { id: string; value: T[K] };
-};
 
 function wrapProxyDyn<TBase extends object, TExtra extends RecordType>(
     base: TBase,
@@ -39,11 +12,7 @@ function wrapProxyDyn<TBase extends object, TExtra extends RecordType>(
         get(target, prop, receiver) {
             const extraObj = extra(target);
 
-            if (
-                typeof prop === "string" &&
-                prop in extraObj &&
-                prop != "_private_data"
-            ) {
+            if (typeof prop === "string" && prop in extraObj) {
                 return extraObj[prop];
             }
             return Reflect.get(target, prop, receiver);
@@ -85,21 +54,6 @@ function wrapProxy<TBase extends object, TExtra extends RecordType>(
     return wrapProxyDyn(base, () => extra);
 }
 
-function wrapFields<const T extends RecordType>(
-    obj: T,
-    id: string,
-): BFields<T> {
-    return mapFields<T, BFields<T>>(obj, (key, value) => [
-        [
-            key,
-            {
-                id: id,
-                value: value,
-            },
-        ],
-    ]);
-}
-
 function mapFields<TFrom extends RecordType, TTo extends RecordType>(
     obj: TFrom,
     map_key: (
@@ -117,13 +71,60 @@ function mapFields<TFrom extends RecordType, TTo extends RecordType>(
     return Object.fromEntries(entries) as TTo;
 }
 
+// #endregion
+// #region [[Opaque Data test]]
+
+type AData = { name: string; value: number };
+class AWrapper {
+    private readonly data: AData;
+    constructor(data: AData) {
+        this.data = data;
+    }
+    static unwrap(value: AWrapper): AData {
+        return value.data;
+    }
+    static wrap(value: AData): AWrapper {
+        return new AWrapper(value);
+    }
+}
+export type A = AWrapper;
+
+export function doStuff(value: A) {
+    const v = AWrapper.unwrap(value);
+
+    //TODO
+}
+
+// #endregion
+// #region [[Opaque Data test 2]]
+
+type BData<T extends RecordType> = { name: string; fields: T };
+type BFields<T extends RecordType> = {
+    [K in keyof T]: { id: string; value: T[K] };
+};
+
+function wrapFields<const T extends RecordType>(
+    obj: T,
+    id: string,
+): BFields<T> {
+    return mapFields<T, BFields<T>>(obj, (key, value) => [
+        [
+            key,
+            {
+                id: id,
+                value: value,
+            },
+        ],
+    ]);
+}
+
 class BWrapper<T extends RecordType> {
-    private readonly _private_data: BData<T>;
+    private readonly [classData]: BData<T>;
     private constructor(data: BData<T>) {
-        this._private_data = data;
+        this[classData] = data;
     }
     static unwrap<T extends RecordType>(value: B<T>): BData<T> {
-        return value._private_data;
+        return value[classData];
     }
     static wrap<const T extends RecordType>(value: BData<T>): B<T> {
         return wrapProxy(
@@ -195,12 +196,12 @@ class FieldDeclUtil {
 
 type IntFieldDeclarationData = object;
 class IntFieldDeclarationWrapper {
-    private readonly _private_data: IntFieldDeclarationData;
+    private readonly [classData]: IntFieldDeclarationData;
     private constructor(data: IntFieldDeclarationData) {
-        this._private_data = data;
+        this[classData] = data;
     }
     static unwrap(value: IntFieldDeclaration): IntFieldDeclarationData {
-        return value._private_data;
+        return value[classData];
     }
     static wrap(value: IntFieldDeclarationData): IntFieldDeclaration {
         return new IntFieldDeclarationWrapper(value);
@@ -213,12 +214,12 @@ export type IntFieldDeclaration = IntFieldDeclarationWrapper;
 
 type BoolFieldDeclarationData = object;
 class BoolFieldDeclarationWrapper {
-    private readonly _private_data: BoolFieldDeclarationData;
+    private readonly [classData]: BoolFieldDeclarationData;
     private constructor(data: BoolFieldDeclarationData) {
-        this._private_data = data;
+        this[classData] = data;
     }
     static unwrap(value: BoolFieldDeclaration): BoolFieldDeclarationData {
-        return value._private_data;
+        return value[classData];
     }
     static wrap(value: BoolFieldDeclarationData): BoolFieldDeclaration {
         return new BoolFieldDeclarationWrapper(value);
@@ -233,14 +234,14 @@ interface EnumFieldDeclarationData<T extends readonly string[]> {
     values: T;
 }
 class EnumFieldDeclarationWrapper<T extends readonly string[]> {
-    private readonly _private_data: EnumFieldDeclarationData<T>;
+    private readonly [classData]: EnumFieldDeclarationData<T>;
     private constructor(data: EnumFieldDeclarationData<T>) {
-        this._private_data = data;
+        this[classData] = data;
     }
     static unwrap<T extends readonly string[]>(
         value: EnumFieldDeclaration<T>,
     ): EnumFieldDeclarationData<T> {
-        return value._private_data;
+        return value[classData];
     }
     static wrap<const T extends readonly string[]>(
         value: EnumFieldDeclarationData<T>,
@@ -259,14 +260,14 @@ interface ObjectFieldDeclarationData<T extends RecordType<FieldDeclaration>> {
     fields: T;
 }
 class ObjectFieldDeclarationWrapper<T extends RecordType<FieldDeclaration>> {
-    private readonly _private_data: ObjectFieldDeclarationData<T>;
+    private readonly [classData]: ObjectFieldDeclarationData<T>;
     private constructor(data: ObjectFieldDeclarationData<T>) {
-        this._private_data = data;
+        this[classData] = data;
     }
     static unwrap<T extends RecordType<FieldDeclaration>>(
         value: ObjectFieldDeclaration<T>,
     ): ObjectFieldDeclarationData<T> {
-        return value._private_data;
+        return value[classData];
     }
     static wrap<const T extends RecordType<FieldDeclaration>>(
         value: ObjectFieldDeclarationData<T>,
@@ -284,14 +285,14 @@ interface ArrayFieldDeclarationData<T extends FieldDeclaration> {
     item: T;
 }
 class ArrayFieldDeclarationWrapper<T extends FieldDeclaration> {
-    private readonly _private_data: ArrayFieldDeclarationData<T>;
+    private readonly [classData]: ArrayFieldDeclarationData<T>;
     private constructor(data: ArrayFieldDeclarationData<T>) {
-        this._private_data = data;
+        this[classData] = data;
     }
     static unwrap<T extends FieldDeclaration>(
         value: ArrayFieldDeclaration<T>,
     ): ArrayFieldDeclarationData<T> {
-        return value._private_data;
+        return value[classData];
     }
     static wrap<const T extends FieldDeclaration>(
         value: ArrayFieldDeclarationData<T>,
