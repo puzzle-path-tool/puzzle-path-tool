@@ -4,6 +4,7 @@ import { core_pack } from "../core_pack";
 declare const Field: any;
 declare const op: any;
 declare const step: any;
+declare const type: any;
 type TODO = any;
 const todo = "TODO";
 
@@ -483,6 +484,175 @@ const step9 = test_mod.step({
                     sum: value_sum,
                 }),
             ],
+        });
+    },
+});
+
+const step10 = test_mod.step({
+    name: "step10",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const set1 = matcher.get_one(full_set);
+        matcher.where(op.exists(set1));
+
+        const max_value = matcher.get_one(int());
+        matcher.where(op.exists(max_value));
+
+        const value_sum = matcher.get_one(int());
+        matcher.where(op.exists(value_sum));
+
+        matcher.require(op.cmp(op.set.sum(set1.values), "==", value_sum));
+
+        matcher.require(
+            op.quantor.all((matcher: TODO) => {
+                const value = matcher.get_one(full_set.type.values.item);
+                matcher.where(op.set(value, "element of", set1.values));
+
+                matcher.require(op.cmp(value, ">", 1));
+                matcher.require(op.cmp(value, "<=", max_value));
+            }),
+        );
+
+        matcher.require(
+            op.quantor.exists((matcher: TODO) => {
+                const value = matcher.get_one(full_set.type.values.item);
+                matcher.where(op.set(value, "element of", set1.values));
+
+                matcher.require(op.cmp(value, "==", max_value));
+            }),
+        );
+
+        emitter.emit_one(another_ded, {
+            max: max_value,
+            sum: value_sum,
+        });
+    },
+});
+
+const step11 = test_mod.step({
+    name: "step11",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const set1 = matcher.get_one(full_set.type);
+        matcher.where(op.pool(set1, "from", full_set));
+        matcher.where(op.exists(set1));
+
+        const max_value = matcher.get_one(type.int());
+        matcher.where(op.exists(max_value));
+
+        const value_sum = matcher.get_one(type.int());
+        matcher.where(op.exists(value_sum));
+
+        matcher.require(op.cmp(op.set.max(set1.values), "==", max_value));
+        matcher.require(op.cmp(op.set.sum(set1.values), "==", value_sum));
+
+        emitter.emit_one(another_ded, {
+            max: max_value,
+            sum: value_sum,
+        });
+    },
+});
+
+const step12 = test_mod.step({
+    name: "step12",
+    logic: (matcher: TODO) => {
+        const set1 = matcher.get_one(full_set);
+        matcher.where(op.exists(set1));
+
+        const max_value = matcher.get_one(int());
+        matcher.where(op.exists(max_value));
+
+        const value_sum = matcher.get_one(int());
+        matcher.where(op.exists(value_sum));
+
+        matcher.require(op.cmp(op.set.max(set1.values), "==", max_value));
+        matcher.require(op.cmp(op.set.sum(set1.values), "==", value_sum));
+
+        return step.emit(
+            step.new(another_ded, {
+                max: max_value,
+                sum: value_sum,
+            }),
+        );
+    },
+});
+
+const step13 = test_mod.step({
+    name: "step13",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const set1 = matcher.get_one(type.of(full_set));
+        matcher.where(op.pool(set1, "from", full_set));
+
+        const max_value = matcher.get_one(type.int());
+        matcher.where(op.cmp(op.set.max(set1.values), "==", max_value));
+
+        const value_sum = matcher.get_one(type.int());
+        matcher.where(op.cmp(op.set.sum(set1.values), "==", value_sum));
+
+        matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
+
+        emitter.emit_one(another_ded, {
+            max: max_value,
+            sum: value_sum,
+        });
+    },
+});
+
+const step14 = test_mod.step({
+    name: "step14",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const set1 = matcher.get_one(type.of(full_set));
+        matcher.where(op.pool(set1, "from", full_set));
+
+        const max_value = matcher.get_one(type.int());
+        matcher.where(
+            op.quantor.all((matcher: TODO) => {
+                const value = matcher.get_one(
+                    type.item(type.of(full_set).values),
+                );
+                matcher.where(op.set(value, "element of", set1.values));
+
+                matcher.require(op.cmp(value, ">", 1));
+                matcher.require(op.cmp(value, "<=", max_value));
+            }),
+        );
+        matcher.where(
+            op.quantor.exists((matcher: TODO) => {
+                const value = matcher.get_one(
+                    type.item(type.of(full_set).values),
+                );
+                matcher.where(op.set(value, "element of", set1.values));
+
+                matcher.require(op.cmp(value, "==", max_value));
+            }),
+        );
+
+        const value_sum = matcher.get_one(type.int());
+        matcher.where(op.cmp(op.set.sum(set1.values), "==", value_sum));
+
+        matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
+
+        emitter.emit_one(another_ded, {
+            max: max_value,
+            sum: value_sum,
+        });
+    },
+});
+
+const step15 = test_mod.step({
+    name: "step15",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const set1 = matcher.pool.get_one(full_set);
+
+        const max_value = matcher.get_one(type.int());
+        matcher.where(op.cmp(op.set.max(set1.values), "==", max_value));
+
+        const value_sum = matcher.get_one(type.int());
+        matcher.where(op.cmp(op.set.sum(set1.values), "==", value_sum));
+
+        matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
+
+        emitter.emit_one(another_ded, {
+            max: max_value,
+            sum: value_sum,
         });
     },
 });
