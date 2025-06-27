@@ -306,6 +306,154 @@ export type ArrayFieldDeclaration<T extends FieldDeclaration> =
 // #endregion
 
 // #endregion
+// #region [[Field Types]]
+
+// #region [Field Type]
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type FieldType =
+    | IntFieldType
+    | BoolFieldType
+    | EnumFieldType<any>
+    | ObjectFieldType<any>
+    | ArrayFieldType<any>;
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+class FieldTypeUtil {
+    static isInt(value: unknown): value is IntFieldType {
+        return value instanceof IntFieldTypeWrapper;
+    }
+    static isBool(value: unknown): value is BoolFieldType {
+        return value instanceof BoolFieldTypeWrapper;
+    }
+    static isEnum(value: unknown): value is EnumFieldType<readonly string[]> {
+        return value instanceof EnumFieldTypeWrapper;
+    }
+    static isObject(
+        value: unknown,
+    ): value is ObjectFieldType<RecordType<FieldType>> {
+        return value instanceof ObjectFieldTypeWrapper;
+    }
+    static isArray(value: unknown): value is ArrayFieldType<FieldType> {
+        return value instanceof ArrayFieldTypeWrapper;
+    }
+}
+
+// #endregion
+// #region [Int Field Declaration]
+
+type IntFieldTypeData = object;
+
+class IntFieldTypeWrapper {
+    private readonly [classData]: IntFieldTypeData;
+    private constructor(data: IntFieldTypeData) {
+        this[classData] = data;
+    }
+    static unwrap(value: IntFieldType): IntFieldTypeData {
+        return value[classData];
+    }
+    static wrap(value: IntFieldTypeData): IntFieldType {
+        return new IntFieldTypeWrapper(value);
+    }
+}
+export type IntFieldType = IntFieldTypeWrapper;
+
+// #endregion
+// #region [Bool Field Declaration]
+
+type BoolFieldTypeData = object;
+class BoolFieldTypeWrapper {
+    private readonly [classData]: BoolFieldTypeData;
+    private constructor(data: BoolFieldTypeData) {
+        this[classData] = data;
+    }
+    static unwrap(value: BoolFieldType): BoolFieldTypeData {
+        return value[classData];
+    }
+    static wrap(value: BoolFieldTypeData): BoolFieldType {
+        return new BoolFieldTypeWrapper(value);
+    }
+}
+export type BoolFieldType = BoolFieldTypeWrapper;
+
+// #endregion
+// #region [Enum Field Declaration]
+
+interface EnumFieldTypeData<T extends readonly string[]> {
+    values: T;
+}
+class EnumFieldTypeWrapper<T extends readonly string[]> {
+    private readonly [classData]: EnumFieldTypeData<T>;
+    private constructor(data: EnumFieldTypeData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends readonly string[]>(
+        value: EnumFieldType<T>,
+    ): EnumFieldTypeData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends readonly string[]>(
+        value: EnumFieldTypeData<T>,
+    ): EnumFieldType<T> {
+        return new EnumFieldTypeWrapper(value);
+    }
+}
+
+export type EnumFieldType<T extends readonly string[]> =
+    EnumFieldTypeWrapper<T>;
+
+// #endregion
+// #region [Object Field Declaration]
+
+interface ObjectFieldTypeData<T extends RecordType<FieldType>> {
+    fields: T;
+}
+class ObjectFieldTypeWrapper<T extends RecordType<FieldType>> {
+    private readonly [classData]: ObjectFieldTypeData<T>;
+    private constructor(data: ObjectFieldTypeData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends RecordType<FieldType>>(
+        value: ObjectFieldType<T>,
+    ): ObjectFieldTypeData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends RecordType<FieldType>>(
+        value: ObjectFieldTypeData<T>,
+    ): ObjectFieldType<T> {
+        return new ObjectFieldTypeWrapper(value);
+    }
+}
+export type ObjectFieldType<T extends RecordType<FieldType>> =
+    ObjectFieldTypeWrapper<T>;
+
+// #endregion
+// #region [Array Field Declaration]
+
+interface ArrayFieldTypeData<T extends FieldType> {
+    item: T;
+}
+class ArrayFieldTypeWrapper<T extends FieldType> {
+    private readonly [classData]: ArrayFieldTypeData<T>;
+    private constructor(data: ArrayFieldTypeData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(
+        value: ArrayFieldType<T>,
+    ): ArrayFieldTypeData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(
+        value: ArrayFieldTypeData<T>,
+    ): ArrayFieldType<T> {
+        return new ArrayFieldTypeWrapper(value);
+    }
+}
+export type ArrayFieldType<T extends FieldType> = ArrayFieldTypeWrapper<T>;
+
+// #endregion
+
+// #endregion
 // #region [[Test]]
 
 const field = {
