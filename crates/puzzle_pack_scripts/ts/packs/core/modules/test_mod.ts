@@ -3,6 +3,7 @@ import { core_pack } from "../core_pack";
 
 declare const Field: any;
 declare const op: any;
+declare const step: any;
 type TODO = any;
 const todo = "TODO";
 
@@ -281,6 +282,202 @@ const step5 = test_mod.step({
                 }),
             ),
             results: [
+                step.new(another_ded, {
+                    max: max_value,
+                    sum: value_sum,
+                }),
+            ],
+        });
+    },
+});
+
+const step6 = test_mod.step({
+    name: "step6",
+    logic: (binding: TODO, step: TODO) => {
+        const set1 = binding.get_one(full_set);
+        const max_value = binding.get_one(int());
+        const value_sum = binding.get_one(int());
+
+        return step.define({
+            where: op.exists(set1, max_value, value_sum),
+            require: op.and(
+                op.cmp(
+                    op.set.sum(op.set.map(set1, (e: TODO) => e.values)),
+                    "==",
+                    value_sum,
+                ),
+                op.quantor.all((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    return step.pack({
+                        where: op.set(value, "element of", set1.values),
+                        require: op.and(
+                            op.cmp(value, ">", 1),
+                            op.cmp(value, "<=", max_value),
+                        ),
+                    });
+                }),
+                op.quantor.exists((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    return step.pack({
+                        where: op.set(value, "element of", set1.values),
+                        require: op.cmp(value, "==", max_value),
+                    });
+                }),
+            ),
+            emit: [
+                step.new(another_ded, {
+                    max: max_value,
+                    sum: value_sum,
+                }),
+            ],
+        });
+    },
+});
+
+const step7 = test_mod.step({
+    name: "step7",
+    logic: (binding: TODO, step: TODO) => {
+        const set1 = binding.get_one(full_set);
+        const max_value = binding.get_one(int());
+        const value_sum = binding.get_one(int());
+
+        const values = op.set.map(set1, (e: TODO) => e.values);
+
+        return step.define({
+            where: op.exists(set1, max_value, value_sum),
+            require: op.and(
+                op.cmp(op.set.max(values), "==", max_value),
+                op.cmp(op.set.sum(values), "==", value_sum),
+            ),
+            emit: [
+                step.new(another_ded, {
+                    max: max_value,
+                    sum: value_sum,
+                }),
+            ],
+        });
+    },
+});
+
+const step8 = test_mod.step({
+    name: "step8",
+    logic: (binding: TODO, step: TODO) => {
+        const set1 = binding.get_one(full_set);
+        const max_value = binding.get_one(int());
+        const value_sum = binding.get_one(int());
+
+        const values = op.set.map(set1, (e: TODO) => e.values);
+
+        return step.define({
+            where: op.exists(set1, max_value, value_sum),
+            require: op.and(
+                op.cmp(
+                    op.inline((binding: TODO) => {
+                        const max_value = binding.get_one(int());
+
+                        return step.pack_inline({
+                            where: op.exists(max_value),
+                            require: op.and(
+                                op.quantor.all((binding: TODO) => {
+                                    const value = binding.get_one(
+                                        full_set.type.values.item,
+                                    );
+
+                                    return step.pack({
+                                        where: op.set(
+                                            value,
+                                            "element of",
+                                            set1.values,
+                                        ),
+                                        require: op.and(
+                                            op.cmp(value, ">", 1),
+                                            op.cmp(value, "<=", max_value),
+                                        ),
+                                    });
+                                }),
+                                op.quantor.exists((binding: TODO) => {
+                                    const value = binding.get_one(
+                                        full_set.type.values.item,
+                                    );
+
+                                    return step.pack({
+                                        where: op.set(
+                                            value,
+                                            "element of",
+                                            set1.values,
+                                        ),
+                                        require: op.cmp(value, "==", max_value),
+                                    });
+                                }),
+                            ),
+                            return: max_value,
+                        });
+                    }),
+                    "==",
+                    max_value,
+                ),
+                op.cmp(op.set.sum(values), "==", value_sum),
+            ),
+            emit: [
+                step.new(another_ded, {
+                    max: max_value,
+                    sum: value_sum,
+                }),
+            ],
+        });
+    },
+});
+
+function custom_max(values: TODO): TODO {
+    return op.inline((binding: TODO) => {
+        const max_value = binding.get_one(int());
+
+        return step.pack_inline({
+            where: op.exists(max_value),
+            require: op.and(
+                op.quantor.all((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    return step.pack({
+                        where: op.set(value, "element of", values),
+                        require: op.and(
+                            op.cmp(value, ">", 1),
+                            op.cmp(value, "<=", max_value),
+                        ),
+                    });
+                }),
+                op.quantor.exists((binding: TODO) => {
+                    const value = binding.get_one(full_set.type.values.item);
+
+                    return step.pack({
+                        where: op.set(value, "element of", values),
+                        require: op.cmp(value, "==", max_value),
+                    });
+                }),
+            ),
+            return: max_value,
+        });
+    });
+}
+
+const step9 = test_mod.step({
+    name: "step9",
+    logic: (binding: TODO) => {
+        const set1 = binding.get_one(full_set);
+        const max_value = binding.get_one(int());
+        const value_sum = binding.get_one(int());
+
+        const values = op.set.map(set1, (e: TODO) => e.values);
+
+        return step.define({
+            where: op.exists(set1, max_value, value_sum),
+            require: op.and(
+                op.cmp(custom_max(values), "==", max_value),
+                op.cmp(op.set.sum(values), "==", value_sum),
+            ),
+            emit: [
                 step.new(another_ded, {
                     max: max_value,
                     sum: value_sum,
