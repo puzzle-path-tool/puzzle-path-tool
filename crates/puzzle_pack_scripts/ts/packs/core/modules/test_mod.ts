@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { core_pack } from "../core_pack";
 
-declare const Field: any;
+declare const field: any;
 declare const op: any;
+declare const ty: any;
 declare const step: any;
-declare const type: any;
 type TODO = any;
 const todo = "TODO";
 
@@ -13,10 +13,10 @@ export const test_mod = core_pack.module({
 });
 
 export function position(props?: TODO) {
-    return Field.object(
+    return field.object(
         {
-            x: Field.int(),
-            y: Field.int(),
+            x: field.int(),
+            y: field.int(),
         },
         props,
     );
@@ -28,7 +28,7 @@ const arrow = test_mod.deduction({
     name: "arrow",
     data: {
         head: position(),
-        cells: Field.set(position(), {
+        cells: field.set(position(), {
             ordered: true,
         }),
     },
@@ -37,8 +37,8 @@ const arrow = test_mod.deduction({
 const full_set = test_mod.deduction({
     name: "full_set",
     data: {
-        values: Field.set(Field.int()),
-        cells: Field.set(position()),
+        values: field.set(field.int()),
+        cells: field.set(position()),
     },
 });
 
@@ -535,10 +535,10 @@ const step11 = test_mod.step({
         matcher.where(op.pool(set1, "from", full_set));
         matcher.where(op.exists(set1));
 
-        const max_value = matcher.get_one(type.int());
+        const max_value = matcher.get_one(ty.int());
         matcher.where(op.exists(max_value));
 
-        const value_sum = matcher.get_one(type.int());
+        const value_sum = matcher.get_one(ty.int());
         matcher.where(op.exists(value_sum));
 
         matcher.require(op.cmp(op.set.max(set1.values), "==", max_value));
@@ -578,13 +578,13 @@ const step12 = test_mod.step({
 const step13 = test_mod.step({
     name: "step13",
     logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.get_one(type.of(full_set));
+        const set1 = matcher.get_one(ty.of(full_set));
         matcher.where(op.pool(set1, "from", full_set));
 
-        const max_value = matcher.get_one(type.int());
+        const max_value = matcher.get_one(ty.int());
         matcher.where(op.cmp(op.set.max(set1.values), "==", max_value));
 
-        const value_sum = matcher.get_one(type.int());
+        const value_sum = matcher.get_one(ty.int());
         matcher.where(op.cmp(op.set.sum(set1.values), "==", value_sum));
 
         matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
@@ -599,15 +599,13 @@ const step13 = test_mod.step({
 const step14 = test_mod.step({
     name: "step14",
     logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.get_one(type.of(full_set));
+        const set1 = matcher.get_one(ty.of(full_set));
         matcher.where(op.pool(set1, "from", full_set));
 
-        const max_value = matcher.get_one(type.int());
+        const max_value = matcher.get_one(ty.int());
         matcher.where(
             op.quantor.all((matcher: TODO) => {
-                const value = matcher.get_one(
-                    type.item(type.of(full_set).values),
-                );
+                const value = matcher.get_one(ty.item(ty.of(full_set).values));
                 matcher.where(op.set(value, "element of", set1.values));
 
                 matcher.require(op.cmp(value, ">", 1));
@@ -616,16 +614,14 @@ const step14 = test_mod.step({
         );
         matcher.where(
             op.quantor.exists((matcher: TODO) => {
-                const value = matcher.get_one(
-                    type.item(type.of(full_set).values),
-                );
+                const value = matcher.get_one(ty.item(ty.of(full_set).values));
                 matcher.where(op.set(value, "element of", set1.values));
 
                 matcher.require(op.cmp(value, "==", max_value));
             }),
         );
 
-        const value_sum = matcher.get_one(type.int());
+        const value_sum = matcher.get_one(ty.int());
         matcher.where(op.cmp(op.set.sum(set1.values), "==", value_sum));
 
         matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
@@ -642,10 +638,10 @@ const step15 = test_mod.step({
     logic: (matcher: TODO, emitter: TODO) => {
         const set1 = matcher.pool.get_one(full_set);
 
-        const max_value = matcher.get_one(type.int());
+        const max_value = matcher.get_one(ty.int());
         matcher.where(op.cmp(op.set.max(set1.values), "==", max_value));
 
-        const value_sum = matcher.get_one(type.int());
+        const value_sum = matcher.get_one(ty.int());
         matcher.where(op.cmp(op.set.sum(set1.values), "==", value_sum));
 
         matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));

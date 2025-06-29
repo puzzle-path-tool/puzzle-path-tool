@@ -485,6 +485,7 @@ export type Variable<T extends FieldType> = VariableWrapper<T>;
 // #region [Cmp Op]
 
 type CmpOpName = "==" | "!=" | ">=" | "<=" | ">" | "<";
+
 class CmpOp {
     private constructor() {}
 
@@ -492,14 +493,11 @@ class CmpOp {
 
     static do(
         a: Variable<FieldType>,
-        o: IntOpName,
+        o: CmpOpName,
         b: Variable<FieldType>,
     ): Variable<BoolFieldType> {
         todo();
     }
-
-    // #endregion
-    // #region <<fold>>
 
     // #endregion
     // #region <<others>>
@@ -511,6 +509,9 @@ class CmpOp {
 // #region [Int Op]
 
 type IntOpName = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
+
+type IntFoldOpName = "+" | "*";
+
 class IntOp {
     private constructor() {}
 
@@ -526,6 +527,13 @@ class IntOp {
 
     // #endregion
     // #region <<fold>>
+
+    static fold(
+        o: IntFoldOpName,
+        items: Variable<ArrayFieldType<IntFieldType>>,
+    ): Variable<IntFieldType> {
+        todo();
+    }
 
     // #endregion
     // #region <<others>>
@@ -740,10 +748,8 @@ class SetOp {
     } as const satisfies Record<
         SetOpFoldName,
         (
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            items: Variable<ArrayFieldType<ArrayFieldType<any>>>,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) => Variable<ArrayFieldType<any>>
+            items: Variable<ArrayFieldType<ArrayFieldType<FieldType>>>,
+        ) => Variable<ArrayFieldType<FieldType>>
     >;
 
     static fold<T extends FieldType>(
@@ -765,11 +771,7 @@ class SetOp {
         o: SetOpFoldName,
         items: Variable<ArrayFieldType<ArrayFieldType<FieldType>>>,
     ): Variable<ArrayFieldType<FieldType>> {
-        const f: (
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            items: Variable<ArrayFieldType<ArrayFieldType<any>>>,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) => Variable<ArrayFieldType<any>> = this.foldSetOps[o];
+        const f = this.foldSetOps[o];
 
         return f(items);
     }
