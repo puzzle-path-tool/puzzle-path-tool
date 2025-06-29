@@ -2,6 +2,10 @@
 
 const classData = Symbol("classData");
 
+function todo(...args: unknown[]): never {
+    throw new Error(`TODO: ${args.join(", ")}`);
+}
+
 type RecordType<T = unknown> = Record<string, T>;
 
 function wrapProxyDyn<TBase extends object, TExtra extends RecordType>(
@@ -450,6 +454,359 @@ class ArrayFieldTypeWrapper<T extends FieldType> {
     }
 }
 export type ArrayFieldType<T extends FieldType> = ArrayFieldTypeWrapper<T>;
+
+// #endregion
+
+// #endregion
+// #region [[Var Value]]
+
+// #region [Variable]
+interface VariableData<T extends FieldType> {
+    values: T;
+}
+class VariableWrapper<T extends FieldType> {
+    private readonly [classData]: VariableData<T>;
+    private constructor(data: VariableData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(value: Variable<T>): VariableData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(
+        value: VariableData<T>,
+    ): Variable<T> {
+        return new VariableWrapper(value);
+    }
+}
+
+export type Variable<T extends FieldType> = VariableWrapper<T>;
+
+// #endregion
+// #region [Cmp Op]
+
+type CmpOpName = "==" | "!=" | ">=" | "<=" | ">" | "<";
+class CmpOp {
+    private constructor() {}
+
+    // #region <<do>>
+
+    static do(
+        a: Variable<FieldType>,
+        o: IntOpName,
+        b: Variable<FieldType>,
+    ): Variable<BoolFieldType> {
+        todo();
+    }
+
+    // #endregion
+    // #region <<fold>>
+
+    // #endregion
+    // #region <<others>>
+
+    // #endregion
+}
+
+// #endregion
+// #region [Int Op]
+
+type IntOpName = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
+class IntOp {
+    private constructor() {}
+
+    // #region <<do>>
+
+    static do(
+        a: Variable<IntFieldType>,
+        o: IntOpName,
+        b: Variable<IntFieldType>,
+    ): Variable<IntFieldType> {
+        todo();
+    }
+
+    // #endregion
+    // #region <<fold>>
+
+    // #endregion
+    // #region <<others>>
+
+    // #endregion
+}
+
+// #endregion
+// #region [Set Op]
+
+type SetOpName =
+    | "subset of"
+    | "superset of"
+    | "true subset of"
+    | "true superset of"
+    | "disjoint with"
+    | "element of"
+    | "contains"
+    | "union"
+    | "intersect"
+    | "without"
+    | "subtracted from"
+    | "disjunctive union";
+
+type SetOpFoldName = "union" | "intersect" | "disjunctive union";
+
+class SetOp {
+    private constructor() {}
+
+    // #region <<do>>
+    private static readonly setOps = {
+        "subset of": <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "superset of": <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "true subset of": <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "true superset of": <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "disjoint with": <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "element of": <T extends FieldType>(
+            a: Variable<T>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        contains: <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<T>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        union: <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+        intersect: <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+        without: <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+        "subtracted from": <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+        "disjunctive union": <T extends FieldType>(
+            a: Variable<ArrayFieldType<T>>,
+            b: Variable<ArrayFieldType<T>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+    } as const satisfies Record<
+        SetOpName,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (a: Variable<any>, b: Variable<any>) => Variable<any>
+    >;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "subset of",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<BoolFieldType>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "superset of",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<BoolFieldType>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "true subset of",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<BoolFieldType>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "true superset of",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<BoolFieldType>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "disjoint with",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<BoolFieldType>;
+
+    static do<T extends FieldType>(
+        a: Variable<T>,
+        o: "element of",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<BoolFieldType>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "contains",
+        b: Variable<T>,
+    ): Variable<BoolFieldType>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "union",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "intersect",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "without",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "subtracted from",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static do<T extends FieldType>(
+        a: Variable<ArrayFieldType<T>>,
+        o: "disjunctive union",
+        b: Variable<ArrayFieldType<T>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static do(
+        a: Variable<FieldType>,
+        o: SetOpName,
+        b: Variable<FieldType>,
+    ): Variable<FieldType> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const f: (a: Variable<any>, b: Variable<any>) => Variable<any> =
+            this.setOps[o];
+
+        return f(a, b);
+    }
+    // #endregion
+    // #region <<fold>>
+
+    private static readonly foldSetOps = {
+        union: <T extends FieldType>(
+            items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+        intersect: <T extends FieldType>(
+            items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+        "disjunctive union": <T extends FieldType>(
+            items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+        ): Variable<ArrayFieldType<T>> => {
+            todo();
+        },
+    } as const satisfies Record<
+        SetOpFoldName,
+        (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            items: Variable<ArrayFieldType<ArrayFieldType<any>>>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ) => Variable<ArrayFieldType<any>>
+    >;
+
+    static fold<T extends FieldType>(
+        o: "union",
+        items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static fold<T extends FieldType>(
+        o: "intersect",
+        items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static fold<T extends FieldType>(
+        o: "disjunctive union",
+        items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+    ): Variable<ArrayFieldType<T>>;
+
+    static fold(
+        o: SetOpFoldName,
+        items: Variable<ArrayFieldType<ArrayFieldType<FieldType>>>,
+    ): Variable<ArrayFieldType<FieldType>> {
+        const f: (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            items: Variable<ArrayFieldType<ArrayFieldType<any>>>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ) => Variable<ArrayFieldType<any>> = this.foldSetOps[o];
+
+        return f(items);
+    }
+
+    // #endregion
+    // #region <<others>>
+    static union<T extends FieldType>(
+        ...items: Variable<ArrayFieldType<T>>[]
+    ): Variable<ArrayFieldType<T>> {
+        todo();
+    }
+
+    static intersect<T extends FieldType>(
+        ...items: Variable<ArrayFieldType<T>>[]
+    ): Variable<ArrayFieldType<T>> {
+        todo();
+    }
+
+    static disjunctive_union<T extends FieldType>(
+        ...items: Variable<ArrayFieldType<T>>[]
+    ): Variable<ArrayFieldType<T>> {
+        todo();
+    }
+    // #endregion
+}
+
+// #endregion
+// #region [Op]
+
+class Op {
+    private constructor() {}
+    static readonly cmp = CmpOp;
+    static readonly int = IntOp;
+    static readonly set = SetOp;
+}
+
+export const op = Op;
 
 // #endregion
 
