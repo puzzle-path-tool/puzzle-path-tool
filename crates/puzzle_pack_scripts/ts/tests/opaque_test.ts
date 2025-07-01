@@ -76,7 +76,7 @@ function mapFields<TFrom extends RecordType, TTo extends RecordType>(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type InfixFuncDefinition = Record<string, (a: any, b: any) => any>;
+type InfixFuncDefinition = RecordType<(a: any, b: any) => any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InfixFuncArgA<F> = F extends (a: infer A, b: any) => any ? A : never;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,7 +105,7 @@ function makeInfix<const F extends InfixFuncDefinition>(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PrefixFuncDefinition = Record<string, (x: any) => any>;
+type PrefixFuncDefinition = RecordType<(x: any) => any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PrefixFuncArg<F> = F extends (x: infer X) => any ? X : never;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
