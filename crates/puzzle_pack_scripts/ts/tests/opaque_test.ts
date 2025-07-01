@@ -557,6 +557,12 @@ f11({
     a1: 1,
 });
 
+// const x12 = {x: (a: number, b: number): number => todo()} as const;
+
+// function f12(p: typeof makeInfix(x12)) {
+//     todo();
+// }
+
 // #endregion
 // #region [Cmp Op]
 
