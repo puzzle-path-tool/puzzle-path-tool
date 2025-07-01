@@ -556,7 +556,7 @@ const x = ObjectFieldTypeWrapper.wrap({
 });
 
 function f11(p: IntoVar<typeof x>) {
-    todo();
+    console.log(p);
 }
 
 f11(VariableWrapper.wrap({ values: x }));
