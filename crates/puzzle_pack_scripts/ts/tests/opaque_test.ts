@@ -75,6 +75,53 @@ function mapFields<TFrom extends RecordType, TTo extends RecordType>(
     return Object.fromEntries(entries) as TTo;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InfixFuncDefinition = Record<string, (a: any, b: any) => any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InfixFuncArgA<F> = F extends (a: infer A, b: any) => any ? A : never;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InfixFuncArgB<F> = F extends (a: any, b: infer B) => any ? B : never;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InfixFuncReturn<F> = F extends (a: any, b: any) => infer R ? R : never;
+
+interface InfixFunc<F extends InfixFuncDefinition> {
+    <O extends keyof F>(
+        a: NoInfer<InfixFuncArgA<F[O]>>,
+        o: O,
+        b: NoInfer<InfixFuncArgB<F[O]>>,
+    ): NoInfer<InfixFuncReturn<F[O]>>;
+}
+
+function makeInfix<const F extends InfixFuncDefinition>(
+    funcs: F,
+): InfixFunc<F> {
+    return (a, o, b) => {
+        return funcs[o]?.(a, b);
+    };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrefixFuncDefinition = Record<string, (x: any) => any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrefixFuncArg<F> = F extends (x: infer X) => any ? X : never;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrefixFuncReturn<F> = F extends (x: any) => infer R ? R : never;
+
+interface PrefixFunc<F extends PrefixFuncDefinition> {
+    <O extends keyof F>(
+        o: O,
+        x: NoInfer<PrefixFuncArg<F[O]>>,
+    ): NoInfer<PrefixFuncReturn<F[O]>>;
+}
+
+function makePrefix<const F extends PrefixFuncDefinition>(
+    funcs: F,
+): PrefixFunc<F> {
+    return (o, x) => {
+        return funcs[o]?.(x);
+    };
+}
+
 // #endregion
 // #region [[Opaque Data test]]
 
@@ -481,90 +528,152 @@ class VariableWrapper<T extends FieldType> {
 
 export type Variable<T extends FieldType> = VariableWrapper<T>;
 
+type ConstOf<T> = T extends IntFieldType
+    ? number
+    : T extends BoolFieldType
+      ? boolean
+      : T extends ArrayFieldType<infer TItem extends FieldType>
+        ? ConstOf<TItem>[]
+        : T extends ObjectFieldType<infer TObj extends RecordType<FieldType>>
+          ? {
+                [K in keyof TObj]: ConstOf<TObj[K]>;
+            }
+          : never;
+
+type IntoVar<T extends FieldType> = Variable<T> | ConstOf<T>;
+
+const x = ObjectFieldTypeWrapper.wrap({
+    fields: {
+        a1: IntFieldTypeWrapper.wrap({}),
+    },
+});
+
+function f11(p: IntoVar<typeof x>) {
+    todo();
+}
+
+f11(VariableWrapper.wrap({ values: x }));
+f11({
+    a1: 1,
+});
+
 // #endregion
 // #region [Cmp Op]
-
-type CmpOpName = "==" | "!=" | ">=" | "<=" | ">" | "<";
 
 class CmpOp {
     private constructor() {}
 
-    // #region <<do>>
-
-    static do(
-        a: Variable<FieldType>,
-        o: CmpOpName,
-        b: Variable<FieldType>,
-    ): Variable<BoolFieldType> {
-        todo();
-    }
-
-    // #endregion
-    // #region <<others>>
-
-    // #endregion
+    static readonly do = makeInfix({
+        "==": <T extends FieldType>(
+            a: Variable<T>,
+            b: Variable<T>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "!=": <T extends FieldType>(
+            a: Variable<T>,
+            b: Variable<T>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        ">=": <T extends FieldType>(
+            a: Variable<T>,
+            b: Variable<T>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "<=": <T extends FieldType>(
+            a: Variable<T>,
+            b: Variable<T>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        ">": <T extends FieldType>(
+            a: Variable<T>,
+            b: Variable<T>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+        "<": <T extends FieldType>(
+            a: Variable<T>,
+            b: Variable<T>,
+        ): Variable<BoolFieldType> => {
+            todo();
+        },
+    });
 }
 
 // #endregion
 // #region [Int Op]
 
-type IntOpName = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
-
-type IntFoldOpName = "+" | "*";
-
 class IntOp {
     private constructor() {}
 
-    // #region <<do>>
-
-    static do(
-        a: Variable<IntFieldType>,
-        o: IntOpName,
-        b: Variable<IntFieldType>,
-    ): Variable<IntFieldType> {
-        todo();
-    }
-
-    // #endregion
-    // #region <<fold>>
-
-    static fold(
-        o: IntFoldOpName,
-        items: Variable<ArrayFieldType<IntFieldType>>,
-    ): Variable<IntFieldType> {
-        todo();
-    }
-
-    // #endregion
-    // #region <<others>>
-
-    // #endregion
+    static readonly do = makeInfix({
+        "+": (
+            a: Variable<IntFieldType>,
+            b: Variable<IntFieldType>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+        "-": (
+            a: Variable<IntFieldType>,
+            b: Variable<IntFieldType>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+        "*": (
+            a: Variable<IntFieldType>,
+            b: Variable<IntFieldType>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+        "//": (
+            a: Variable<IntFieldType>,
+            b: Variable<IntFieldType>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+        mod: (
+            a: Variable<IntFieldType>,
+            b: Variable<IntFieldType>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+        rem: (
+            a: Variable<IntFieldType>,
+            b: Variable<IntFieldType>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+        "**": (
+            a: Variable<IntFieldType>,
+            b: Variable<IntFieldType>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+    });
+    static readonly fold = makePrefix({
+        "+": (
+            items: Variable<ArrayFieldType<IntFieldType>>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+        "*": (
+            items: Variable<ArrayFieldType<IntFieldType>>,
+        ): Variable<IntFieldType> => {
+            todo();
+        },
+    });
 }
 
 // #endregion
 // #region [Set Op]
 
-type SetOpName =
-    | "subset of"
-    | "superset of"
-    | "true subset of"
-    | "true superset of"
-    | "disjoint with"
-    | "element of"
-    | "contains"
-    | "union"
-    | "intersect"
-    | "without"
-    | "subtracted from"
-    | "disjunctive union";
-
-type SetOpFoldName = "union" | "intersect" | "disjunctive union";
-
 class SetOp {
     private constructor() {}
 
-    // #region <<do>>
-    private static readonly setOps = {
+    static readonly do = makeInfix({
         "subset of": <T extends FieldType>(
             a: Variable<ArrayFieldType<T>>,
             b: Variable<ArrayFieldType<T>>,
@@ -637,99 +746,9 @@ class SetOp {
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
-    } as const satisfies Record<
-        SetOpName,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (a: Variable<any>, b: Variable<any>) => Variable<any>
-    >;
+    });
 
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "subset of",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<BoolFieldType>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "superset of",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<BoolFieldType>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "true subset of",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<BoolFieldType>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "true superset of",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<BoolFieldType>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "disjoint with",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<BoolFieldType>;
-
-    static do<T extends FieldType>(
-        a: Variable<T>,
-        o: "element of",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<BoolFieldType>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "contains",
-        b: Variable<T>,
-    ): Variable<BoolFieldType>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "union",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "intersect",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "without",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "subtracted from",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static do<T extends FieldType>(
-        a: Variable<ArrayFieldType<T>>,
-        o: "disjunctive union",
-        b: Variable<ArrayFieldType<T>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static do(
-        a: Variable<FieldType>,
-        o: SetOpName,
-        b: Variable<FieldType>,
-    ): Variable<FieldType> {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const f: (a: Variable<any>, b: Variable<any>) => Variable<any> =
-            this.setOps[o];
-
-        return f(a, b);
-    }
-    // #endregion
-    // #region <<fold>>
-
-    private static readonly foldSetOps = {
+    static readonly fold = makePrefix({
         union: <T extends FieldType>(
             items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
         ): Variable<ArrayFieldType<T>> => {
@@ -745,39 +764,8 @@ class SetOp {
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
-    } as const satisfies Record<
-        SetOpFoldName,
-        (
-            items: Variable<ArrayFieldType<ArrayFieldType<FieldType>>>,
-        ) => Variable<ArrayFieldType<FieldType>>
-    >;
+    });
 
-    static fold<T extends FieldType>(
-        o: "union",
-        items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static fold<T extends FieldType>(
-        o: "intersect",
-        items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static fold<T extends FieldType>(
-        o: "disjunctive union",
-        items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
-    ): Variable<ArrayFieldType<T>>;
-
-    static fold(
-        o: SetOpFoldName,
-        items: Variable<ArrayFieldType<ArrayFieldType<FieldType>>>,
-    ): Variable<ArrayFieldType<FieldType>> {
-        const f = this.foldSetOps[o];
-
-        return f(items);
-    }
-
-    // #endregion
-    // #region <<others>>
     static union<T extends FieldType>(
         ...items: Variable<ArrayFieldType<T>>[]
     ): Variable<ArrayFieldType<T>> {
@@ -795,7 +783,6 @@ class SetOp {
     ): Variable<ArrayFieldType<T>> {
         todo();
     }
-    // #endregion
 }
 
 // #endregion
@@ -872,5 +859,48 @@ const b2 = field.decl.obj.wrap({
         b: field.decl.bool.wrap({}),
     },
 });
+
+const f = makeInfix({
+    x1: (a: string, b: string): string => {
+        return a + b;
+    },
+    x2: (a: number, b: string): number => {
+        return a;
+    },
+    x3: (a: number, b: number): number => {
+        return a - b;
+    },
+});
+
+const f2 = makePrefix({
+    x1: (x: string): string => {
+        return x + ": x1";
+    },
+    x2: (x: number): number => {
+        return x + 3;
+    },
+    x3: (x: number): number => {
+        return x - 5;
+    },
+    x4: (x: number): string => {
+        return `a4: ${x}`;
+    },
+});
+
+console.log(f("Hello", "x1", "World"));
+console.log(f(1, "x2", "Ignore"));
+console.log(f(10, "x3", 2));
+
+console.log(f2("x1", "Hello"));
+console.log(f2("x2", 3));
+console.log(f2("x3", 10));
+console.log(f2("x4", 100));
+
+const int = {
+    field: () => todo(),
+    var: () => todo(),
+    const: () => todo(),
+    op: {},
+};
 
 // #endregion
