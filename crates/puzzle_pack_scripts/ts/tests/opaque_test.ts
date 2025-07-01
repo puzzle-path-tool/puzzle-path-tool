@@ -96,7 +96,11 @@ function makeInfix<const F extends InfixFuncDefinition>(
     funcs: F,
 ): InfixFunc<F> {
     return (a, o, b) => {
-        return funcs[o]?.(a, b);
+        const f = funcs[o];
+        if (f === undefined) {
+            throw new Error(`Unknown operator: ${String(o)}`);
+        }
+        return f(a, b);
     };
 }
 
@@ -118,7 +122,11 @@ function makePrefix<const F extends PrefixFuncDefinition>(
     funcs: F,
 ): PrefixFunc<F> {
     return (o, x) => {
-        return funcs[o]?.(x);
+        const f = funcs[o];
+        if (f === undefined) {
+            throw new Error(`Unknown operator: ${String(o)}`);
+        }
+        return f(x);
     };
 }
 
