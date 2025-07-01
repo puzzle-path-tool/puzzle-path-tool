@@ -565,38 +565,38 @@ class CmpOp {
 
     static readonly do = makeInfix({
         "==": <T extends FieldType>(
-            a: Variable<T>,
-            b: Variable<T>,
+            a: IntoVar<T>,
+            b: IntoVar<T>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "!=": <T extends FieldType>(
-            a: Variable<T>,
-            b: Variable<T>,
+            a: IntoVar<T>,
+            b: IntoVar<T>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         ">=": <T extends FieldType>(
-            a: Variable<T>,
-            b: Variable<T>,
+            a: IntoVar<T>,
+            b: IntoVar<T>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "<=": <T extends FieldType>(
-            a: Variable<T>,
-            b: Variable<T>,
+            a: IntoVar<T>,
+            b: IntoVar<T>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         ">": <T extends FieldType>(
-            a: Variable<T>,
-            b: Variable<T>,
+            a: IntoVar<T>,
+            b: IntoVar<T>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "<": <T extends FieldType>(
-            a: Variable<T>,
-            b: Variable<T>,
+            a: IntoVar<T>,
+            b: IntoVar<T>,
         ): Variable<BoolFieldType> => {
             todo();
         },
@@ -611,56 +611,56 @@ class IntOp {
 
     static readonly do = makeInfix({
         "+": (
-            a: Variable<IntFieldType>,
-            b: Variable<IntFieldType>,
+            a: IntoVar<IntFieldType>,
+            b: IntoVar<IntFieldType>,
         ): Variable<IntFieldType> => {
             todo();
         },
         "-": (
-            a: Variable<IntFieldType>,
-            b: Variable<IntFieldType>,
+            a: IntoVar<IntFieldType>,
+            b: IntoVar<IntFieldType>,
         ): Variable<IntFieldType> => {
             todo();
         },
         "*": (
-            a: Variable<IntFieldType>,
-            b: Variable<IntFieldType>,
+            a: IntoVar<IntFieldType>,
+            b: IntoVar<IntFieldType>,
         ): Variable<IntFieldType> => {
             todo();
         },
         "//": (
-            a: Variable<IntFieldType>,
-            b: Variable<IntFieldType>,
+            a: IntoVar<IntFieldType>,
+            b: IntoVar<IntFieldType>,
         ): Variable<IntFieldType> => {
             todo();
         },
         mod: (
-            a: Variable<IntFieldType>,
-            b: Variable<IntFieldType>,
+            a: IntoVar<IntFieldType>,
+            b: IntoVar<IntFieldType>,
         ): Variable<IntFieldType> => {
             todo();
         },
         rem: (
-            a: Variable<IntFieldType>,
-            b: Variable<IntFieldType>,
+            a: IntoVar<IntFieldType>,
+            b: IntoVar<IntFieldType>,
         ): Variable<IntFieldType> => {
             todo();
         },
         "**": (
-            a: Variable<IntFieldType>,
-            b: Variable<IntFieldType>,
+            a: IntoVar<IntFieldType>,
+            b: IntoVar<IntFieldType>,
         ): Variable<IntFieldType> => {
             todo();
         },
     });
     static readonly fold = makePrefix({
         "+": (
-            items: Variable<ArrayFieldType<IntFieldType>>,
+            items: IntoVar<ArrayFieldType<IntFieldType>>,
         ): Variable<IntFieldType> => {
             todo();
         },
         "*": (
-            items: Variable<ArrayFieldType<IntFieldType>>,
+            items: IntoVar<ArrayFieldType<IntFieldType>>,
         ): Variable<IntFieldType> => {
             todo();
         },
@@ -675,74 +675,74 @@ class SetOp {
 
     static readonly do = makeInfix({
         "subset of": <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "superset of": <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "true subset of": <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "true superset of": <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "disjoint with": <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         "element of": <T extends FieldType>(
-            a: Variable<T>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<T>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         contains: <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<T>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<T>,
         ): Variable<BoolFieldType> => {
             todo();
         },
         union: <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
         intersect: <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
         without: <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
         "subtracted from": <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
         "disjunctive union": <T extends FieldType>(
-            a: Variable<ArrayFieldType<T>>,
-            b: Variable<ArrayFieldType<T>>,
+            a: IntoVar<ArrayFieldType<T>>,
+            b: IntoVar<ArrayFieldType<T>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
@@ -750,36 +750,36 @@ class SetOp {
 
     static readonly fold = makePrefix({
         union: <T extends FieldType>(
-            items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+            items: IntoVar<ArrayFieldType<ArrayFieldType<T>>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
         intersect: <T extends FieldType>(
-            items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+            items: IntoVar<ArrayFieldType<ArrayFieldType<T>>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
         "disjunctive union": <T extends FieldType>(
-            items: Variable<ArrayFieldType<ArrayFieldType<T>>>,
+            items: IntoVar<ArrayFieldType<ArrayFieldType<T>>>,
         ): Variable<ArrayFieldType<T>> => {
             todo();
         },
     });
 
     static union<T extends FieldType>(
-        ...items: Variable<ArrayFieldType<T>>[]
+        ...items: IntoVar<ArrayFieldType<T>>[]
     ): Variable<ArrayFieldType<T>> {
         todo();
     }
 
     static intersect<T extends FieldType>(
-        ...items: Variable<ArrayFieldType<T>>[]
+        ...items: IntoVar<ArrayFieldType<T>>[]
     ): Variable<ArrayFieldType<T>> {
         todo();
     }
 
     static disjunctive_union<T extends FieldType>(
-        ...items: Variable<ArrayFieldType<T>>[]
+        ...items: IntoVar<ArrayFieldType<T>>[]
     ): Variable<ArrayFieldType<T>> {
         todo();
     }
