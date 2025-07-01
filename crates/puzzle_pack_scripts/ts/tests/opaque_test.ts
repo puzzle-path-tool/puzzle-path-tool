@@ -75,14 +75,13 @@ function mapFields<TFrom extends RecordType, TTo extends RecordType>(
     return Object.fromEntries(entries) as TTo;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type InfixFuncDefinition = RecordType<(a: any, b: any) => any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type InfixFuncArgA<F> = F extends (a: infer A, b: any) => any ? A : never;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InfixFuncArgB<F> = F extends (a: any, b: infer B) => any ? B : never;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InfixFuncReturn<F> = F extends (a: any, b: any) => infer R ? R : never;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface InfixFunc<F extends InfixFuncDefinition> {
     <O extends keyof F>(
@@ -104,12 +103,12 @@ function makeInfix<const F extends InfixFuncDefinition>(
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type PrefixFuncDefinition = RecordType<(x: any) => any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type PrefixFuncArg<F> = F extends (x: infer X) => any ? X : never;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PrefixFuncReturn<F> = F extends (x: any) => infer R ? R : never;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface PrefixFunc<F extends PrefixFuncDefinition> {
     <O extends keyof F>(
