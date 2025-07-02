@@ -1,6 +1,5 @@
 # Workspace Setup
 
-
 ## Rust
 
 Install Rustup (https://rustup.rs/)
@@ -16,21 +15,22 @@ cargo install cargo-nextest
 
 ```json
 {
-    "[rust]": {
-        "editor.formatOnSave": true,
-        "editor.formatOnPaste": true
-    },
-    "todo-tree.general.tags": [
-        "BUG",
-        "HACK",
-        "FIXME",
-        "TODO",
-        "XXX",
-        "[ ]",
-        "[x]",
-        "todo!"
-    ],
-    "errorLens.replaceLinebreaksSymbol": "⏎ ",
-    "errorLens.scrollbarHackEnabled": true
+  "[rust]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
+  },
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "TODO",
+    "XXX",
+    "[ ]",
+    "[x]",
+    "todo!",
+    "todo("
+  ],
+  "errorLens.replaceLinebreaksSymbol": "⏎ ",
+  "errorLens.scrollbarHackEnabled": true
 }
 ```

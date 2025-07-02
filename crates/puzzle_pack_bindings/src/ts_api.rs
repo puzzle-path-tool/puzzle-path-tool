@@ -3,6 +3,7 @@ use linkme::distributed_slice;
 use serde_json::Value;
 
 pub mod examples;
+pub mod variable;
 
 #[distributed_slice]
 static TYPES: [fn() -> String];
