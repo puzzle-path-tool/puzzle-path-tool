@@ -1,20 +1,17 @@
-import type { Match, SetInput } from "packs/api/api";
+import type { Match } from "packs/api/api";
 import type { AllowedValue, FullSet } from "./deductions";
 
-const split_full_match: Match<[FullSet, AllowedValue[]]> = {
+const split_full_match: Match<[AllowedValue[], FullSet]> = {
     operator: "AND",
     first: {
         // cells_a.map(cell) ⊂ set_a.cells
         operator: "IS_TRUE_SUBSET",
-        input: {
-            first: {
-                d: "SET_MAP",
-            },
-            second: {
-                index: 0,
-                path: ["fields", "cells"],
-                d: "SET_PATH",
-            },
+        first: {
+            d: "SET_MAP",
+        },
+        second: {
+            index: 1,
+            path: ["cells"]
         },
     },
     second: {
@@ -23,9 +20,7 @@ const split_full_match: Match<[FullSet, AllowedValue[]]> = {
         first: { count: { operator: "UNION", input: { d: "SET_MAP" } } },
         second: {
             count: {
-                index: 0,
-                path: ["field"],
-                d: "SET_PATH",
+                d: "SET_MAP"
             },
         },
     },
