@@ -118,6 +118,7 @@ type RangedField<A extends number, B extends number> = {
     max: B;
 };
 
+/*
 export const INT_MARKER: unique symbol = Symbol("INT");
 export const BOOL_MARKER: unique symbol = Symbol("BOOL");
 export const ENUM_MARKER: unique symbol = Symbol("ENUM");
@@ -271,8 +272,8 @@ function mapSomething<const T extends readonly string[]>(
 ): T[number] | undefined {
     return direction[0];
 }
-
-export class Rule<const T extends ObjectField<any>> {
+*/
+export class Rule<const T> {
     private readonly puzzpt_export = null;
 
     readonly deduction: Deduction<T>;
@@ -284,7 +285,7 @@ export class Rule<const T extends ObjectField<any>> {
     }
 }
 
-export class Deduction<const T extends ObjectField<any>> {
+export class Deduction<const T> {
     private readonly puzzpt_export = null;
 
     readonly data: T;
@@ -294,15 +295,8 @@ export class Deduction<const T extends ObjectField<any>> {
     }
 }
 
-export class LogicStep<const Input extends ObjectField<any>[], const Output> {
+export class LogicStep {
     private readonly puzzpt_export = null;
-
-    readonly match_statement: Match<Input>;
-    // output statement
-
-    constructor(match_statement: Match<Input>) {
-        this.match_statement = match_statement;
-    }
 }
 
 export class ScriptModule {
@@ -330,17 +324,15 @@ export class ScriptModule {
         return new ScriptModule(props);
     }
 
-    createRule<const T extends ObjectField<any>>(props: T): Rule<T> {
+    createRule<const T>(props: T): Rule<T> {
         return new Rule<T>(props);
     }
 
-    createDeduction<const T extends ObjectField<any>>(props: T): Deduction<T> {
+    createDeduction<const T>(props: T): Deduction<T> {
         return new Deduction<T>(props);
     }
 
-    createLogicStep<const T extends ObjectField<any>[], N>(
-        match_statement: Match<T>,
-    ): LogicStep<T, N> {
-        return new LogicStep(match_statement);
+    createLogicStep(): LogicStep {
+        return new LogicStep();
     }
 }
