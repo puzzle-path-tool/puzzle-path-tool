@@ -603,21 +603,13 @@ const step14 = test_mod.step({
         matcher.where(op.pool(set1, "from", full_set));
 
         const max_value = matcher.get_one(ty.int());
+        matcher.where(op.set(max_value, "element of", set1.values));
         matcher.where(
             op.quantor.all((matcher: TODO) => {
                 const value = matcher.get_one(ty.item(ty.of(full_set).values));
                 matcher.where(op.set(value, "element of", set1.values));
 
-                matcher.require(op.cmp(value, ">", 1));
                 matcher.require(op.cmp(value, "<=", max_value));
-            }),
-        );
-        matcher.where(
-            op.quantor.exists((matcher: TODO) => {
-                const value = matcher.get_one(ty.item(ty.of(full_set).values));
-                matcher.where(op.set(value, "element of", set1.values));
-
-                matcher.require(op.cmp(value, "==", max_value));
             }),
         );
 
@@ -626,9 +618,12 @@ const step14 = test_mod.step({
 
         matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
 
-        emitter.emit_one(another_ded, {
+        emitter.emit(another_ded, {
             max: max_value,
             sum: value_sum,
+        }, {
+            max: max_value,
+            sum: 1
         });
     },
 });

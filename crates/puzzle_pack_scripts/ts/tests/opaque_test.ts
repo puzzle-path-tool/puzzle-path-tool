@@ -551,7 +551,15 @@ type PartialRefVariable<T> = T extends IntFieldType
             }
           : never;
 
-type Var<T extends FieldType> = RefVariable<T> | PartialRefVariable<T>;
+interface TypeHolder<T> {
+    type: T;
+}
+
+export type Var<T> = T extends FieldType
+    ? RefVariable<T> | PartialRefVariable<T>
+    : T extends TypeHolder<infer TInner extends FieldType>
+      ? Var<TInner>
+      : never;
 
 const x = ObjectFieldTypeWrapper.wrap({
     fields: {
