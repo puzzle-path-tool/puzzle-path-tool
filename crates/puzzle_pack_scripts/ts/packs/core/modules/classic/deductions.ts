@@ -1,109 +1,57 @@
-import {
-    type ObjectField,
-    OBJECT_MARKER,
-    ARRAY_MARKER,
-    INT_MARKER,
-    Deduction,
-} from "packs/api/api";
-import { cell_type, cells_type, values_type } from "../classic_mod";
+import { classic_mod } from "../classic_mod";
 
-export type AllowedValue = {
-    __type_marker: typeof OBJECT_MARKER;
-    fields: {
-        values: typeof values_type;
-        cell: typeof cell_type;
-    };
-};
+declare const field: any;
+type TODO = any;
+const todo = "TODO";
 
-const allowed_values_obj: AllowedValue = {
-    __type_marker: OBJECT_MARKER,
-    fields: {
-        values: values_type,
-        cell: cell_type,
+function position() {
+    return field.decl.obj.wrap(
+        {
+            x: field.decl.int.wrap({}),
+            y: field.decl.int.wrap({}),
+        },
+    );
+}
+
+export const allowed_values = classic_mod.deduction({
+    name: "allowed_values",
+    data: {
+        values: field.decl.arr.wrap(field.decl.int.wrap({})),
+        cell: position(),
     },
-};
+})
 
-export const allowed_values: Deduction<AllowedValue> = new Deduction(
-    allowed_values_obj,
-);
-
-type RequiredValue = {
-    __type_marker: typeof OBJECT_MARKER;
-    fields: {
-        value: { __type_marker: typeof INT_MARKER };
-        cells: typeof cells_type;
-    };
-};
-
-const required_values_obj: RequiredValue = {
-    __type_marker: OBJECT_MARKER,
-    fields: {
-        value: { __type_marker: INT_MARKER },
-        cells: cells_type,
+export const required_values = classic_mod.deduction({
+    name: "required_values",
+    data: {
+        value: field.decl.int.wrap({}),
+        cells: field.decl.arr.wrap(position()),
     },
-};
+})
 
-export const required_values: Deduction<RequiredValue> = new Deduction(
-    required_values_obj,
-);
-
-type MatchingCells = {
-    __type_marker: typeof OBJECT_MARKER;
-    fields: {
-        cells: typeof cells_type;
-    };
-};
-
-const matching_cells_obj: MatchingCells = {
-    __type_marker: OBJECT_MARKER,
-    fields: {
-        cells: cells_type,
+export const matching_cells = classic_mod.deduction({
+    name: "matching_cells",
+    data: {
+        cells: field.decl.arr.wrap(position()),
     },
-};
+})
 
-export const matching_cells: Deduction<MatchingCells> = new Deduction(
-    matching_cells_obj,
-);
-
-type NonRepeatSet = {
-    __type_marker: typeof OBJECT_MARKER;
-    fields: {
-        cells: typeof cells_type;
-    };
-};
-
-const non_repeat_set_obj: NonRepeatSet = {
-    __type_marker: OBJECT_MARKER,
-    fields: {
-        cells: cells_type,
+export const non_repeat_set = classic_mod.deduction({
+    name: "non_repeat_set",
+    data: {
+        cells: field.decl.arr.wrap(position()),
     },
-};
+})
 
-export const non_repeat_set: Deduction<NonRepeatSet> = new Deduction(
-    non_repeat_set_obj,
-);
-
-export type FullSet = {
-    __type_marker: typeof OBJECT_MARKER;
-    fields: {
-        values: typeof values_type;
-        cells: typeof cells_type;
-    };
-};
-
-const full_set_obj: FullSet = {
-    __type_marker: OBJECT_MARKER,
-    fields: {
-        values: values_type,
-        cells: cells_type,
+export const full_set = classic_mod.deduction({
+    name: "full_set",
+    data: {
+        values: field.decl.arr.wrap(field.decl.int.wrap({})),
+        cells: field.decl.arr.wrap(position()),
     },
-};
+})
 
-export const full_set: Deduction<FullSet> = new Deduction(full_set_obj);
-
-type Error = { __type_marker: typeof OBJECT_MARKER; fields: {} };
-
-export const error: Deduction<Error> = new Deduction({
-    __type_marker: OBJECT_MARKER,
-    fields: {},
-});
+export const error = classic_mod.deduction({
+    name: "error",
+    data: { },
+})
