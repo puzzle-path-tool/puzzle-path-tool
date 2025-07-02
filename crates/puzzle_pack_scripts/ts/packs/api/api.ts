@@ -1,3 +1,4 @@
+import type { FullSet } from "packs/core/modules/classic/deductions";
 import type { ExamplePuzzptApi } from "./puzzpt_api";
 
 export function do_stuff(param: ExamplePuzzptApi): string {
@@ -128,128 +129,140 @@ export type EnumField = {
     readonly __type_marker: typeof ENUM_MARKER;
     enums: string[];
 };
-export type ArrayField = {
+export type ArrayField<T extends Field> = {
     readonly __type_marker: typeof ARRAY_MARKER;
-    item_type: Field;
+    item_type: T;
 };
-export type ObjectField = {
+export type ObjectField<T extends Record<string, Field>> = {
     readonly __type_marker: typeof OBJECT_MARKER;
-    fields: Record<string, Field>;
+    fields: T;
 };
 
-export type Field = IntField | BoolField | EnumField | ArrayField | ObjectField;
+export type Field =
+    | IntField
+    | BoolField
+    | EnumField
+    | ArrayField<any>
+    | ObjectField<any>;
 
-export type NumberPath<
-    T extends (ObjectField | ObjectField[])[],
-    I extends Integer<number>,
-    P extends string[],
-> = T[I] extends ObjectField 
-? { index: I; path: P, d: "NUMBER_PATH" } 
-: never;
-export type BoolPath<
-    T extends (ObjectField | ObjectField[])[],
-    I extends Integer<number>,
-    P extends string[],
-> = T[I] extends ObjectField ? { index: I; path: P, d: "BOOL_PATH" } : never;
-export type SetPath<
-    T extends (ObjectField | ObjectField[])[],
-    N extends MatchingValue<T>,
-    I extends Integer<number>,
-    P extends string[],
-> = T[I] extends ObjectField ? { index: I; path: P, d: "SET_PATH" } : never;
-export type Path<
-    T extends (ObjectField | ObjectField[])[],
-    I extends Integer<number>,
-    P extends string[],
-> = T[I] extends ObjectField ? { index: I; path: P } : never;
+type StepInput = (ObjectField<any> | ObjectField<any>[])[];
 
-export type SetMapping<
-    T extends (ObjectField | ObjectField[])[],
-    N extends MatchingValue<T>,
-> = {
+export type Path<T extends StepInput, N extends Field> = PathObject<T, N, any>;
+
+type PathObject<T extends StepInput, N extends Field, I extends number> =
+    I extends number
+    ? T[I] extends ObjectField<any>
+        ? { index: I; path: PathArray<T[I], N, any> }
+        : T[I] extends N[]
+          ? { index: I }
+          : "never1"
+    : "never0";
+
+type PathArray<
+    T extends ObjectField<any>,
+    N extends Field,
+    P extends string[],
+> = P extends [infer H extends string, ...infer R extends string[]]
+    ? R[0] extends string
+        ? T["fields"][H] extends ObjectField<any>
+            ? [H, ...PathArray<T["fields"][H], N, R>]
+            : ["never2"]
+        : T["fields"][H] extends N
+          ? [H]
+          : ["never3"]
+    : ["never4"];
+
+type test_type = {
+    __type_marker: typeof OBJECT_MARKER;
+    fields: {
+        first: {
+            __type_marker: typeof OBJECT_MARKER;
+            fields: {
+                second: {
+                    __type_marker: typeof OBJECT_MARKER;
+                    fields: {
+                        third: IntField;
+                    };
+                };
+            };
+        };
+    };
+};
+let path_test: PathObject<[test_type, test_type[]], IntField, 0> = {
+    index: 0,
+    path: ["first", "second", "third"],
+};
+
+type Any_Test<T extends String> = T extends ("3" | "4") ? [T] : "5";
+let any_test: Any_Test<any> = [6]
+
+type SetMapping<T extends StepInput, N extends Field> = {
     d: "SET_MAP";
 }; //ToDo
-export type Count<T extends (ObjectField | ObjectField[])[]> = {
-    count: SetMatchingValue<T, MatchingValue<T>>;
+type Count<T extends StepInput> = {
+    count: SetMatchingValue<T, Field>;
 };
-export type SetOperatior = "UNION" | "INTERSECTION" | "DIFFERENCE";
-export type SetOperation<
-    T extends (ObjectField | ObjectField[])[],
-    N extends MatchingValue<T>,
-> = {
+type SetOperatior = "UNION" | "INTERSECTION" | "DIFFERENCE";
+type SetOperation<T extends StepInput, N extends Field> = {
     operator: SetOperatior;
     input:
         | SetMatchingValue<T, N>[]
-        | SetMatchingValue<T, SetMatchingValue<T, N>>;
+        | SetMatchingValue<
+              T,
+              { __type_marker: typeof ARRAY_MARKER; item_type: N }
+          >;
 };
-export type MathOperator =
-    | "PLUS"
-    | "MINUS"
-    | "MULTIPLY"
-    | "DIVIDE_DOWN"
-    | "DIVIDE_UP";
-export type MathOperation<T extends (ObjectField | ObjectField[])[]> = {
+type MathOperator = "PLUS" | "MINUS" | "MULTIPLY" | "DIVIDE_DOWN" | "DIVIDE_UP";
+type MathOperation<T extends StepInput> = {
     operator: MathOperator;
     first: NumberMatchingValue<T>;
     second: NumberMatchingValue<T>;
 };
-export type SetInput<
-    T extends (ObjectField | ObjectField[])[],
-    N extends MatchingValue<T>,
-> = {
-    first: SetMatchingValue<T, N>;
-    second: SetMatchingValue<T, N>;
-};
-
-export type GeneralMatchingOperator = "EQUAL" | "UNEQUAL";
-export type BoolMatchingOperator = "AND" | "OR";
-export type NumberMatchingOperator = "EQUALS" | "SMALLER" | "BIGGER";
-export type SetMatchingOperator = "IS_SUBSET" | "IS_TRUE_SUBSET";
-export type GeneralMatch<T extends (ObjectField | ObjectField[])[]> = {
+type GeneralMatchingOperator = "EQUAL" | "UNEQUAL";
+type BoolMatchingOperator = "AND" | "OR";
+type NumberMatchingOperator = "EQUALS" | "SMALLER" | "BIGGER";
+type SetMatchingOperator = "IS_SUBSET" | "IS_TRUE_SUBSET";
+type GeneralMatch<T extends StepInput> = {
     operator: GeneralMatchingOperator;
     first: MatchingValue<T>;
     second: MatchingValue<T>;
 };
-export type BoolMatch<T extends (ObjectField | ObjectField[])[]> = {
+type BoolMatch<T extends StepInput> = {
     operator: BoolMatchingOperator;
     first: BoolMatchingValue<T>;
     second: BoolMatchingValue<T>;
 };
-export type NumberMatch<T extends (ObjectField | ObjectField[])[]> = {
+type NumberMatch<T extends StepInput> = {
     operator: NumberMatchingOperator;
     first: NumberMatchingValue<T>;
     second: NumberMatchingValue<T>;
 };
-export type SetMatch<T extends (ObjectField | ObjectField[])[]> = {
+type SetMatch<T extends StepInput, N extends Field> = {
     operator: SetMatchingOperator;
-    input: SetInput<T, MatchingValue<T>>;
+    first: SetMatchingValue<T, N>;
+    second: SetMatchingValue<T, N>;
 };
-export type Match<T extends (ObjectField | ObjectField[])[]> =
+export type Match<T extends StepInput> =
     | GeneralMatch<T>
     | BoolMatch<T>
     | NumberMatch<T>
-    | SetMatch<T>;
+    | SetMatch<T, any>;
 
-type BoolMatchingValue<T extends (ObjectField | ObjectField[])[]> =
-    | BoolPath<T, Integer<number>, string[]>
-    | Match<T>;
-type NumberMatchingValue<T extends (ObjectField | ObjectField[])[]> =
-    | NumberPath<T, Integer<number>, string[]>
+type BoolMatchingValue<T extends StepInput> = Path<T, BoolField> | Match<T>;
+type NumberMatchingValue<T extends StepInput> =
+    | Integer<any>
+    | Path<T, IntField>
     | MathOperation<T>
-    | Integer<number>
     | Count<T>;
-type SetMatchingValue<
-    T extends (ObjectField | ObjectField[])[],
-    N extends MatchingValue<T>,
-> = SetOperation<T, N> | SetPath<T, N, Integer<number>, string[]> | SetMapping<T, N>;
-type MatchingValue<T extends (ObjectField | ObjectField[])[]> =
+type SetMatchingValue<T extends StepInput, N extends Field> =
+    | SetOperation<T, N>
+    | SetMapping<T, N>
+    | Path<T, ArrayField<N>>;
+type MatchingValue<T extends StepInput> =
     | BoolMatchingValue<T>
     | NumberMatchingValue<T>
-    | Path<T, Integer<number>, string[]>
-    | SetMatchingValue<
-          T,
-          BoolMatchingValue<T> | NumberMatchingValue<T> | Path<T, Integer<number>, string[]>
-      >;
+    | Path<T, any>
+    | SetMatchingValue<T, Field>;
 
 const x = mapSomething(variants);
 
@@ -259,7 +272,7 @@ function mapSomething<const T extends readonly string[]>(
     return direction[0];
 }
 
-export class Rule<const T extends ObjectField> {
+export class Rule<const T extends ObjectField<any>> {
     private readonly puzzpt_export = null;
 
     readonly deduction: Deduction<T>;
@@ -271,7 +284,7 @@ export class Rule<const T extends ObjectField> {
     }
 }
 
-export class Deduction<const T extends ObjectField> {
+export class Deduction<const T extends ObjectField<any>> {
     private readonly puzzpt_export = null;
 
     readonly data: T;
@@ -281,7 +294,7 @@ export class Deduction<const T extends ObjectField> {
     }
 }
 
-export class LogicStep<const Input extends ObjectField[], const Output> {
+export class LogicStep<const Input extends ObjectField<any>[], const Output> {
     private readonly puzzpt_export = null;
 
     readonly match_statement: Match<Input>;
@@ -317,15 +330,15 @@ export class ScriptModule {
         return new ScriptModule(props);
     }
 
-    createRule<const T extends ObjectField>(props: T): Rule<T> {
+    createRule<const T extends ObjectField<any>>(props: T): Rule<T> {
         return new Rule<T>(props);
     }
 
-    createDeduction<const T extends ObjectField>(props: T): Deduction<T> {
+    createDeduction<const T extends ObjectField<any>>(props: T): Deduction<T> {
         return new Deduction<T>(props);
     }
 
-    createLogicStep<const T extends ObjectField[], N>(
+    createLogicStep<const T extends ObjectField<any>[], N>(
         match_statement: Match<T>,
     ): LogicStep<T, N> {
         return new LogicStep(match_statement);
