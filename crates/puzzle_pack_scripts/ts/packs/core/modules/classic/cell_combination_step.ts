@@ -9,7 +9,7 @@ type TODO = any;
 const todo = "TODO";
 
 const combine_required_allowed = classic_mod.step({
-    name: "matching_from_full_set",
+    name: "combine_required_allowed",
     logic: (matcher: TODO, emitter: TODO) => {
         const required_value1 = matcher.pool.get_one(required_value);
         const allowed_values1 = matcher.pool.get_one(allowed_values);
@@ -38,7 +38,7 @@ const combine_required_allowed = classic_mod.step({
 });
 
 const combine_allowed = classic_mod.step({
-    name: "matching_from_full_set",
+    name: "combine_allowed",
     logic: (matcher: TODO, emitter: TODO) => {
         const allowed_values1 = matcher.pool.get_one(allowed_values);
         const allowed_values2 = matcher.pool.get_one(allowed_values);
@@ -61,7 +61,7 @@ const combine_allowed = classic_mod.step({
 });
 
 const combine_allowed_matching = classic_mod.step({
-    name: "matching_from_full_set",
+    name: "combine_allowed_matching",
     logic: (matcher: TODO, emitter: TODO) => {
         const allowed_values_set = matcher.pool.get_many(allowed_values);
         const matching_cells1 = matcher.pool.get_one(matching_cells);
@@ -94,7 +94,7 @@ const combine_allowed_matching = classic_mod.step({
 });
 
 const combine_matching = classic_mod.step({
-    name: "matching_from_full_set",
+    name: "combine_matching",
     logic: (matcher: TODO, emitter: TODO) => {
         const matching_cells1 = matcher.pool.get_one(matching_cells);
         const matching_cells2 = matcher.pool.get_one(matching_cells);
@@ -117,5 +117,6 @@ const combine_matching = classic_mod.step({
                 ),
             },
         ]);
+        emitter.cosume([matching_cells1, matching_cells2]);
     },
 });
