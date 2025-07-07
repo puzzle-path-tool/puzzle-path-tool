@@ -3,7 +3,6 @@ import {
     allowed_values,
     full_set,
     non_repeat_set,
-    required_values,
 } from "./deductions";
 
 declare const quantor: any;
@@ -33,7 +32,7 @@ const split_full_set_step = classic_mod.step({
 
         const set2 = {
             cells: allowed_values_set.map((x: TODO) => {
-                x.cell;
+                return x.cell
             }),
             values: values,
         };
@@ -52,7 +51,7 @@ const split_full_set_step = classic_mod.step({
                 set.do(set1.cells, "without", set2.cells),
                 "==",
                 outer_allowed_values_set.map((x: TODO) => {
-                    x.cell;
+                    return x.cell
                 }),
             ),
         );
@@ -68,7 +67,7 @@ const split_full_set_step = classic_mod.step({
                         value2.cell,
                         "element of",
                         outer_allowed_values_set.map((x: TODO) => {
-                            x.cell;
+                            return x.cell
                         }),
                     ),
                 );
@@ -107,7 +106,7 @@ const split_non_repeat_set_step = classic_mod.step({
 
         const set2 = {
             cells: allowed_values_set.map((x: TODO) => {
-                x.cell;
+                return x.cell
             }),
             values: values,
         };
@@ -120,7 +119,7 @@ const split_non_repeat_set_step = classic_mod.step({
                 set.do(set1.cells, "without", set2.cells),
                 "==",
                 outer_allowed_values_set.map((x: TODO) => {
-                    x.cell;
+                    return x.cell;
                 }),
             ),
         );
@@ -136,7 +135,7 @@ const split_non_repeat_set_step = classic_mod.step({
                         value2.cell,
                         "element of",
                         outer_allowed_values_set.map((x: TODO) => {
-                            x.cell;
+                            return x.cell;
                         }),
                     ),
                 );

@@ -21,8 +21,8 @@ export const allowed_values = classic_mod.deduction({
     },
 });
 
-export const required_values = classic_mod.deduction({
-    name: "required_values",
+export const required_value = classic_mod.deduction({
+    name: "required_value",
     data: {
         value: int.field,
         cells: array.field(position()),
