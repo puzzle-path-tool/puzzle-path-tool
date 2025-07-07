@@ -82,7 +82,7 @@ const increase_matching_from_full_set = classic_mod.step({
             set.do(
                 set.union(
                     non_repeat_set_set.map((x: TODO) => {
-                        return x.cell;
+                        return x.cells;
                     }),
                 ),
             ),
