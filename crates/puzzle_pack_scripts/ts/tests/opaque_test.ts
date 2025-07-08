@@ -737,6 +737,19 @@ const setOp = {
     ): Var<BoolFieldType> => {
         todo();
     },
+
+    size: <T extends FieldType>(
+        item: Var<ArrayFieldType<T>>,
+    ): Var<IntFieldType> => {
+        todo();
+    },
+
+    map: <T extends FieldType, R extends FieldType>(
+        item: Var<ArrayFieldType<T>>,
+        f: (value: Var<T>) => Var<R>,
+    ): Var<ArrayFieldType<R>> => {
+        todo();
+    },
 };
 
 // #endregion
@@ -830,6 +843,21 @@ const objOp = {
     none_equal: <T extends RecordType<FieldType>>(
         ...items: Var<ObjectFieldType<T>>[]
     ): Var<BoolFieldType> => {
+        todo();
+    },
+};
+
+// #endregion
+// #region [Quantor Op]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Matcher = any;
+
+const quantorOp = {
+    all: (f: (matcher: Matcher) => void): Var<BoolFieldType> => {
+        todo();
+    },
+    exists: (f: (matcher: Matcher) => void): Var<BoolFieldType> => {
         todo();
     },
 };
