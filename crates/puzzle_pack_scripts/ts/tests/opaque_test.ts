@@ -571,25 +571,25 @@ f11(
 // #endregion
 // #region [Int Op]
 
-type IntMathOp = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
 type IntCmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<" | "**";
+type IntMathOp = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
 type IntFoldOp = "+" | "*" | "min" | "max";
 type IntAllOp = "==" | "!=";
 
 const intOp = {
-    math: (
-        a: Var<IntFieldType>,
-        o: IntMathOp,
-        b: Var<IntFieldType>,
-    ): Var<IntFieldType> => {
-        todo();
-    },
-
     cmp: (
         a: Var<IntFieldType>,
         o: IntCmpOp,
         b: Var<IntFieldType>,
     ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    math: (
+        a: Var<IntFieldType>,
+        o: IntMathOp,
+        b: Var<IntFieldType>,
+    ): Var<IntFieldType> => {
         todo();
     },
 
@@ -732,7 +732,7 @@ const setOp = {
         todo();
     },
 
-    disjoint: <T extends FieldType>(
+    all_disjoint: <T extends FieldType>(
         ...items: Var<ArrayFieldType<T>>[]
     ): Var<BoolFieldType> => {
         todo();
@@ -742,14 +742,23 @@ const setOp = {
 // #endregion
 // #region [Bool Op]
 
-type BoolOp = "==" | "!=" | "or" | "and" | "xor" | "nor" | "nand" | "xnor";
-type BoolSetOp = "all" | "any" | "none" | BoolOp;
+type BoolCmpOp = "==" | "!=";
+type BoolLogicOp = "or" | "and" | "xor" | "nor" | "nand" | "xnor";
+type BoolSetOp = "all" | "any" | "none" | BoolCmpOp | BoolLogicOp;
 type BoolAllOp = "==" | "!=" | "true" | "false";
 
 const boolOp = {
-    do: (
+    cmp: (
         a: Var<BoolFieldType>,
-        o: BoolOp,
+        o: BoolCmpOp,
+        b: Var<BoolFieldType>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    logic: (
+        a: Var<BoolFieldType>,
+        o: BoolLogicOp,
         b: Var<BoolFieldType>,
     ): Var<BoolFieldType> => {
         todo();
