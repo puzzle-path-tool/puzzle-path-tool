@@ -66,7 +66,9 @@ const required_in_non_repeat_set = classic_mod.step({
             set.do(required_value1.cells, "true subset of", set1.cells),
         );
 
-        const allowed_values_set = matcher.pool.get_many();
+        const allowed_values_set = matcher.pool.get_many(allowed_values, {
+            invalidate: true,
+        });
         matcher.where(
             set.do(
                 allowed_values_set.map(
@@ -85,6 +87,31 @@ const required_in_non_repeat_set = classic_mod.step({
                 return {
                     cell: x.cell,
                     values: set.do(x.values, "without", required_value1.value),
+                };
+            }),
+        );
+    },
+});
+
+const required_set_to_allowed = classic_mod.step({
+    name: "required_set_to_allowed",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const required_value_set = matcher.pool.get_many(required_value);
+        const cells = set.union(
+            required_value_set.map((x: TODO) => {
+                return x.cells;
+            }),
+        );
+        matcher.require(cmp.do(required_value_set.size(), "==", cells.size));
+
+        emitter.emit(
+            allowed_values,
+            cells.map((x: TODO) => {
+                return {
+                    cell: x,
+                    values: required_value_set.map((x: TODO) => {
+                        return x.value;
+                    }),
                 };
             }),
         );

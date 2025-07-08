@@ -11,7 +11,7 @@ const todo = "TODO";
 const combine_required_allowed = classic_mod.step({
     name: "combine_required_allowed",
     logic: (matcher: TODO, emitter: TODO) => {
-        const required_value1 = matcher.pool.get_one(required_value);
+        const required_value1 = matcher.pool.get_one(required_value, { invalidate: true });
         const allowed_values1 = matcher.pool.get_one(allowed_values);
 
         matcher.where(
@@ -40,8 +40,8 @@ const combine_required_allowed = classic_mod.step({
 const combine_allowed = classic_mod.step({
     name: "combine_allowed",
     logic: (matcher: TODO, emitter: TODO) => {
-        const allowed_values1 = matcher.pool.get_one(allowed_values);
-        const allowed_values2 = matcher.pool.get_one(allowed_values);
+        const allowed_values1 = matcher.pool.get_one(allowed_values, { invalidate: true });
+        const allowed_values2 = matcher.pool.get_one(allowed_values, { invalidate: true });
 
         matcher.where(cmp.do(allowed_values1, "/=", allowed_values2));
 
@@ -63,7 +63,7 @@ const combine_allowed = classic_mod.step({
 const combine_allowed_matching = classic_mod.step({
     name: "combine_allowed_matching",
     logic: (matcher: TODO, emitter: TODO) => {
-        const allowed_values_set = matcher.pool.get_many(allowed_values);
+        const allowed_values_set = matcher.pool.get_many(allowed_values, { invalidate: true });
         const matching_cells1 = matcher.pool.get_one(matching_cells);
 
         matcher.where(
@@ -96,10 +96,10 @@ const combine_allowed_matching = classic_mod.step({
 const combine_matching = classic_mod.step({
     name: "combine_matching",
     logic: (matcher: TODO, emitter: TODO) => {
-        const matching_cells1 = matcher.pool.get_one(matching_cells);
-        const matching_cells2 = matcher.pool.get_one(matching_cells);
+        const matching_cells1 = matcher.pool.get_one(matching_cells, { invalidate: true });
+        const matching_cells2 = matcher.pool.get_one(matching_cells, { invalidate: true });
 
-        matcher.where(cmp.do(matching_cells1, "/=", matching_cells2));
+        matcher.where(cmp.do(matching_cells1, "!=", matching_cells2));
 
         matcher.where(
             cmp.do(
@@ -117,6 +117,5 @@ const combine_matching = classic_mod.step({
                 ),
             },
         ]);
-        emitter.cosume([matching_cells1, matching_cells2]);
     },
 });

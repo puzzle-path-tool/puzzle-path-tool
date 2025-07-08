@@ -42,7 +42,9 @@ const increase_matching_from_full_set = classic_mod.step({
     name: "increase_matching_from_full_set",
     logic: (matcher: TODO, emitter: TODO) => {
         const set1 = matcher.pool.get_one(full_set);
-        const matching_cells1 = matcher.pool.get_one(matching_cells);
+        const matching_cells1 = matcher.pool.get_one(matching_cells, {
+            invalidate: true,
+        });
         const allowed_values1 = matcher.pool.get_one(allowed_values);
 
         matcher.where(set.do(allowed_values1.values, "subset of", set1.values));
