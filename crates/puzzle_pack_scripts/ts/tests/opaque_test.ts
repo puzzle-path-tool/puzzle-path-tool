@@ -77,59 +77,28 @@ function mapFields<TFrom extends RecordType, TTo extends RecordType>(
     return Object.fromEntries(entries) as TTo;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type InfixFuncDefinition = RecordType<(a: any, b: any) => any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FieldFunc = (...args: any[]) => FieldType;
 
-type InfixFuncArgA<F> = F extends (a: infer A, b: any) => any ? A : never;
-type InfixFuncArgB<F> = F extends (a: any, b: infer B) => any ? B : never;
-type InfixFuncReturn<F> = F extends (a: any, b: any) => infer R ? R : never;
-/* eslint-enable @typescript-eslint/no-explicit-any */
+function createFieldFunc<F extends FieldFunc>(
+    props: { name: string },
+    f: F,
+): F {
+    const wrapper = ((...args: Parameters<F>) => {
+        return f(...args); // TODO: Wrap
+    }) as F;
 
-interface InfixFunc<F extends InfixFuncDefinition> {
-    <O extends keyof F>(
-        a: NoInfer<InfixFuncArgA<F[O]>>,
-        o: O,
-        b: NoInfer<InfixFuncArgB<F[O]>>,
-    ): NoInfer<InfixFuncReturn<F[O]>>;
+    return wrapper;
 }
 
-function makeInfix<const F extends InfixFuncDefinition>(
-    funcs: F,
-): InfixFunc<F> {
-    return (a, o, b) => {
-        const f = funcs[o];
-        if (f === undefined) {
-            throw new Error(`Unknown operator: ${String(o)}`);
-        }
-        return f(a, b);
-    };
-}
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type PrefixFuncDefinition = RecordType<(x: any) => any>;
-
-type PrefixFuncArg<F> = F extends (x: infer X) => any ? X : never;
-type PrefixFuncReturn<F> = F extends (x: any) => infer R ? R : never;
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
-interface PrefixFunc<F extends PrefixFuncDefinition> {
-    <O extends keyof F>(
-        o: O,
-        x: NoInfer<PrefixFuncArg<F[O]>>,
-    ): NoInfer<PrefixFuncReturn<F[O]>>;
-}
-
-function makePrefix<const F extends PrefixFuncDefinition>(
-    funcs: F,
-): PrefixFunc<F> {
-    return (o, x) => {
-        const f = funcs[o];
-        if (f === undefined) {
-            throw new Error(`Unknown operator: ${String(o)}`);
-        }
-        return f(x);
-    };
-}
+const u2 = createFieldFunc(
+    {
+        name: "u2",
+    },
+    (a: number, b: string, c: IntFieldType): IntFieldType => {
+        return c;
+    },
+);
 
 // #endregion
 // #region [[Opaque Data test]]
@@ -371,7 +340,7 @@ export type ArrayFieldDeclaration<T extends FieldDeclaration> =
 // #region [Field Type]
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type FieldType =
+export type FieldType =
     | IntFieldType
     | BoolFieldType
     | EnumFieldType<any>
@@ -600,240 +569,264 @@ f11(
 // }
 
 // #endregion
-// #region [Cmp Op]
-
-class CmpOp {
-    private constructor() {}
-
-    static readonly do = makeInfix({
-        "==": <T extends FieldType>(
-            a: Var<T>,
-            b: Var<T>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "!=": <T extends FieldType>(
-            a: Var<T>,
-            b: Var<T>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        ">=": <T extends FieldType>(
-            a: Var<T>,
-            b: Var<T>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "<=": <T extends FieldType>(
-            a: Var<T>,
-            b: Var<T>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        ">": <T extends FieldType>(
-            a: Var<T>,
-            b: Var<T>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "<": <T extends FieldType>(
-            a: Var<T>,
-            b: Var<T>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-    });
-}
-
-// #endregion
 // #region [Int Op]
 
-class IntOp {
-    private constructor() {}
+type IntMathOp = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
+type IntCmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<" | "**";
+type IntFoldOp = "+" | "*" | "min" | "max";
+type IntAllOp = "==" | "!=";
 
-    static readonly do = makeInfix({
-        "+": (
-            a: Var<IntFieldType>,
-            b: Var<IntFieldType>,
-        ): Var<IntFieldType> => {
-            todo();
-        },
-        "-": (
-            a: Var<IntFieldType>,
-            b: Var<IntFieldType>,
-        ): Var<IntFieldType> => {
-            todo();
-        },
-        "*": (
-            a: Var<IntFieldType>,
-            b: Var<IntFieldType>,
-        ): Var<IntFieldType> => {
-            todo();
-        },
-        "//": (
-            a: Var<IntFieldType>,
-            b: Var<IntFieldType>,
-        ): Var<IntFieldType> => {
-            todo();
-        },
-        mod: (
-            a: Var<IntFieldType>,
-            b: Var<IntFieldType>,
-        ): Var<IntFieldType> => {
-            todo();
-        },
-        rem: (
-            a: Var<IntFieldType>,
-            b: Var<IntFieldType>,
-        ): Var<IntFieldType> => {
-            todo();
-        },
-        "**": (
-            a: Var<IntFieldType>,
-            b: Var<IntFieldType>,
-        ): Var<IntFieldType> => {
-            todo();
-        },
-    });
-    static readonly fold = makePrefix({
-        "+": (items: Var<ArrayFieldType<IntFieldType>>): Var<IntFieldType> => {
-            todo();
-        },
-        "*": (items: Var<ArrayFieldType<IntFieldType>>): Var<IntFieldType> => {
-            todo();
-        },
-    });
-}
+const intOp = {
+    math: (
+        a: Var<IntFieldType>,
+        o: IntMathOp,
+        b: Var<IntFieldType>,
+    ): Var<IntFieldType> => {
+        todo();
+    },
+
+    cmp: (
+        a: Var<IntFieldType>,
+        o: IntCmpOp,
+        b: Var<IntFieldType>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    fold: (
+        o: IntFoldOp,
+        a: Var<ArrayFieldType<IntFieldType>>,
+    ): Var<IntFieldType> => {
+        todo();
+    },
+
+    sum: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+        todo();
+    },
+
+    product: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+        todo();
+    },
+
+    min: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+        todo();
+    },
+
+    max: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+        todo();
+    },
+
+    all: (
+        o: IntAllOp,
+        items: Var<ArrayFieldType<IntFieldType>>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    equal: (...items: Var<IntFieldType>[]): Var<BoolFieldType> => {
+        todo();
+    },
+
+    none_equal: (...items: Var<IntFieldType>[]): Var<BoolFieldType> => {
+        todo();
+    },
+};
 
 // #endregion
 // #region [Set Op]
 
-class SetOp {
-    private constructor() {}
+type SetCmpOp =
+    | "=="
+    | "!="
+    | "subset of"
+    | "superset of"
+    | "true subset of"
+    | "true superset of"
+    | "disjoint with";
 
-    static readonly do = makeInfix({
-        "subset of": <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "superset of": <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "true subset of": <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "true superset of": <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "disjoint with": <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        "element of": <T extends FieldType>(
-            a: Var<T>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        contains: <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<T>,
-        ): Var<BoolFieldType> => {
-            todo();
-        },
-        union: <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-        intersect: <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-        without: <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-        "subtracted from": <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-        "disjunctive union": <T extends FieldType>(
-            a: Var<ArrayFieldType<T>>,
-            b: Var<ArrayFieldType<T>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-    });
+type SetJoinOp =
+    | "union"
+    | "intersect"
+    | "without"
+    | "subtracted from"
+    | "disjunctive union";
 
-    static readonly fold = makePrefix({
-        union: <T extends FieldType>(
-            items: Var<ArrayFieldType<ArrayFieldType<T>>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-        intersect: <T extends FieldType>(
-            items: Var<ArrayFieldType<ArrayFieldType<T>>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-        "disjunctive union": <T extends FieldType>(
-            items: Var<ArrayFieldType<ArrayFieldType<T>>>,
-        ): Var<ArrayFieldType<T>> => {
-            todo();
-        },
-    });
+type SetFoldOp = "==" | "!=" | "union" | "intersect" | "disjunctive union";
 
-    static union<T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<ArrayFieldType<T>> {
+type SetAllOp = "==" | "!=" | "disjoint";
+
+const setOp = {
+    cmp: <T extends FieldType>(
+        a: Var<ArrayFieldType<T>>,
+        o: SetCmpOp,
+        b: Var<ArrayFieldType<T>>,
+    ): Var<BoolFieldType> => {
         todo();
-    }
+    },
 
-    static intersect<T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<ArrayFieldType<T>> {
+    element_of: <T extends FieldType>(
+        a: Var<T>,
+        o: "element of",
+        b: Var<ArrayFieldType<T>>,
+    ): Var<BoolFieldType> => {
         todo();
-    }
+    },
 
-    static disjunctive_union<T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<ArrayFieldType<T>> {
+    contains: <T extends FieldType>(
+        a: Var<ArrayFieldType<T>>,
+        o: "contains",
+        b: Var<T>,
+    ): Var<BoolFieldType> => {
         todo();
-    }
-}
+    },
+
+    join: <T extends FieldType>(
+        a: Var<ArrayFieldType<T>>,
+        o: SetJoinOp,
+        b: Var<ArrayFieldType<T>>,
+    ): Var<ArrayFieldType<T>> => {
+        todo();
+    },
+
+    fold: <T extends FieldType>(
+        o: SetFoldOp,
+        items: Var<ArrayFieldType<ArrayFieldType<T>>>,
+    ): Var<ArrayFieldType<T>> => {
+        todo();
+    },
+
+    union: <T extends FieldType>(
+        ...items: Var<ArrayFieldType<T>>[]
+    ): Var<ArrayFieldType<T>> => {
+        todo();
+    },
+
+    intersect: <T extends FieldType>(
+        ...items: Var<ArrayFieldType<T>>[]
+    ): Var<ArrayFieldType<T>> => {
+        todo();
+    },
+
+    disjunctive_union: <T extends FieldType>(
+        ...items: Var<ArrayFieldType<T>>[]
+    ): Var<ArrayFieldType<T>> => {
+        todo();
+    },
+
+    all: <T extends FieldType>(
+        o: SetAllOp,
+        items: Var<ArrayFieldType<ArrayFieldType<T>>>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    equal: <T extends FieldType>(
+        ...items: Var<ArrayFieldType<T>>[]
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    none_equal: <T extends FieldType>(
+        ...items: Var<ArrayFieldType<T>>[]
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    disjoint: <T extends FieldType>(
+        ...items: Var<ArrayFieldType<T>>[]
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+};
+
+// #endregion
+// #region [Bool Op]
+
+type BoolOp = "==" | "!=" | "or" | "and" | "xor" | "nor" | "nand" | "xnor";
+type BoolSetOp = "all" | "any" | "none" | BoolOp;
+type BoolAllOp = "==" | "!=" | "true" | "false";
+
+const boolOp = {
+    do: (
+        a: Var<BoolFieldType>,
+        o: BoolOp,
+        b: Var<BoolFieldType>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    fold: (
+        o: BoolSetOp,
+        a: Var<ArrayFieldType<BoolFieldType>>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    all: (
+        o: BoolAllOp,
+        items: Var<ArrayFieldType<BoolFieldType>>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    equal: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+        todo();
+    },
+
+    none_equal: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+        todo();
+    },
+
+    none: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+        todo();
+    },
+
+    and: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+        todo();
+    },
+
+    or: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+        todo();
+    },
+};
+
+// #endregion
+// #region [Obj Op]
+
+type ObjCmpOp = "==" | "!=";
+type ObjAllOp = "==" | "!=";
+
+const objOp = {
+    cmp: <T extends RecordType<FieldType>>(
+        a: Var<ObjectFieldType<T>>,
+        o: ObjCmpOp,
+        b: Var<ObjectFieldType<T>>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    all: <T extends RecordType<FieldType>>(
+        o: ObjAllOp,
+        items: Var<ArrayFieldType<ObjectFieldType<T>>>,
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    equal: <T extends RecordType<FieldType>>(
+        ...items: Var<ObjectFieldType<T>>[]
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+
+    none_equal: <T extends RecordType<FieldType>>(
+        ...items: Var<ObjectFieldType<T>>[]
+    ): Var<BoolFieldType> => {
+        todo();
+    },
+};
 
 // #endregion
 // #region [Op]
-
-class Op {
-    private constructor() {}
-    static readonly cmp = CmpOp;
-    static readonly int = IntOp;
-    static readonly set = SetOp;
-}
-
-export const op = Op;
 
 // #endregion
 
@@ -898,41 +891,41 @@ const b2 = field.decl.obj.wrap({
     },
 });
 
-const f = makeInfix({
-    x1: (a: string, b: string): string => {
-        return a + b;
-    },
-    x2: (a: number, b: string): number => {
-        return a;
-    },
-    x3: (a: number, b: number): number => {
-        return a - b;
-    },
-});
+// const f = makeInfix({
+//     x1: (a: string, b: string): string => {
+//         return a + b;
+//     },
+//     x2: (a: number, b: string): number => {
+//         return a;
+//     },
+//     x3: (a: number, b: number): number => {
+//         return a - b;
+//     },
+// });
 
-const f2 = makePrefix({
-    x1: (x: string): string => {
-        return x + ": x1";
-    },
-    x2: (x: number): number => {
-        return x + 3;
-    },
-    x3: (x: number): number => {
-        return x - 5;
-    },
-    x4: (x: number): string => {
-        return `a4: ${x}`;
-    },
-});
+// const f2 = makePrefix({
+//     x1: (x: string): string => {
+//         return x + ": x1";
+//     },
+//     x2: (x: number): number => {
+//         return x + 3;
+//     },
+//     x3: (x: number): number => {
+//         return x - 5;
+//     },
+//     x4: (x: number): string => {
+//         return `a4: ${x}`;
+//     },
+// });
 
-console.log(f("Hello", "x1", "World"));
-console.log(f(1, "x2", "Ignore"));
-console.log(f(10, "x3", 2));
+// console.log(f("Hello", "x1", "World"));
+// console.log(f(1, "x2", "Ignore"));
+// console.log(f(10, "x3", 2));
 
-console.log(f2("x1", "Hello"));
-console.log(f2("x2", 3));
-console.log(f2("x3", 10));
-console.log(f2("x4", 100));
+// console.log(f2("x1", "Hello"));
+// console.log(f2("x2", 3));
+// console.log(f2("x3", 10));
+// console.log(f2("x4", 100));
 
 const int = {
     field: () => todo(),
