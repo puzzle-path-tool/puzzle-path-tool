@@ -100,6 +100,50 @@ const u2 = createFieldFunc(
     },
 );
 
+declare const fieldF: Decl<Object<{ x: Int }>>;
+
+type NamespaceProps<
+    T extends FieldType | undefined,
+    O extends RecordType | undefined,
+> = {
+    name: string;
+    decl?: T extends FieldType ? Decl<T> : undefined;
+    op?: O;
+};
+
+type Namespace<
+    T extends FieldType | undefined = undefined,
+    O extends RecordType | undefined = undefined,
+> = (T extends FieldType ? { decl: Decl<T>; var: RefVar<T> } : unknown) &
+    (O extends RecordType ? { op: O } : unknown);
+
+function createNamespace<
+    const T extends FieldType | undefined,
+    const O extends RecordType | undefined,
+>(props: NamespaceProps<T, O>): Namespace<T, O> {
+    todo();
+}
+
+const f3333 = () => {
+    const ns = createNamespace({
+        name: "ns",
+        op: {
+            x: 1,
+            f: <T>(a: T): T => {
+                return a;
+            },
+        },
+        decl: fieldF,
+    });
+
+    const ns2 = createNamespace({ name: "" });
+
+    ns.op.f("dasda");
+
+    const nsD = ns.var;
+    //    ^?
+};
+
 // #endregion
 // #region [[Opaque Data test]]
 
