@@ -14,7 +14,7 @@ const split_full_set_step = classic_mod.step({
         const set1 = matcher.pool.get_one(full_set);
 
         const allowed_values_set = matcher.pool.get_many(allowed_values);
-        matcher.require(
+        matcher.where(
             set.do(
                 set.op.map(allowed_values_set, (x: TODO) => {
                     return x.cell;
