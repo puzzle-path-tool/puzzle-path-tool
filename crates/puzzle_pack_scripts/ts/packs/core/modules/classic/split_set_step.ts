@@ -14,14 +14,18 @@ const split_full_set_step = classic_mod.step({
         const set1 = matcher.pool.get_one(full_set);
 
         const allowed_values_set = matcher.pool.get_many(allowed_values);
-        const values = matcher.get_many(int);
-        matcher.where(
-            quantor.all((matcher: TODO) => {
-                const value = matcher.get_one(allowed_values);
-                matcher.where(set.do(value, "element of", allowed_values_set));
-
-                matcher.require(set.do(value.cell, "element of", set1.cells));
-                matcher.require(set.do(value.values, "subset of", values));
+        matcher.require(
+            set.do(
+                set.op.map(allowed_values_set, (x: TODO) => {
+                    return x.cell;
+                }),
+                "subset of",
+                set1.cells,
+            ),
+        );
+        const values = set.op.union(
+            set.op.map(allowed_values_set, (x: TODO) => {
+                return x.values;
             }),
         );
         matcher.require(int.op.cmp(values.size, "==", allowed_values_set.size));
@@ -77,14 +81,18 @@ const split_non_repeat_set_step = classic_mod.step({
         const set1 = matcher.pool.get_one(non_repeat_set);
 
         const allowed_values_set = matcher.pool.get_many(allowed_values);
-        const values = matcher.get_many(int);
-        matcher.where(
-            quantor.all((matcher: TODO) => {
-                const value = matcher.get_one(allowed_values);
-                matcher.where(set.do(value, "element of", allowed_values_set));
-
-                matcher.require(set.do(value.cell, "element of", set1.cells));
-                matcher.require(set.do(value.values, "subset of", values));
+        matcher.require(
+            set.do(
+                set.op.map(allowed_values_set, (x: TODO) => {
+                    return x.cell;
+                }),
+                "subset of",
+                set1.cells,
+            ),
+        );
+        const values = set.op.union(
+            set.op.map(allowed_values_set, (x: TODO) => {
+                return x.values;
             }),
         );
         matcher.require(int.op.cmp(values.size, "==", allowed_values_set.size));
