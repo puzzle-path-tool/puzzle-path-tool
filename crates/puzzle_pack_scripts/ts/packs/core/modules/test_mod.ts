@@ -618,13 +618,17 @@ const step14 = test_mod.step({
 
         matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
 
-        emitter.emit(another_ded, {
-            max: max_value,
-            sum: value_sum,
-        }, {
-            max: max_value,
-            sum: 1
-        });
+        emitter.emit(
+            another_ded,
+            {
+                max: max_value,
+                sum: value_sum,
+            },
+            {
+                max: max_value,
+                sum: 1,
+            },
+        );
     },
 });
 
@@ -641,9 +645,14 @@ const step15 = test_mod.step({
 
         matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
 
-        emitter.emit_one(another_ded, {
+        const output = another_ded.const({
             max: max_value,
             sum: value_sum,
         });
+
+        matcher.require(another_ded.op.fold(""));
+        matcher.require(another_ded.invariant.something(output));
+
+        emitter.emit_one(another_ded, output);
     },
 });

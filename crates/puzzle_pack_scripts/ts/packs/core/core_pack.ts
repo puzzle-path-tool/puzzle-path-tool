@@ -1,8 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { pack } from "tests/opaque_test";
 
-export const core_pack = Pack.create({
-    author: "puzzpt",
-    id: "core",
+export const core_pack = pack.create({
+    name: "core",
+    authors: "puzzpt",
     description: "Core Pack vendored with puzzpt",
 });

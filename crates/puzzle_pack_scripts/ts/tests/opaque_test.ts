@@ -365,42 +365,60 @@ export type Set<T extends FieldType> = SetClass<T>;
 // #region [[Var Value]]
 
 // #region [Variable]
-interface VarClassData<T extends FieldType> {
+interface RefVarClassData<T extends FieldType> {
     values: T;
 }
-class VarClass<T extends FieldType> {
-    private readonly [classData]: VarClassData<T>;
-    private constructor(data: VarClassData<T>) {
+class RefVarClass<T extends FieldType> {
+    private readonly [classData]: RefVarClassData<T>;
+    private constructor(data: RefVarClassData<T>) {
         this[classData] = data;
     }
-    static unwrap<T extends FieldType>(value: RefVar<T>): VarClassData<T> {
+    static unwrap<T extends FieldType>(value: RefVar<T>): RefVarClassData<T> {
         return value[classData];
     }
-    static wrap<const T extends FieldType>(value: VarClassData<T>): RefVar<T> {
-        return new VarClass(value);
+    static wrap<const T extends FieldType>(
+        value: RefVarClassData<T>,
+    ): RefVar<T> {
+        return new RefVarClass(value);
     }
 }
 
-type RefVar<T extends FieldType> = VarClass<T>;
+export type RefVar<T extends FieldType> = RefVarClass<T>;
 
-type LiteralVar<T> = T extends Int
+type CompositeVar<T> = T extends Int
     ? number
     : T extends Bool
       ? boolean
-      : T extends Set<infer TItem extends FieldType>
-        ? Var<TItem>[]
-        : T extends Object<infer TObj extends RecordType<FieldType>>
-          ? {
-                [K in keyof TObj]: Var<TObj[K]>;
-            }
-          : never;
+      : T extends Enum<infer TVariants extends readonly string[]>
+        ? TVariants[number]
+        : T extends Set<infer TItem extends FieldType>
+          ? Var<TItem>[]
+          : T extends Object<infer TObj extends RecordType<FieldType>>
+            ? {
+                  [K in keyof TObj]: Var<TObj[K]>;
+              }
+            : never;
+
+export type LiteralVar<T> = T extends Int
+    ? number
+    : T extends Bool
+      ? boolean
+      : T extends Enum<infer TVariants extends readonly string[]>
+        ? TVariants[number]
+        : T extends Set<infer TItem extends FieldType>
+          ? LiteralVar<TItem>[]
+          : T extends Object<infer TObj extends RecordType<FieldType>>
+            ? {
+                  [K in keyof TObj]: LiteralVar<TObj[K]>;
+              }
+            : never;
 
 interface TypeHolder<T> {
     type: T;
 }
 
 export type Var<T> = T extends FieldType
-    ? RefVar<T> | LiteralVar<T>
+    ? RefVar<T> | CompositeVar<T>
     : T extends TypeHolder<infer TInner extends FieldType>
       ? Var<TInner>
       : never;
@@ -420,10 +438,10 @@ function f11(p: Var<typeof x>, o: "==", p2: Var<typeof x>) {
 f11(
     {
         a1: 1,
-        a2: VarClass.wrap({ values: IntClass.wrap({}) }),
+        a2: RefVarClass.wrap({ values: IntClass.wrap({}) }),
     },
     "==",
-    VarClass.wrap({ values: x }),
+    RefVarClass.wrap({ values: x }),
 );
 f11(
     {
@@ -449,7 +467,16 @@ f11(
 type IntCmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<" | "**";
 type IntMathOp = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
 type IntFoldOp = "+" | "*" | "min" | "max";
-type IntAllOp = "==" | "!=";
+type IntAllOp =
+    | "=="
+    | "!="
+    | "> 0"
+    | ">= 0"
+    | "< 0"
+    | "<= 0"
+    | "== 0"
+    | "!= 0"
+    | "prime";
 
 const intOp = {
     cmp: (a: Var<Int>, o: IntCmpOp, b: Var<Int>): Var<Bool> => {
@@ -484,11 +511,7 @@ const intOp = {
         todo();
     },
 
-    equal: (...items: Var<Int>[]): Var<Bool> => {
-        todo();
-    },
-
-    none_equal: (...items: Var<Int>[]): Var<Bool> => {
+    is_prime: (...items: Var<Int>[]): Var<Bool> => {
         todo();
     },
 };
@@ -577,14 +600,6 @@ const setOp = {
         todo();
     },
 
-    equal: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Bool> => {
-        todo();
-    },
-
-    none_equal: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Bool> => {
-        todo();
-    },
-
     all_disjoint: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Bool> => {
         todo();
     },
@@ -626,14 +641,6 @@ const boolOp = {
         todo();
     },
 
-    equal: (...items: Var<Bool>[]): Var<Bool> => {
-        todo();
-    },
-
-    none_equal: (...items: Var<Bool>[]): Var<Bool> => {
-        todo();
-    },
-
     none: (...items: Var<Bool>[]): Var<Bool> => {
         todo();
     },
@@ -648,36 +655,114 @@ const boolOp = {
 };
 
 // #endregion
+// #region [Table Op]
+
+interface TableClassData<TA extends FieldType, TB extends FieldType> {
+    a: TA;
+    b: TB;
+    mappings: [LiteralVar<TA>, LiteralVar<TB>][];
+}
+class TableClass<TA extends FieldType, TB extends FieldType> {
+    private readonly [classData]: TableClassData<TA, TB>;
+    private constructor(data: TableClassData<TA, TB>) {
+        this[classData] = data;
+    }
+    static unwrap<TA extends FieldType, TB extends FieldType>(
+        value: Table<TA, TB>,
+    ): TableClassData<TA, TB> {
+        return value[classData];
+    }
+    static wrap<const TA extends FieldType, const TB extends FieldType>(
+        value: TableClassData<TA, TB>,
+    ): Table<TA, TB> {
+        return new TableClass(value);
+    }
+}
+
+const l1 = RefVarClass.wrap({
+    values: IntClass.wrap({}),
+});
+
+const l2 = RefVarClass.wrap({
+    values: IntClass.wrap({}),
+});
+
+const l3 = RefVarClass.wrap({
+    values: EnumClass.wrap({ values: ["A", "B"] }),
+});
+
+// objOp.equal(l2, 1);
+// objOp.equal(l3, "B");
+
+const csacas = TableClass.wrap({
+    a: EnumClass.wrap({ values: ["A", "B"] }),
+    b: IntClass.wrap({}),
+    mappings: [
+        ["A", 4],
+        ["B", 5],
+    ],
+});
+
+const csacas2 = TableClass.wrap({
+    a: EnumClass.wrap({ values: ["A", "B"] }),
+    b: ObjectClass.wrap({
+        fields: {
+            x: IntClass.wrap({}),
+        },
+    }),
+    mappings: [
+        ["A", { x: 3 }],
+        ["B", { x: 4 }],
+    ],
+});
+
+export type Table<TA extends FieldType, TB extends FieldType> = TableClass<
+    TA,
+    TB
+>;
+
+const tableOp = {
+    forwards: <TA extends FieldType, TB extends FieldType>(
+        item: Var<TA>,
+        o: "via",
+        table: Table<TA, TB>,
+    ): Var<TB> => {
+        todo();
+    },
+
+    backwards: <TA extends FieldType, TB extends FieldType>(
+        item: Var<TB>,
+        o: "via",
+        table: Table<TA, TB>,
+    ): Var<TA> => {
+        todo();
+    },
+};
+
+// #endregion
 // #region [Obj Op]
 
 type ObjCmpOp = "==" | "!=";
 type ObjAllOp = "==" | "!=";
 
 const objOp = {
-    cmp: <T extends RecordType<FieldType>>(
-        a: Var<Object<T>>,
+    cmp: <T extends FieldType>(
+        a: Var<T>,
         o: ObjCmpOp,
-        b: Var<Object<T>>,
+        b: Var<T>,
     ): Var<Bool> => {
         todo();
     },
 
-    all: <T extends RecordType<FieldType>>(
-        o: ObjAllOp,
-        items: Var<Set<Object<T>>>,
-    ): Var<Bool> => {
+    all: <T extends FieldType>(o: ObjAllOp, items: Var<Set<T>>): Var<Bool> => {
         todo();
     },
 
-    equal: <T extends RecordType<FieldType>>(
-        ...items: Var<Object<T>>[]
-    ): Var<Bool> => {
+    equal: <T extends FieldType>(...items: Var<T>[]): Var<Bool> => {
         todo();
     },
 
-    none_equal: <T extends RecordType<FieldType>>(
-        ...items: Var<Object<T>>[]
-    ): Var<Bool> => {
+    none_equal: <T extends FieldType>(...items: Var<T>[]): Var<Bool> => {
         todo();
     },
 };
@@ -693,6 +778,45 @@ const quantorOp = {
         todo();
     },
     exists: (f: (matcher: Matcher) => void): Var<Bool> => {
+        todo();
+    },
+};
+
+// #endregion
+// #region [Pool]
+
+interface PoolClassData<T extends FieldType> {
+    values: T;
+}
+class PoolClass<T extends FieldType> {
+    private readonly [classData]: PoolClassData<T>;
+    private constructor(data: PoolClassData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(value: Pool<T>): PoolClassData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(value: PoolClassData<T>): Pool<T> {
+        return new PoolClass(value);
+    }
+}
+
+export type Pool<T extends FieldType> = PoolClass<T>;
+
+const poolOp = {
+    one: <T extends FieldType>(
+        a: Var<T>,
+        o: "from",
+        b: Var<Pool<T>>,
+    ): Var<Bool> => {
+        todo();
+    },
+
+    many: <T extends FieldType>(
+        a: Var<Set<T>>,
+        o: "from",
+        b: Var<Pool<T>>,
+    ): Var<Bool> => {
         todo();
     },
 };
@@ -722,6 +846,147 @@ class DeclClass<T extends FieldType> {
 }
 
 export type Decl<T extends FieldType> = DeclClass<T>;
+
+// #endregion
+// #region [[Modules]]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type NoArray<T> = T extends any[] ? never : T;
+
+function unifyIntoArray<T>(value: NoArray<T> | T[]): T[] {
+    if (Array.isArray(value)) {
+        return value;
+    } else {
+        return [value];
+    }
+}
+
+export const pack = {
+    /**
+     * Create a new pack, must be exported to be loaded.
+     */
+    create: (params: PackParams): Pack => {
+        return PackClass.wrap({
+            name: params.name,
+            authors: unifyIntoArray(params.authors),
+            description: params.description,
+        });
+    },
+} as const;
+
+interface PackParams {
+    /**
+     * The name of the pack.
+     *
+     * Used as an identifier, when combined with the authors.
+     *
+     * Must be unique, when combined with authors.
+     */
+    name: string;
+    /**
+     * List of authors.
+     *
+     * Are used as part of the identifier.
+     */
+    authors: string | string[];
+    /**
+     * A short description of the pack.
+     */
+    description: string;
+}
+interface PackClassData {
+    name: string;
+    authors: string[];
+    description: string;
+}
+class PackClass {
+    private readonly [classData]: PackClassData;
+    private constructor(data: PackClassData) {
+        this[classData] = data;
+    }
+    static unwrap(value: Pack): PackClassData {
+        return value[classData];
+    }
+    static wrap(value: PackClassData): Pack {
+        return new PackClass(value);
+    }
+    /**
+     * Create a new module.
+     */
+    module(params: ModParams): Mod {
+        return ModClass.wrap({
+            pack: this,
+            parents: [],
+            name: params.name,
+        });
+    }
+}
+
+export type Pack = PackClass;
+
+interface ModParams {
+    /**
+     * The name of the module.
+     *
+     * Used as an identifier, when combined with parents.
+     *
+     * Must be unique, relative to its parent.
+     */
+    name: string;
+}
+
+interface ModClassData {
+    pack: Pack;
+    parents: Mod[];
+    name: string;
+}
+class ModClass {
+    private readonly [classData]: ModClassData;
+    private constructor(data: ModClassData) {
+        this[classData] = data;
+    }
+    static unwrap(value: Mod): ModClassData {
+        return value[classData];
+    }
+    static wrap(value: ModClassData): Mod {
+        return new ModClass(value);
+    }
+    /**
+     * Create a new submodule.
+     */
+    submodule(params: ModParams): Mod {
+        const data = ModClass.unwrap(this);
+
+        return ModClass.wrap({
+            pack: data.pack,
+            parents: [...data.parents, this],
+            name: params.name,
+        });
+    }
+    /**
+     * Create a new rule, must be exported to be loaded.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rule(...params: any[]): any {
+        todo();
+    }
+    /**
+     * Create a new deduction, must be exported to be loaded.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    deduction(...params: any[]): any {
+        todo();
+    }
+    /**
+     * Create a new logic step, must be exported to be loaded.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    step(...params: any[]): any {
+        todo();
+    }
+}
+
+export type Mod = ModClass;
 
 // #endregion
 // #region [[Test]]
