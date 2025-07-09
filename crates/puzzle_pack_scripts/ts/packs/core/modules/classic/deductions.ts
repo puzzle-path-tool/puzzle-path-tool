@@ -3,6 +3,7 @@ import { classic_mod } from "../classic_mod";
 declare const field: any;
 declare const array: any;
 declare const int: any;
+declare const set: any;
 type TODO = any;
 const todo = "TODO";
 
@@ -48,6 +49,29 @@ export const full_set = classic_mod.deduction({
     data: {
         values: array.field(int.field),
         cells: array.field(position()),
+    },
+});
+
+const non_repeat_set_from_full_set = classic_mod.step({
+    name: "non_repeat_set_from_full_set",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const full_set1 = matcher.pool.get_one(full_set);
+
+        emitter.emit(non_repeat_set, [{ cells: full_set1.cells }]);
+    },
+});
+
+const allowed_values_from_full_set = classic_mod.step({
+    name: "non_repeat_set_from_full_set",
+    logic: (matcher: TODO, emitter: TODO) => {
+        const full_set1 = matcher.pool.get_one(full_set);
+
+        emitter.emit(
+            non_repeat_set,
+            set.op.map(full_set1.cells, (x: TODO) => {
+                return { values: full_set1.values, cell: x };
+            }),
+        );
     },
 });
 

@@ -3,7 +3,7 @@ import { allowed_values, matching_cells, required_value } from "./deductions";
 
 declare const quantor: any;
 declare const set: any;
-declare const cmp: any;
+declare const obj: any;
 declare const int: any;
 type TODO = any;
 const todo = "TODO";
@@ -43,9 +43,9 @@ const combine_allowed = classic_mod.step({
         const allowed_values1 = matcher.pool.get_one(allowed_values, { invalidate: true });
         const allowed_values2 = matcher.pool.get_one(allowed_values, { invalidate: true });
 
-        matcher.where(cmp.do(allowed_values1, "/=", allowed_values2));
+        matcher.where(obj.op.cmp(allowed_values1, "!=", allowed_values2));
 
-        matcher.where(cmp.do(allowed_values1.cell, "==", allowed_values2.cell));
+        matcher.where(obj.op.cmp(allowed_values1.cell, "==", allowed_values2.cell));
 
         emitter.emit(allowed_values, [
             {
@@ -67,23 +67,23 @@ const combine_allowed_matching = classic_mod.step({
         const matching_cells1 = matcher.pool.get_one(matching_cells);
 
         matcher.where(
-            cmp.do(
-                allowed_values_set.map((x: TODO) => {
+            obj.op.cmp(
+                set.op.map(allowed_values_set, (x: TODO) => {
                     return x.cell;
                 }),
                 "==",
                 matching_cells1.cells,
             ),
         );
-        const values_set = allowed_values_set.map((x: TODO) => {
+        const values_set = set.op.map(allowed_values_set, (x: TODO) => {
             return x.values;
         });
         const values_intersect = set.intersect(values_set);
-        matcher.require(cmp.do(set.union(values_set), "/=", values_intersect));
+        matcher.require(set.op.cmp(set.union(values_set), "/=", values_intersect));
 
         emitter.emit(
             allowed_values,
-            allowed_values_set.map((x: TODO) => {
+            set.op.map(allowed_values_set, (x: TODO) => {
                 return {
                     values: values_intersect,
                     cell: x.cell,
@@ -99,10 +99,10 @@ const combine_matching = classic_mod.step({
         const matching_cells1 = matcher.pool.get_one(matching_cells, { invalidate: true });
         const matching_cells2 = matcher.pool.get_one(matching_cells, { invalidate: true });
 
-        matcher.where(cmp.do(matching_cells1, "!=", matching_cells2));
+        matcher.where(obj.op.cmp(matching_cells1, "!=", matching_cells2));
 
         matcher.where(
-            cmp.do(
+            obj.op.cmp(
                 set.do(matching_cells1, "intersection", matching_cells2).size(),
                 ">=",
                 1,

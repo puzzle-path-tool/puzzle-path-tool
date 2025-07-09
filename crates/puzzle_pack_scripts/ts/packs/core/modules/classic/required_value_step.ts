@@ -8,7 +8,6 @@ import {
 
 declare const quantor: any;
 declare const set: any;
-declare const cmp: any;
 declare const int: any;
 type TODO = any;
 const todo = "TODO";
@@ -71,11 +70,9 @@ const required_in_non_repeat_set = classic_mod.step({
         });
         matcher.where(
             set.do(
-                allowed_values_set.map(
-                    allowed_values_set.map((x: TODO) => {
-                        return x.cell;
-                    }),
-                ),
+                set.op.map(allowed_values_set, (x: TODO) => {
+                    return x.cell;
+                }),
                 "==",
                 required_value1.cells,
             ),
@@ -83,7 +80,7 @@ const required_in_non_repeat_set = classic_mod.step({
 
         emitter.emit(
             allowed_values,
-            allowed_values_set.map((x: TODO) => {
+            set.op.map(allowed_values_set, (x: TODO) => {
                 return {
                     cell: x.cell,
                     values: set.do(x.values, "without", required_value1.value),
@@ -98,19 +95,21 @@ const required_set_to_allowed = classic_mod.step({
     logic: (matcher: TODO, emitter: TODO) => {
         const required_value_set = matcher.pool.get_many(required_value);
         const cells = set.union(
-            required_value_set.map((x: TODO) => {
+            set.op.map(required_value_set, (x: TODO) => {
                 return x.cells;
             }),
         );
-        matcher.require(cmp.do(required_value_set.size(), "==", cells.size));
+        matcher.require(
+            int.op.cmp(required_value_set.size(), "==", cells.size),
+        );
 
         emitter.emit(
             allowed_values,
-            cells.map((x: TODO) => {
+            set.op.map(cells, (i: TODO) => {
                 return {
-                    cell: x,
-                    values: required_value_set.map((x: TODO) => {
-                        return x.value;
+                    cell: i,
+                    values: set.op.map(required_value_set, (ii: TODO) => {
+                        return ii.value;
                     }),
                 };
             }),
