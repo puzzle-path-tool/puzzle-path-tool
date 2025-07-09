@@ -8,7 +8,7 @@ import {
 
 declare const quantor: any;
 declare const set: any;
-declare const cmp: any;
+declare const obj: any;
 declare const int: any;
 type TODO = any;
 const todo = "TODO";
@@ -18,16 +18,18 @@ const matching_from_full_set = classic_mod.step({
     logic: (matcher: TODO, emitter: TODO) => {
         const set1 = matcher.pool.get_one(full_set);
         const set2 = matcher.pool.get_one(full_set);
+        matcher.require(set.op.cmp(set1, "!=", set2))
+
         const set1w2 = set.do(set1.cells, "without", set2.cells);
         const set2w1 = set.do(set2.cells, "without", set1.cells);
 
-        matcher.where(cmp.do(set1w2.size, "==", 1));
-        matcher.where(cmp.do(set2w1.size, "==", 1));
+        matcher.where(int.op.cmp(set1w2.size, "==", 1));
+        matcher.where(int.op.cmp(set2w1.size, "==", 1));
 
-        const cell1 = matcher.get_one(allowed_values.cell);
+        const cell1 = matcher.pool.get_one(allowed_values.cell);
         matcher.require(set.do(cell1, "element of", set1w2));
 
-        const cell2 = matcher.get_one(allowed_values.cell);
+        const cell2 = matcher.pool.get_one(allowed_values.cell);
         matcher.require(set.do(cell1, "element of", set2w1));
 
         emitter.emit(matching_cells, [
@@ -52,7 +54,7 @@ const increase_matching_from_full_set = classic_mod.step({
             set.do(allowed_values1.cell, "element of", matching_cells1.cells),
         );
         matcher.where(
-            cmp.do(
+            int.op.cmp(
                 set.do(set1.cells, "intersection", matching_cells1.cells).size,
                 "==",
                 0,
@@ -65,7 +67,7 @@ const increase_matching_from_full_set = classic_mod.step({
                 const current_non_repeat_set =
                     matcher.pool.get_one(non_repeat_set);
                 matcher.require(
-                    cmp.do(
+                    int.op.cmp(
                         set.do(
                             current_non_repeat_set.cells,
                             "intersection",
@@ -83,13 +85,13 @@ const increase_matching_from_full_set = classic_mod.step({
             "without",
             set.do(
                 set.union(
-                    non_repeat_set_set.map((x: TODO) => {
+                    set.op.map(non_repeat_set_set, (x: TODO) => {
                         return x.cells;
                     }),
                 ),
             ),
         );
-        matcher.require(cmp.do(cells1.size, "==", 1));
+        matcher.require(int.op.cmp(cells1.size, "==", 1));
 
         emitter.emit(matching_cells, [
             { cells: set.do(matching_cells1.cells, "union", cells1) },

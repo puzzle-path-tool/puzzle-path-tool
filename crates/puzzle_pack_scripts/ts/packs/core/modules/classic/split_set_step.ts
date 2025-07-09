@@ -3,8 +3,8 @@ import { allowed_values, full_set, non_repeat_set } from "./deductions";
 
 declare const quantor: any;
 declare const set: any;
-declare const cmp: any;
 declare const int: any;
+declare const obj: any;
 type TODO = any;
 const todo = "TODO";
 
@@ -14,20 +14,24 @@ const split_full_set_step = classic_mod.step({
         const set1 = matcher.pool.get_one(full_set);
 
         const allowed_values_set = matcher.pool.get_many(allowed_values);
-        const values = matcher.get_many(int);
         matcher.where(
-            quantor.all((matcher: TODO) => {
-                const value = matcher.get_one(allowed_values);
-                matcher.where(set.do(value, "element of", allowed_values_set));
-
-                matcher.require(set.do(value.cell, "element of", set1.cells));
-                matcher.require(set.do(value.values, "subset of", values));
+            set.do(
+                set.op.map(allowed_values_set, (x: TODO) => {
+                    return x.cell;
+                }),
+                "subset of",
+                set1.cells,
+            ),
+        );
+        const values = set.op.union(
+            set.op.map(allowed_values_set, (x: TODO) => {
+                return x.values;
             }),
         );
-        matcher.require(cmp.do(values.size, "==", allowed_values_set.size));
+        matcher.require(int.op.cmp(values.size, "==", allowed_values_set.size));
 
         const set2 = {
-            cells: allowed_values_set.map((x: TODO) => {
+            cells: set.op.map(allowed_values_set, (x: TODO) => {
                 return x.cell;
             }),
             values: values,
@@ -48,10 +52,10 @@ const split_full_set_step = classic_mod.step({
             },
         );
         matcher.require(
-            cmp.do(
+            obj.op.cmp(
                 set.do(set1.cells, "without", set2.cells),
                 "==",
-                outer_allowed_values_set.map((x: TODO) => {
+                set.op.map(outer_allowed_values_set, (x: TODO) => {
                     return x.cell;
                 }),
             ),
@@ -59,9 +63,9 @@ const split_full_set_step = classic_mod.step({
 
         emitter.emit(
             allowed_values,
-            outer_allowed_values_set.map((i: TODO) => {
+            set.op.map(outer_allowed_values_set, (i: TODO) => {
                 return {
-                    values: i.values.map((ii: TODO) => {
+                    values: set.op.map(i.values, (ii: TODO) => {
                         return set.do(ii, "without", set2.values);
                     }),
                     cell: i.cell,
@@ -77,20 +81,24 @@ const split_non_repeat_set_step = classic_mod.step({
         const set1 = matcher.pool.get_one(non_repeat_set);
 
         const allowed_values_set = matcher.pool.get_many(allowed_values);
-        const values = matcher.get_many(int);
-        matcher.where(
-            quantor.all((matcher: TODO) => {
-                const value = matcher.get_one(allowed_values);
-                matcher.where(set.do(value, "element of", allowed_values_set));
-
-                matcher.require(set.do(value.cell, "element of", set1.cells));
-                matcher.require(set.do(value.values, "subset of", values));
+        matcher.require(
+            set.do(
+                set.op.map(allowed_values_set, (x: TODO) => {
+                    return x.cell;
+                }),
+                "subset of",
+                set1.cells,
+            ),
+        );
+        const values = set.op.union(
+            set.op.map(allowed_values_set, (x: TODO) => {
+                return x.values;
             }),
         );
-        matcher.require(cmp.do(values.size, "==", allowed_values_set.size));
+        matcher.require(int.op.cmp(values.size, "==", allowed_values_set.size));
 
         const set2 = {
-            cells: allowed_values_set.map((x: TODO) => {
+            cells: set.op.map(allowed_values_set, (x: TODO) => {
                 return x.cell;
             }),
             values: values,
@@ -102,10 +110,10 @@ const split_non_repeat_set_step = classic_mod.step({
             invalidate: true,
         });
         matcher.where(
-            cmp.do(
+            obj.op.cmp(
                 set.do(set1.cells, "without", set2.cells),
                 "==",
-                outer_allowed_values_set.map((x: TODO) => {
+                set.op.map(outer_allowed_values_set, (x: TODO) => {
                     return x.cell;
                 }),
             ),
@@ -113,9 +121,9 @@ const split_non_repeat_set_step = classic_mod.step({
 
         emitter.emit(
             allowed_values,
-            outer_allowed_values_set.map((i: TODO) => {
+            set.op.map(outer_allowed_values_set, (i: TODO) => {
                 return {
-                    values: i.values.map((ii: TODO) => {
+                    values: set.op.map(i.values, (ii: TODO) => {
                         return set.do(ii, "without", set2.values);
                     }),
                     cell: i.cell,
