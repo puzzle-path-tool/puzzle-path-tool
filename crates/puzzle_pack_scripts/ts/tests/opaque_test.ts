@@ -95,10 +95,54 @@ const u2 = createFieldFunc(
     {
         name: "u2",
     },
-    (a: number, b: string, c: IntFieldType): IntFieldType => {
+    (a: number, b: string, c: Int): Int => {
         return c;
     },
 );
+
+declare const fieldF: Decl<Object<{ x: Int }>>;
+
+type NamespaceProps<
+    T extends FieldType | undefined,
+    O extends RecordType | undefined,
+> = {
+    name: string;
+    decl?: T extends FieldType ? Decl<T> : undefined;
+    op?: O;
+};
+
+type Namespace<
+    T extends FieldType | undefined = undefined,
+    O extends RecordType | undefined = undefined,
+> = (T extends FieldType ? { decl: Decl<T>; var: RefVar<T> } : unknown) &
+    (O extends RecordType ? { op: O } : unknown);
+
+function createNamespace<
+    const T extends FieldType | undefined,
+    const O extends RecordType | undefined,
+>(props: NamespaceProps<T, O>): Namespace<T, O> {
+    todo();
+}
+
+const f3333 = () => {
+    const ns = createNamespace({
+        name: "ns",
+        op: {
+            x: 1,
+            f: <T>(a: T): T => {
+                return a;
+            },
+        },
+        decl: fieldF,
+    });
+
+    const ns2 = createNamespace({ name: "" });
+
+    ns.op.f("dasda");
+
+    const nsD = ns.var;
+    //    ^?
+};
 
 // #endregion
 // #region [[Opaque Data test]]
@@ -183,302 +227,137 @@ console.log(b.x.value);
 console.log(b instanceof BWrapper);
 console.log(BWrapper.unwrap(b));
 // #endregion
-// #region [[Field Declarations]]
-
-// #region [Field Type Declaration]
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type FieldDeclaration =
-    | IntFieldDeclaration
-    | BoolFieldDeclaration
-    | EnumFieldDeclaration<any>
-    | ObjectFieldDeclaration<any>
-    | ArrayFieldDeclaration<any>;
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
-class FieldDeclUtil {
-    static isInt(value: unknown): value is IntFieldDeclaration {
-        return value instanceof IntFieldDeclarationWrapper;
-    }
-    static isBool(value: unknown): value is BoolFieldDeclaration {
-        return value instanceof BoolFieldDeclarationWrapper;
-    }
-    static isEnum(
-        value: unknown,
-    ): value is EnumFieldDeclaration<readonly string[]> {
-        return value instanceof EnumFieldDeclarationWrapper;
-    }
-    static isObject(
-        value: unknown,
-    ): value is ObjectFieldDeclaration<RecordType<FieldDeclaration>> {
-        return value instanceof ObjectFieldDeclarationWrapper;
-    }
-    static isArray(
-        value: unknown,
-    ): value is ArrayFieldDeclaration<FieldDeclaration> {
-        return value instanceof ArrayFieldDeclarationWrapper;
-    }
-}
-
-// #endregion
-// #region [Int Field Declaration]
-
-type IntFieldDeclarationData = object;
-class IntFieldDeclarationWrapper {
-    private readonly [classData]: IntFieldDeclarationData;
-    private constructor(data: IntFieldDeclarationData) {
-        this[classData] = data;
-    }
-    static unwrap(value: IntFieldDeclaration): IntFieldDeclarationData {
-        return value[classData];
-    }
-    static wrap(value: IntFieldDeclarationData): IntFieldDeclaration {
-        return new IntFieldDeclarationWrapper(value);
-    }
-}
-export type IntFieldDeclaration = IntFieldDeclarationWrapper;
-
-// #endregion
-// #region [Bool Field Declaration]
-
-type BoolFieldDeclarationData = object;
-class BoolFieldDeclarationWrapper {
-    private readonly [classData]: BoolFieldDeclarationData;
-    private constructor(data: BoolFieldDeclarationData) {
-        this[classData] = data;
-    }
-    static unwrap(value: BoolFieldDeclaration): BoolFieldDeclarationData {
-        return value[classData];
-    }
-    static wrap(value: BoolFieldDeclarationData): BoolFieldDeclaration {
-        return new BoolFieldDeclarationWrapper(value);
-    }
-}
-export type BoolFieldDeclaration = BoolFieldDeclarationWrapper;
-
-// #endregion
-// #region [Enum Field Declaration]
-
-interface EnumFieldDeclarationData<T extends readonly string[]> {
-    values: T;
-}
-class EnumFieldDeclarationWrapper<T extends readonly string[]> {
-    private readonly [classData]: EnumFieldDeclarationData<T>;
-    private constructor(data: EnumFieldDeclarationData<T>) {
-        this[classData] = data;
-    }
-    static unwrap<T extends readonly string[]>(
-        value: EnumFieldDeclaration<T>,
-    ): EnumFieldDeclarationData<T> {
-        return value[classData];
-    }
-    static wrap<const T extends readonly string[]>(
-        value: EnumFieldDeclarationData<T>,
-    ): EnumFieldDeclaration<T> {
-        return new EnumFieldDeclarationWrapper(value);
-    }
-}
-
-export type EnumFieldDeclaration<T extends readonly string[]> =
-    EnumFieldDeclarationWrapper<T>;
-
-// #endregion
-// #region [Object Field Declaration]
-
-interface ObjectFieldDeclarationData<T extends RecordType<FieldDeclaration>> {
-    fields: T;
-}
-class ObjectFieldDeclarationWrapper<T extends RecordType<FieldDeclaration>> {
-    private readonly [classData]: ObjectFieldDeclarationData<T>;
-    private constructor(data: ObjectFieldDeclarationData<T>) {
-        this[classData] = data;
-    }
-    static unwrap<T extends RecordType<FieldDeclaration>>(
-        value: ObjectFieldDeclaration<T>,
-    ): ObjectFieldDeclarationData<T> {
-        return value[classData];
-    }
-    static wrap<const T extends RecordType<FieldDeclaration>>(
-        value: ObjectFieldDeclarationData<T>,
-    ): ObjectFieldDeclaration<T> {
-        return new ObjectFieldDeclarationWrapper(value);
-    }
-}
-export type ObjectFieldDeclaration<T extends RecordType<FieldDeclaration>> =
-    ObjectFieldDeclarationWrapper<T>;
-
-// #endregion
-// #region [Array Field Declaration]
-
-interface ArrayFieldDeclarationData<T extends FieldDeclaration> {
-    item: T;
-}
-class ArrayFieldDeclarationWrapper<T extends FieldDeclaration> {
-    private readonly [classData]: ArrayFieldDeclarationData<T>;
-    private constructor(data: ArrayFieldDeclarationData<T>) {
-        this[classData] = data;
-    }
-    static unwrap<T extends FieldDeclaration>(
-        value: ArrayFieldDeclaration<T>,
-    ): ArrayFieldDeclarationData<T> {
-        return value[classData];
-    }
-    static wrap<const T extends FieldDeclaration>(
-        value: ArrayFieldDeclarationData<T>,
-    ): ArrayFieldDeclaration<T> {
-        return new ArrayFieldDeclarationWrapper(value);
-    }
-}
-export type ArrayFieldDeclaration<T extends FieldDeclaration> =
-    ArrayFieldDeclarationWrapper<T>;
-
-// #endregion
-
-// #endregion
 // #region [[Field Types]]
 
 // #region [Field Type]
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type FieldType =
-    | IntFieldType
-    | BoolFieldType
-    | EnumFieldType<any>
-    | ObjectFieldType<any>
-    | ArrayFieldType<any>;
+export type FieldType = Int | Bool | Enum<any> | Object<any> | Set<any>;
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 class FieldTypeUtil {
-    static isInt(value: unknown): value is IntFieldType {
-        return value instanceof IntFieldTypeWrapper;
+    static isInt(value: unknown): value is Int {
+        return value instanceof IntClass;
     }
-    static isBool(value: unknown): value is BoolFieldType {
-        return value instanceof BoolFieldTypeWrapper;
+    static isBool(value: unknown): value is Bool {
+        return value instanceof BoolClass;
     }
-    static isEnum(value: unknown): value is EnumFieldType<readonly string[]> {
-        return value instanceof EnumFieldTypeWrapper;
+    static isEnum(value: unknown): value is Enum<readonly string[]> {
+        return value instanceof EnumClass;
     }
-    static isObject(
-        value: unknown,
-    ): value is ObjectFieldType<RecordType<FieldType>> {
-        return value instanceof ObjectFieldTypeWrapper;
+    static isObject(value: unknown): value is Object<RecordType<FieldType>> {
+        return value instanceof ObjectClass;
     }
-    static isArray(value: unknown): value is ArrayFieldType<FieldType> {
-        return value instanceof ArrayFieldTypeWrapper;
+    static isArray(value: unknown): value is Set<FieldType> {
+        return value instanceof SetClass;
     }
 }
 
 // #endregion
 // #region [Int Field Declaration]
 
-type IntFieldTypeData = object;
+type IntClassData = object;
 
-class IntFieldTypeWrapper {
-    private readonly [classData]: IntFieldTypeData;
-    private constructor(data: IntFieldTypeData) {
+class IntClass {
+    private readonly [classData]: IntClassData;
+    private constructor(data: IntClassData) {
         this[classData] = data;
     }
-    static unwrap(value: IntFieldType): IntFieldTypeData {
+    static unwrap(value: Int): IntClassData {
         return value[classData];
     }
-    static wrap(value: IntFieldTypeData): IntFieldType {
-        return new IntFieldTypeWrapper(value);
+    static wrap(value: IntClassData): Int {
+        return new IntClass(value);
     }
 }
-export type IntFieldType = IntFieldTypeWrapper;
+export type Int = IntClass;
 
 // #endregion
 // #region [Bool Field Declaration]
 
-type BoolFieldTypeData = object;
-class BoolFieldTypeWrapper {
-    private readonly [classData]: BoolFieldTypeData;
-    private constructor(data: BoolFieldTypeData) {
+type BoolClassData = object;
+class BoolClass {
+    private readonly [classData]: BoolClassData;
+    private constructor(data: BoolClassData) {
         this[classData] = data;
     }
-    static unwrap(value: BoolFieldType): BoolFieldTypeData {
+    static unwrap(value: Bool): BoolClassData {
         return value[classData];
     }
-    static wrap(value: BoolFieldTypeData): BoolFieldType {
-        return new BoolFieldTypeWrapper(value);
+    static wrap(value: BoolClassData): Bool {
+        return new BoolClass(value);
     }
 }
-export type BoolFieldType = BoolFieldTypeWrapper;
+export type Bool = BoolClass;
 
 // #endregion
 // #region [Enum Field Declaration]
 
-interface EnumFieldTypeData<T extends readonly string[]> {
+interface EnumClassData<T extends readonly string[]> {
     values: T;
 }
-class EnumFieldTypeWrapper<T extends readonly string[]> {
-    private readonly [classData]: EnumFieldTypeData<T>;
-    private constructor(data: EnumFieldTypeData<T>) {
+class EnumClass<T extends readonly string[]> {
+    private readonly [classData]: EnumClassData<T>;
+    private constructor(data: EnumClassData<T>) {
         this[classData] = data;
     }
     static unwrap<T extends readonly string[]>(
-        value: EnumFieldType<T>,
-    ): EnumFieldTypeData<T> {
+        value: Enum<T>,
+    ): EnumClassData<T> {
         return value[classData];
     }
     static wrap<const T extends readonly string[]>(
-        value: EnumFieldTypeData<T>,
-    ): EnumFieldType<T> {
-        return new EnumFieldTypeWrapper(value);
+        value: EnumClassData<T>,
+    ): Enum<T> {
+        return new EnumClass(value);
     }
 }
 
-export type EnumFieldType<T extends readonly string[]> =
-    EnumFieldTypeWrapper<T>;
+export type Enum<T extends readonly string[]> = EnumClass<T>;
 
 // #endregion
 // #region [Object Field Declaration]
 
-interface ObjectFieldTypeData<T extends RecordType<FieldType>> {
+interface ObjectClassData<T extends RecordType<FieldType>> {
     fields: T;
 }
-class ObjectFieldTypeWrapper<T extends RecordType<FieldType>> {
-    private readonly [classData]: ObjectFieldTypeData<T>;
-    private constructor(data: ObjectFieldTypeData<T>) {
+class ObjectClass<T extends RecordType<FieldType>> {
+    private readonly [classData]: ObjectClassData<T>;
+    private constructor(data: ObjectClassData<T>) {
         this[classData] = data;
     }
     static unwrap<T extends RecordType<FieldType>>(
-        value: ObjectFieldType<T>,
-    ): ObjectFieldTypeData<T> {
+        value: Object<T>,
+    ): ObjectClassData<T> {
         return value[classData];
     }
     static wrap<const T extends RecordType<FieldType>>(
-        value: ObjectFieldTypeData<T>,
-    ): ObjectFieldType<T> {
-        return new ObjectFieldTypeWrapper(value);
+        value: ObjectClassData<T>,
+    ): Object<T> {
+        return new ObjectClass(value);
     }
 }
-export type ObjectFieldType<T extends RecordType<FieldType>> =
-    ObjectFieldTypeWrapper<T>;
+export type Object<T extends RecordType<FieldType>> = ObjectClass<T>;
 
 // #endregion
 // #region [Array Field Declaration]
 
-interface ArrayFieldTypeData<T extends FieldType> {
+interface ArrayClassData<T extends FieldType> {
     item: T;
 }
-class ArrayFieldTypeWrapper<T extends FieldType> {
-    private readonly [classData]: ArrayFieldTypeData<T>;
-    private constructor(data: ArrayFieldTypeData<T>) {
+class SetClass<T extends FieldType> {
+    private readonly [classData]: ArrayClassData<T>;
+    private constructor(data: ArrayClassData<T>) {
         this[classData] = data;
     }
-    static unwrap<T extends FieldType>(
-        value: ArrayFieldType<T>,
-    ): ArrayFieldTypeData<T> {
+    static unwrap<T extends FieldType>(value: Set<T>): ArrayClassData<T> {
         return value[classData];
     }
-    static wrap<const T extends FieldType>(
-        value: ArrayFieldTypeData<T>,
-    ): ArrayFieldType<T> {
-        return new ArrayFieldTypeWrapper(value);
+    static wrap<const T extends FieldType>(value: ArrayClassData<T>): Set<T> {
+        return new SetClass(value);
     }
 }
-export type ArrayFieldType<T extends FieldType> = ArrayFieldTypeWrapper<T>;
+export type Set<T extends FieldType> = SetClass<T>;
 
 // #endregion
 
@@ -486,35 +365,31 @@ export type ArrayFieldType<T extends FieldType> = ArrayFieldTypeWrapper<T>;
 // #region [[Var Value]]
 
 // #region [Variable]
-interface RefVariableData<T extends FieldType> {
+interface VarClassData<T extends FieldType> {
     values: T;
 }
-class RefVariableWrapper<T extends FieldType> {
-    private readonly [classData]: RefVariableData<T>;
-    private constructor(data: RefVariableData<T>) {
+class VarClass<T extends FieldType> {
+    private readonly [classData]: VarClassData<T>;
+    private constructor(data: VarClassData<T>) {
         this[classData] = data;
     }
-    static unwrap<T extends FieldType>(
-        value: RefVariable<T>,
-    ): RefVariableData<T> {
+    static unwrap<T extends FieldType>(value: RefVar<T>): VarClassData<T> {
         return value[classData];
     }
-    static wrap<const T extends FieldType>(
-        value: RefVariableData<T>,
-    ): RefVariable<T> {
-        return new RefVariableWrapper(value);
+    static wrap<const T extends FieldType>(value: VarClassData<T>): RefVar<T> {
+        return new VarClass(value);
     }
 }
 
-type RefVariable<T extends FieldType> = RefVariableWrapper<T>;
+type RefVar<T extends FieldType> = VarClass<T>;
 
-type PartialRefVariable<T> = T extends IntFieldType
+type LiteralVar<T> = T extends Int
     ? number
-    : T extends BoolFieldType
+    : T extends Bool
       ? boolean
-      : T extends ArrayFieldType<infer TItem extends FieldType>
+      : T extends Set<infer TItem extends FieldType>
         ? Var<TItem>[]
-        : T extends ObjectFieldType<infer TObj extends RecordType<FieldType>>
+        : T extends Object<infer TObj extends RecordType<FieldType>>
           ? {
                 [K in keyof TObj]: Var<TObj[K]>;
             }
@@ -525,15 +400,15 @@ interface TypeHolder<T> {
 }
 
 export type Var<T> = T extends FieldType
-    ? RefVariable<T> | PartialRefVariable<T>
+    ? RefVar<T> | LiteralVar<T>
     : T extends TypeHolder<infer TInner extends FieldType>
       ? Var<TInner>
       : never;
 
-const x = ObjectFieldTypeWrapper.wrap({
+const x = ObjectClass.wrap({
     fields: {
-        a1: IntFieldTypeWrapper.wrap({}),
-        a2: IntFieldTypeWrapper.wrap({}),
+        a1: IntClass.wrap({}),
+        a2: IntClass.wrap({}),
     },
 });
 
@@ -545,10 +420,10 @@ function f11(p: Var<typeof x>, o: "==", p2: Var<typeof x>) {
 f11(
     {
         a1: 1,
-        a2: RefVariableWrapper.wrap({ values: IntFieldTypeWrapper.wrap({}) }),
+        a2: VarClass.wrap({ values: IntClass.wrap({}) }),
     },
     "==",
-    RefVariableWrapper.wrap({ values: x }),
+    VarClass.wrap({ values: x }),
 );
 f11(
     {
@@ -577,57 +452,43 @@ type IntFoldOp = "+" | "*" | "min" | "max";
 type IntAllOp = "==" | "!=";
 
 const intOp = {
-    cmp: (
-        a: Var<IntFieldType>,
-        o: IntCmpOp,
-        b: Var<IntFieldType>,
-    ): Var<BoolFieldType> => {
+    cmp: (a: Var<Int>, o: IntCmpOp, b: Var<Int>): Var<Bool> => {
         todo();
     },
 
-    math: (
-        a: Var<IntFieldType>,
-        o: IntMathOp,
-        b: Var<IntFieldType>,
-    ): Var<IntFieldType> => {
+    math: (a: Var<Int>, o: IntMathOp, b: Var<Int>): Var<Int> => {
         todo();
     },
 
-    fold: (
-        o: IntFoldOp,
-        a: Var<ArrayFieldType<IntFieldType>>,
-    ): Var<IntFieldType> => {
+    fold: (o: IntFoldOp, a: Var<Set<Int>>): Var<Int> => {
         todo();
     },
 
-    sum: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+    sum: (...items: Var<Int>[]): Var<Int> => {
         todo();
     },
 
-    product: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+    product: (...items: Var<Int>[]): Var<Int> => {
         todo();
     },
 
-    min: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+    min: (...items: Var<Int>[]): Var<Int> => {
         todo();
     },
 
-    max: (...items: Var<IntFieldType>[]): Var<IntFieldType> => {
+    max: (...items: Var<Int>[]): Var<Int> => {
         todo();
     },
 
-    all: (
-        o: IntAllOp,
-        items: Var<ArrayFieldType<IntFieldType>>,
-    ): Var<BoolFieldType> => {
+    all: (o: IntAllOp, items: Var<Set<Int>>): Var<Bool> => {
         todo();
     },
 
-    equal: (...items: Var<IntFieldType>[]): Var<BoolFieldType> => {
+    equal: (...items: Var<Int>[]): Var<Bool> => {
         todo();
     },
 
-    none_equal: (...items: Var<IntFieldType>[]): Var<BoolFieldType> => {
+    none_equal: (...items: Var<Int>[]): Var<Bool> => {
         todo();
     },
 };
@@ -657,84 +518,85 @@ type SetAllOp = "==" | "!=" | "disjoint";
 
 const setOp = {
     cmp: <T extends FieldType>(
-        a: Var<ArrayFieldType<T>>,
+        a: Var<Set<T>>,
         o: SetCmpOp,
-        b: Var<ArrayFieldType<T>>,
-    ): Var<BoolFieldType> => {
+        b: Var<Set<T>>,
+    ): Var<Bool> => {
         todo();
     },
 
     element_of: <T extends FieldType>(
         a: Var<T>,
         o: "element of",
-        b: Var<ArrayFieldType<T>>,
-    ): Var<BoolFieldType> => {
+        b: Var<Set<T>>,
+    ): Var<Bool> => {
         todo();
     },
 
     contains: <T extends FieldType>(
-        a: Var<ArrayFieldType<T>>,
+        a: Var<Set<T>>,
         o: "contains",
         b: Var<T>,
-    ): Var<BoolFieldType> => {
+    ): Var<Bool> => {
         todo();
     },
 
     join: <T extends FieldType>(
-        a: Var<ArrayFieldType<T>>,
+        a: Var<Set<T>>,
         o: SetJoinOp,
-        b: Var<ArrayFieldType<T>>,
-    ): Var<ArrayFieldType<T>> => {
+        b: Var<Set<T>>,
+    ): Var<Set<T>> => {
         todo();
     },
 
     fold: <T extends FieldType>(
         o: SetFoldOp,
-        items: Var<ArrayFieldType<ArrayFieldType<T>>>,
-    ): Var<ArrayFieldType<T>> => {
+        items: Var<Set<Set<T>>>,
+    ): Var<Set<T>> => {
         todo();
     },
 
-    union: <T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<ArrayFieldType<T>> => {
+    union: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Set<T>> => {
         todo();
     },
 
-    intersect: <T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<ArrayFieldType<T>> => {
+    intersect: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Set<T>> => {
         todo();
     },
 
     disjunctive_union: <T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<ArrayFieldType<T>> => {
+        ...items: Var<Set<T>>[]
+    ): Var<Set<T>> => {
         todo();
     },
 
     all: <T extends FieldType>(
         o: SetAllOp,
-        items: Var<ArrayFieldType<ArrayFieldType<T>>>,
-    ): Var<BoolFieldType> => {
+        items: Var<Set<Set<T>>>,
+    ): Var<Bool> => {
         todo();
     },
 
-    equal: <T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<BoolFieldType> => {
+    equal: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Bool> => {
         todo();
     },
 
-    none_equal: <T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<BoolFieldType> => {
+    none_equal: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Bool> => {
         todo();
     },
 
-    all_disjoint: <T extends FieldType>(
-        ...items: Var<ArrayFieldType<T>>[]
-    ): Var<BoolFieldType> => {
+    all_disjoint: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Bool> => {
+        todo();
+    },
+
+    size: <T extends FieldType>(item: Var<Set<T>>): Var<Int> => {
+        todo();
+    },
+
+    map: <T extends FieldType, R extends FieldType>(
+        item: Var<Set<T>>,
+        f: (value: Var<T>) => Var<R>,
+    ): Var<Set<R>> => {
         todo();
     },
 };
@@ -748,53 +610,39 @@ type BoolSetOp = "all" | "any" | "none" | BoolCmpOp | BoolLogicOp;
 type BoolAllOp = "==" | "!=" | "true" | "false";
 
 const boolOp = {
-    cmp: (
-        a: Var<BoolFieldType>,
-        o: BoolCmpOp,
-        b: Var<BoolFieldType>,
-    ): Var<BoolFieldType> => {
+    cmp: (a: Var<Bool>, o: BoolCmpOp, b: Var<Bool>): Var<Bool> => {
         todo();
     },
 
-    logic: (
-        a: Var<BoolFieldType>,
-        o: BoolLogicOp,
-        b: Var<BoolFieldType>,
-    ): Var<BoolFieldType> => {
+    logic: (a: Var<Bool>, o: BoolLogicOp, b: Var<Bool>): Var<Bool> => {
         todo();
     },
 
-    fold: (
-        o: BoolSetOp,
-        a: Var<ArrayFieldType<BoolFieldType>>,
-    ): Var<BoolFieldType> => {
+    fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
         todo();
     },
 
-    all: (
-        o: BoolAllOp,
-        items: Var<ArrayFieldType<BoolFieldType>>,
-    ): Var<BoolFieldType> => {
+    all: (o: BoolAllOp, items: Var<Set<Bool>>): Var<Bool> => {
         todo();
     },
 
-    equal: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+    equal: (...items: Var<Bool>[]): Var<Bool> => {
         todo();
     },
 
-    none_equal: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+    none_equal: (...items: Var<Bool>[]): Var<Bool> => {
         todo();
     },
 
-    none: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+    none: (...items: Var<Bool>[]): Var<Bool> => {
         todo();
     },
 
-    and: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+    and: (...items: Var<Bool>[]): Var<Bool> => {
         todo();
     },
 
-    or: (...items: Var<BoolFieldType>[]): Var<BoolFieldType> => {
+    or: (...items: Var<Bool>[]): Var<Bool> => {
         todo();
     },
 };
@@ -807,29 +655,44 @@ type ObjAllOp = "==" | "!=";
 
 const objOp = {
     cmp: <T extends RecordType<FieldType>>(
-        a: Var<ObjectFieldType<T>>,
+        a: Var<Object<T>>,
         o: ObjCmpOp,
-        b: Var<ObjectFieldType<T>>,
-    ): Var<BoolFieldType> => {
+        b: Var<Object<T>>,
+    ): Var<Bool> => {
         todo();
     },
 
     all: <T extends RecordType<FieldType>>(
         o: ObjAllOp,
-        items: Var<ArrayFieldType<ObjectFieldType<T>>>,
-    ): Var<BoolFieldType> => {
+        items: Var<Set<Object<T>>>,
+    ): Var<Bool> => {
         todo();
     },
 
     equal: <T extends RecordType<FieldType>>(
-        ...items: Var<ObjectFieldType<T>>[]
-    ): Var<BoolFieldType> => {
+        ...items: Var<Object<T>>[]
+    ): Var<Bool> => {
         todo();
     },
 
     none_equal: <T extends RecordType<FieldType>>(
-        ...items: Var<ObjectFieldType<T>>[]
-    ): Var<BoolFieldType> => {
+        ...items: Var<Object<T>>[]
+    ): Var<Bool> => {
+        todo();
+    },
+};
+
+// #endregion
+// #region [Quantor Op]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Matcher = any;
+
+const quantorOp = {
+    all: (f: (matcher: Matcher) => void): Var<Bool> => {
+        todo();
+    },
+    exists: (f: (matcher: Matcher) => void): Var<Bool> => {
         todo();
     },
 };
@@ -840,65 +703,86 @@ const objOp = {
 // #endregion
 
 // #endregion
+// #region [[Decl Value]]
+
+interface DeclClassData<T extends FieldType> {
+    values: T;
+}
+class DeclClass<T extends FieldType> {
+    private readonly [classData]: DeclClassData<T>;
+    private constructor(data: DeclClassData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(value: Decl<T>): DeclClassData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(value: DeclClassData<T>): Decl<T> {
+        return new DeclClass(value);
+    }
+}
+
+export type Decl<T extends FieldType> = DeclClass<T>;
+
+// #endregion
 // #region [[Test]]
 
-const field = {
-    decl: {
-        int: IntFieldDeclarationWrapper,
-        bool: BoolFieldDeclarationWrapper,
-        enum: EnumFieldDeclarationWrapper,
-        obj: ObjectFieldDeclarationWrapper,
-        arr: ArrayFieldDeclarationWrapper,
-    },
-} as const;
+// const field = {
+//     decl: {
+//         int: IntFieldDeclarationWrapper,
+//         bool: BoolFieldDeclarationWrapper,
+//         enum: EnumFieldDeclarationWrapper,
+//         obj: ObjectFieldDeclarationWrapper,
+//         arr: ArrayFieldDeclarationWrapper,
+//     },
+// } as const;
 
-const b1 = field.decl.obj.wrap({
-    fields: {
-        a: field.decl.int.wrap({}),
-        b: field.decl.obj.wrap({
-            fields: {
-                c: field.decl.int.wrap({}),
-                d: field.decl.int.wrap({}),
-                e: field.decl.obj.wrap({
-                    fields: {
-                        f: field.decl.int.wrap({}),
-                        g: field.decl.int.wrap({}),
-                    },
-                }),
-            },
-        }),
-        aa: field.decl.arr.wrap({
-            item: field.decl.int.wrap({}),
-        }),
-        ab: field.decl.arr.wrap({
-            item: field.decl.obj.wrap({
-                fields: {
-                    a: field.decl.arr.wrap({
-                        item: field.decl.arr.wrap({
-                            item: field.decl.int.wrap({}),
-                        }),
-                    }),
-                },
-            }),
-        }),
-        ac: field.decl.obj.wrap({
-            fields: {
-                a: field.decl.enum.wrap({
-                    values: ["1", "2", "3"],
-                }),
-            },
-        }),
-    },
-});
+// const b1 = field.decl.obj.wrap({
+//     fields: {
+//         a: field.decl.int.wrap({}),
+//         b: field.decl.obj.wrap({
+//             fields: {
+//                 c: field.decl.int.wrap({}),
+//                 d: field.decl.int.wrap({}),
+//                 e: field.decl.obj.wrap({
+//                     fields: {
+//                         f: field.decl.int.wrap({}),
+//                         g: field.decl.int.wrap({}),
+//                     },
+//                 }),
+//             },
+//         }),
+//         aa: field.decl.arr.wrap({
+//             item: field.decl.int.wrap({}),
+//         }),
+//         ab: field.decl.arr.wrap({
+//             item: field.decl.obj.wrap({
+//                 fields: {
+//                     a: field.decl.arr.wrap({
+//                         item: field.decl.arr.wrap({
+//                             item: field.decl.int.wrap({}),
+//                         }),
+//                     }),
+//                 },
+//             }),
+//         }),
+//         ac: field.decl.obj.wrap({
+//             fields: {
+//                 a: field.decl.enum.wrap({
+//                     values: ["1", "2", "3"],
+//                 }),
+//             },
+//         }),
+//     },
+// });
 
-const b2 = field.decl.obj.wrap({
-    fields: {
-        a: field.decl.enum.wrap({
-            values: ["1", "2", "3"],
-        }),
-        b: field.decl.bool.wrap({}),
-    },
-});
+// const b2 = field.decl.obj.wrap({
+//     fields: {
+//         a: field.decl.enum.wrap({
+//             values: ["1", "2", "3"],
+//         }),
+//         b: field.decl.bool.wrap({}),
+//     },
+// });
 
 // const f = makeInfix({
 //     x1: (a: string, b: string): string => {
