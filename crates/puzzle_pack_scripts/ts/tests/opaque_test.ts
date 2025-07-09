@@ -104,23 +104,40 @@ declare const fieldF: Decl<Object<{ x: Int }>>;
 
 type NamespaceProps<
     T extends FieldType | undefined,
+    P extends RecordType,
     O extends RecordType | undefined,
 > = {
     name: string;
-    decl?: T extends FieldType ? Decl<T> : undefined;
+    decl?: T extends FieldType ? (props: P) => Decl<T> : undefined;
     op?: O;
 };
 
+interface Info {
+    name: string;
+}
+
 type Namespace<
     T extends FieldType | undefined = undefined,
+    P extends RecordType = RecordType,
     O extends RecordType | undefined = undefined,
-> = (T extends FieldType ? { decl: Decl<T>; var: RefVar<T> } : unknown) &
+> = (T extends FieldType
+    ? RecordType<unknown> extends P
+        ? {
+              decl: (params?: { info?: number; props?: P }) => Decl<T>;
+              var: Marker<T>;
+          }
+        : {
+              decl: (params: { info?: number; props: P }) => Decl<T>;
+              var: Marker<T>;
+          }
+    : unknown) &
     (O extends RecordType ? { op: O } : unknown);
 
 function createNamespace<
     const T extends FieldType | undefined,
+    const P extends RecordType,
     const O extends RecordType | undefined,
->(props: NamespaceProps<T, O>): Namespace<T, O> {
+>(props: NamespaceProps<T, P, O>): Namespace<T, P, O> {
     todo();
 }
 
@@ -133,12 +150,29 @@ const f3333 = () => {
                 return a;
             },
         },
-        decl: fieldF,
+        decl: (props: { x: number }) => fieldF,
+    });
+
+    const ns3 = createNamespace({
+        name: "ns",
+        op: {
+            x: 1,
+            f: <T>(a: T): T => {
+                return a;
+            },
+        },
+        decl: () => fieldF,
     });
 
     const ns2 = createNamespace({ name: "" });
 
     ns.op.f("dasda");
+    ns.decl({
+        props: {
+            x: 1,
+        },
+    });
+    ns3.decl();
 
     const nsD = ns.var;
     //    ^?
@@ -847,6 +881,26 @@ class DeclClass<T extends FieldType> {
 
 export type Decl<T extends FieldType> = DeclClass<T>;
 
+interface MarkerClassData<T extends FieldType> {
+    marker: T[] & never[];
+}
+class MarkerClass<T extends FieldType> {
+    private readonly [classData]: MarkerClassData<T>;
+    private constructor(data: MarkerClassData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(value: Marker<T>): MarkerClassData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(
+        value: MarkerClassData<T>,
+    ): Marker<T> {
+        return new MarkerClass(value);
+    }
+}
+
+export type Marker<T extends FieldType> = MarkerClass<T>;
+
 // #endregion
 // #region [[Modules]]
 
@@ -963,6 +1017,7 @@ class ModClass {
             name: params.name,
         });
     }
+    // namespace = createNamespace; TODO
     /**
      * Create a new rule, must be exported to be loaded.
      */
