@@ -145,3 +145,10 @@ const cell_value_from_allowed = classic_mod.step({
         ]);
     },
 });
+
+export const square_bounds = classic_mod.deduction({
+    name: "bounds",
+    data: {
+        length: int.field,
+    },
+});
