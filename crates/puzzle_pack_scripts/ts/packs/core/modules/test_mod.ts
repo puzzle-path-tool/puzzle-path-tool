@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Decl, Int, Obj, Var, VarOf } from "tests/opaque_test";
 import { core_pack } from "../core_pack";
 
 declare const field: any;
@@ -11,6 +12,30 @@ const todo = "TODO";
 export const test_mod = core_pack.module({
     name: "test",
 });
+
+declare const fieldF: Decl<Obj<{ x: Int; y: Int }>>;
+
+type PositionMathOp = "+" | "-";
+
+export const position_t = test_mod.namespace({
+    name: "position",
+    decl: fieldF,
+    op: {
+        math: (
+            a: VarOf<typeof position_t>,
+            o: PositionMathOp,
+            b: VarOf<typeof position_t>,
+        ): VarOf<typeof position_t> => {
+            return {
+                x: a.x,
+                y: a.y,
+            };
+        },
+    },
+});
+
+const pos1 = position_t.op.math({ x: 1, y: 1 }, "+", { x: 2, y: 2 });
+//    ^?
 
 export function position(props?: TODO) {
     return field.object(
