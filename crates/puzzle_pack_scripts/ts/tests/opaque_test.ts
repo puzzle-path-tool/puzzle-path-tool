@@ -423,6 +423,47 @@ export type Pool<T extends FieldType> = PoolClass<T>;
 // #endregion
 
 // #endregion
+// #region [[Decl Value]]
+
+interface DeclClassData<T extends FieldType> {
+    marker: Marker<T>;
+}
+class DeclClass<T extends FieldType> {
+    private readonly [classData]: DeclClassData<T>;
+    private constructor(data: DeclClassData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(value: Decl<T>): DeclClassData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(value: DeclClassData<T>): Decl<T> {
+        return new DeclClass(value);
+    }
+}
+
+export type Decl<T extends FieldType> = DeclClass<T>;
+
+interface MarkerClassData<T extends FieldType> {
+    marker: T[] & never[];
+}
+class MarkerClass<T extends FieldType> {
+    private readonly [classData]: MarkerClassData<T>;
+    private constructor(data: MarkerClassData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(value: Marker<T>): MarkerClassData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(
+        value: MarkerClassData<T>,
+    ): Marker<T> {
+        return new MarkerClass(value);
+    }
+}
+
+export type Marker<T extends FieldType> = MarkerClass<T>;
+
+// #endregion
 // #region [[Var Value]]
 
 // #region [Variable]
@@ -502,7 +543,7 @@ interface TypeHolder<T extends FieldType> {
 
 export type Var<T extends FieldType> = RefVar<T> | CompositeVar<T>;
 
-export type VarOf<H> =
+export type VarOf<H extends TypeHolder<FieldType>> =
     H extends TypeHolder<infer T extends FieldType> ? Var<T> : never;
 
 const x = ObjClass.wrap({
@@ -560,43 +601,49 @@ type IntAllOp =
     | "!= 0"
     | "prime";
 
-const intOp = {
-    cmp: (a: Var<Int>, o: IntCmpOp, b: Var<Int>): Var<Bool> => {
-        todo();
-    },
+export const int = createNamespace({
+    name: "int",
+    decl: DeclClass.wrap({
+        marker: MarkerClass.wrap<Int>({ marker: [] }),
+    }),
+    op: {
+        cmp: (a: Var<Int>, o: IntCmpOp, b: Var<Int>): Var<Bool> => {
+            todo();
+        },
 
-    math: (a: Var<Int>, o: IntMathOp, b: Var<Int>): Var<Int> => {
-        todo();
-    },
+        math: (a: Var<Int>, o: IntMathOp, b: Var<Int>): Var<Int> => {
+            todo();
+        },
 
-    fold: (o: IntFoldOp, a: Var<Set<Int>>): Var<Int> => {
-        todo();
-    },
+        fold: (o: IntFoldOp, a: Var<Set<Int>>): Var<Int> => {
+            todo();
+        },
 
-    sum: (...items: Var<Int>[]): Var<Int> => {
-        todo();
-    },
+        sum: (...items: Var<Int>[]): Var<Int> => {
+            todo();
+        },
 
-    product: (...items: Var<Int>[]): Var<Int> => {
-        todo();
-    },
+        product: (...items: Var<Int>[]): Var<Int> => {
+            todo();
+        },
 
-    min: (...items: Var<Int>[]): Var<Int> => {
-        todo();
-    },
+        min: (...items: Var<Int>[]): Var<Int> => {
+            todo();
+        },
 
-    max: (...items: Var<Int>[]): Var<Int> => {
-        todo();
-    },
+        max: (...items: Var<Int>[]): Var<Int> => {
+            todo();
+        },
 
-    all: (o: IntAllOp, items: Var<Set<Int>>): Var<Bool> => {
-        todo();
-    },
+        all: (o: IntAllOp, items: Var<Set<Int>>): Var<Bool> => {
+            todo();
+        },
 
-    is_prime: (...items: Var<Int>[]): Var<Bool> => {
-        todo();
+        is_prime: (...items: Var<Int>[]): Var<Bool> => {
+            todo();
+        },
     },
-};
+});
 
 // #endregion
 // #region [Set Op]
@@ -621,82 +668,89 @@ type SetFoldOp = "==" | "!=" | "union" | "intersect" | "disjunctive union";
 
 type SetAllOp = "==" | "!=" | "disjoint";
 
-const setOp = {
-    cmp: <T extends FieldType>(
-        a: Var<Set<T>>,
-        o: SetCmpOp,
-        b: Var<Set<T>>,
-    ): Var<Bool> => {
-        todo();
-    },
+export const set = createNamespace({
+    name: "set",
+    op: {
+        cmp: <T extends FieldType>(
+            a: Var<Set<T>>,
+            o: SetCmpOp,
+            b: Var<Set<T>>,
+        ): Var<Bool> => {
+            todo();
+        },
 
-    element_of: <T extends FieldType>(
-        a: Var<T>,
-        o: "element of",
-        b: Var<Set<T>>,
-    ): Var<Bool> => {
-        todo();
-    },
+        element_of: <T extends FieldType>(
+            a: Var<T>,
+            o: "element of",
+            b: Var<Set<T>>,
+        ): Var<Bool> => {
+            todo();
+        },
 
-    contains: <T extends FieldType>(
-        a: Var<Set<T>>,
-        o: "contains",
-        b: Var<T>,
-    ): Var<Bool> => {
-        todo();
-    },
+        contains: <T extends FieldType>(
+            a: Var<Set<T>>,
+            o: "contains",
+            b: Var<T>,
+        ): Var<Bool> => {
+            todo();
+        },
 
-    join: <T extends FieldType>(
-        a: Var<Set<T>>,
-        o: SetJoinOp,
-        b: Var<Set<T>>,
-    ): Var<Set<T>> => {
-        todo();
-    },
+        join: <T extends FieldType>(
+            a: Var<Set<T>>,
+            o: SetJoinOp,
+            b: Var<Set<T>>,
+        ): Var<Set<T>> => {
+            todo();
+        },
 
-    fold: <T extends FieldType>(
-        o: SetFoldOp,
-        items: Var<Set<Set<T>>>,
-    ): Var<Set<T>> => {
-        todo();
-    },
+        fold: <T extends FieldType>(
+            o: SetFoldOp,
+            items: Var<Set<Set<T>>>,
+        ): Var<Set<T>> => {
+            todo();
+        },
 
-    union: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Set<T>> => {
-        todo();
-    },
+        union: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Set<T>> => {
+            todo();
+        },
 
-    intersect: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Set<T>> => {
-        todo();
-    },
+        intersect: <T extends FieldType>(
+            ...items: Var<Set<T>>[]
+        ): Var<Set<T>> => {
+            todo();
+        },
 
-    disjunctive_union: <T extends FieldType>(
-        ...items: Var<Set<T>>[]
-    ): Var<Set<T>> => {
-        todo();
-    },
+        disjunctive_union: <T extends FieldType>(
+            ...items: Var<Set<T>>[]
+        ): Var<Set<T>> => {
+            todo();
+        },
 
-    all: <T extends FieldType>(
-        o: SetAllOp,
-        items: Var<Set<Set<T>>>,
-    ): Var<Bool> => {
-        todo();
-    },
+        all: <T extends FieldType>(
+            o: SetAllOp,
+            items: Var<Set<Set<T>>>,
+        ): Var<Bool> => {
+            todo();
+        },
 
-    all_disjoint: <T extends FieldType>(...items: Var<Set<T>>[]): Var<Bool> => {
-        todo();
-    },
+        all_disjoint: <T extends FieldType>(
+            ...items: Var<Set<T>>[]
+        ): Var<Bool> => {
+            todo();
+        },
 
-    size: <T extends FieldType>(item: Var<Set<T>>): Var<Int> => {
-        todo();
-    },
+        size: <T extends FieldType>(item: Var<Set<T>>): Var<Int> => {
+            todo();
+        },
 
-    map: <T extends FieldType, R extends FieldType>(
-        item: Var<Set<T>>,
-        f: (value: Var<T>) => Var<R>,
-    ): Var<Set<R>> => {
-        todo();
+        map: <T extends FieldType, R extends FieldType>(
+            item: Var<Set<T>>,
+            f: (value: Var<T>) => Var<R>,
+        ): Var<Set<R>> => {
+            todo();
+        },
     },
-};
+});
 
 // #endregion
 // #region [Bool Op]
@@ -706,35 +760,41 @@ type BoolLogicOp = "or" | "and" | "xor" | "nor" | "nand" | "xnor";
 type BoolSetOp = "all" | "any" | "none" | BoolCmpOp | BoolLogicOp;
 type BoolAllOp = "==" | "!=" | "true" | "false";
 
-const boolOp = {
-    cmp: (a: Var<Bool>, o: BoolCmpOp, b: Var<Bool>): Var<Bool> => {
-        todo();
-    },
+export const bool = createNamespace({
+    name: "bool",
+    decl: DeclClass.wrap({
+        marker: MarkerClass.wrap<Bool>({ marker: [] }),
+    }),
+    op: {
+        cmp: (a: Var<Bool>, o: BoolCmpOp, b: Var<Bool>): Var<Bool> => {
+            todo();
+        },
 
-    logic: (a: Var<Bool>, o: BoolLogicOp, b: Var<Bool>): Var<Bool> => {
-        todo();
-    },
+        logic: (a: Var<Bool>, o: BoolLogicOp, b: Var<Bool>): Var<Bool> => {
+            todo();
+        },
 
-    fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
-        todo();
-    },
+        fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
+            todo();
+        },
 
-    all: (o: BoolAllOp, items: Var<Set<Bool>>): Var<Bool> => {
-        todo();
-    },
+        all: (o: BoolAllOp, items: Var<Set<Bool>>): Var<Bool> => {
+            todo();
+        },
 
-    none: (...items: Var<Bool>[]): Var<Bool> => {
-        todo();
-    },
+        none: (...items: Var<Bool>[]): Var<Bool> => {
+            todo();
+        },
 
-    and: (...items: Var<Bool>[]): Var<Bool> => {
-        todo();
-    },
+        and: (...items: Var<Bool>[]): Var<Bool> => {
+            todo();
+        },
 
-    or: (...items: Var<Bool>[]): Var<Bool> => {
-        todo();
+        or: (...items: Var<Bool>[]): Var<Bool> => {
+            todo();
+        },
     },
-};
+});
 
 // #endregion
 // #region [Table Op]
@@ -803,23 +863,26 @@ export type Table<TA extends FieldType, TB extends FieldType> = TableClass<
     TB
 >;
 
-const tableOp = {
-    forwards: <TA extends FieldType, TB extends FieldType>(
-        item: Var<TA>,
-        o: "via",
-        table: Table<TA, TB>,
-    ): Var<TB> => {
-        todo();
-    },
+export const table = createNamespace({
+    name: "table",
+    op: {
+        forwards: <TA extends FieldType, TB extends FieldType>(
+            item: Var<TA>,
+            o: "via",
+            table: Table<TA, TB>,
+        ): Var<TB> => {
+            todo();
+        },
 
-    backwards: <TA extends FieldType, TB extends FieldType>(
-        item: Var<TB>,
-        o: "via",
-        table: Table<TA, TB>,
-    ): Var<TA> => {
-        todo();
+        backwards: <TA extends FieldType, TB extends FieldType>(
+            item: Var<TB>,
+            o: "via",
+            table: Table<TA, TB>,
+        ): Var<TA> => {
+            todo();
+        },
     },
-};
+});
 
 // #endregion
 // #region [Obj Op]
@@ -827,27 +890,33 @@ const tableOp = {
 type ObjCmpOp = "==" | "!=";
 type ObjAllOp = "==" | "!=";
 
-const objOp = {
-    cmp: <T extends FieldType>(
-        a: Var<T>,
-        o: ObjCmpOp,
-        b: Var<T>,
-    ): Var<Bool> => {
-        todo();
-    },
+export const obj = createNamespace({
+    name: "obj",
+    op: {
+        cmp: <T extends FieldType>(
+            a: Var<T>,
+            o: ObjCmpOp,
+            b: Var<T>,
+        ): Var<Bool> => {
+            todo();
+        },
 
-    all: <T extends FieldType>(o: ObjAllOp, items: Var<Set<T>>): Var<Bool> => {
-        todo();
-    },
+        all: <T extends FieldType>(
+            o: ObjAllOp,
+            items: Var<Set<T>>,
+        ): Var<Bool> => {
+            todo();
+        },
 
-    equal: <T extends FieldType>(...items: Var<T>[]): Var<Bool> => {
-        todo();
-    },
+        equal: <T extends FieldType>(...items: Var<T>[]): Var<Bool> => {
+            todo();
+        },
 
-    none_equal: <T extends FieldType>(...items: Var<T>[]): Var<Bool> => {
-        todo();
+        none_equal: <T extends FieldType>(...items: Var<T>[]): Var<Bool> => {
+            todo();
+        },
     },
-};
+});
 
 // #endregion
 // #region [Quantor Op]
@@ -855,81 +924,46 @@ const objOp = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Matcher = any;
 
-const quantorOp = {
-    all: (f: (matcher: Matcher) => void): Var<Bool> => {
-        todo();
+export const quantor = createNamespace({
+    name: "quantor",
+    op: {
+        all: (f: (matcher: Matcher) => void): Var<Bool> => {
+            todo();
+        },
+        exists: (f: (matcher: Matcher) => void): Var<Bool> => {
+            todo();
+        },
     },
-    exists: (f: (matcher: Matcher) => void): Var<Bool> => {
-        todo();
-    },
-};
+});
 
 // #endregion
 // #region [Pool Op]
 
-const poolOp = {
-    one: <T extends FieldType>(
-        a: Var<T>,
-        o: "from",
-        b: Var<Pool<T>>,
-    ): Var<Bool> => {
-        todo();
-    },
+export const pool = createNamespace({
+    name: "pool",
+    op: {
+        one: <T extends FieldType>(
+            a: Var<T>,
+            o: "from",
+            b: Var<Pool<T>>,
+        ): Var<Bool> => {
+            todo();
+        },
 
-    many: <T extends FieldType>(
-        a: Var<Set<T>>,
-        o: "from",
-        b: Var<Pool<T>>,
-    ): Var<Bool> => {
-        todo();
+        many: <T extends FieldType>(
+            a: Var<Set<T>>,
+            o: "from",
+            b: Var<Pool<T>>,
+        ): Var<Bool> => {
+            todo();
+        },
     },
-};
+});
 
 // #endregion
 // #region [Op]
 
 // #endregion
-
-// #endregion
-// #region [[Decl Value]]
-
-interface DeclClassData<T extends FieldType> {
-    values: T;
-}
-class DeclClass<T extends FieldType> {
-    private readonly [classData]: DeclClassData<T>;
-    private constructor(data: DeclClassData<T>) {
-        this[classData] = data;
-    }
-    static unwrap<T extends FieldType>(value: Decl<T>): DeclClassData<T> {
-        return value[classData];
-    }
-    static wrap<const T extends FieldType>(value: DeclClassData<T>): Decl<T> {
-        return new DeclClass(value);
-    }
-}
-
-export type Decl<T extends FieldType> = DeclClass<T>;
-
-interface MarkerClassData<T extends FieldType> {
-    marker: T[] & never[];
-}
-class MarkerClass<T extends FieldType> {
-    private readonly [classData]: MarkerClassData<T>;
-    private constructor(data: MarkerClassData<T>) {
-        this[classData] = data;
-    }
-    static unwrap<T extends FieldType>(value: Marker<T>): MarkerClassData<T> {
-        return value[classData];
-    }
-    static wrap<const T extends FieldType>(
-        value: MarkerClassData<T>,
-    ): Marker<T> {
-        return new MarkerClass(value);
-    }
-}
-
-export type Marker<T extends FieldType> = MarkerClass<T>;
 
 // #endregion
 // #region [[Modules]]
@@ -1173,12 +1207,12 @@ export type Mod = ModClass;
 // console.log(f2("x3", 10));
 // console.log(f2("x4", 100));
 
-const int = {
-    field: () => todo(),
-    type: todo(), //
-    const: () => todo(), //
-    op: {},
-};
+// const int = {
+//     field: () => todo(),
+//     type: todo(), //
+//     const: () => todo(), //
+//     op: {},
+// };
 
 type TypeDef<Props, F, T, VarT, Op> = {
     field: (props?: Props) => F;
