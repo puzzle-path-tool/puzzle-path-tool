@@ -70,8 +70,8 @@ const resolve_step = classic_mod.step({
         const cell_values = matcher.pool.get_many(cell_value);
 
         matcher.require(
-            // TODO: cell_values unique and length = 9*9
-        )
+            int.op.cmp(int.op.size(set.intersect(cell_values)), "==", 9 * 9),
+        );
 
         emitter.resolve(standard_9);
     },
