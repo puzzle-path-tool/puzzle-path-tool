@@ -100,15 +100,14 @@ const u2 = createFieldFunc(
     },
 );
 
-declare const fieldF: Decl<Object<{ x: Int }>>;
+declare const fieldF: Decl<Obj<{ x: Int }>>;
 
 type NamespaceProps<
     T extends FieldType | undefined,
-    P extends RecordType,
     O extends RecordType | undefined,
 > = {
     name: string;
-    decl?: T extends FieldType ? (props: P) => Decl<T> : undefined;
+    decl?: T extends FieldType ? Decl<T> : undefined;
     op?: O;
 };
 
@@ -118,26 +117,23 @@ interface Info {
 
 type Namespace<
     T extends FieldType | undefined = undefined,
-    P extends RecordType = RecordType,
     O extends RecordType | undefined = undefined,
 > = (T extends FieldType
-    ? RecordType<unknown> extends P
-        ? {
-              decl: (params?: { info?: number; props?: P }) => Decl<T>;
-              var: Marker<T>;
-          }
-        : {
-              decl: (params: { info?: number; props: P }) => Decl<T>;
-              var: Marker<T>;
-          }
+    ? {
+          decl: (info?: Info) => Decl<T>;
+          var: Marker<T>;
+      }
     : unknown) &
     (O extends RecordType ? { op: O } : unknown);
 
 function createNamespace<
     const T extends FieldType | undefined,
-    const P extends RecordType,
     const O extends RecordType | undefined,
->(props: NamespaceProps<T, P, O>): Namespace<T, P, O> {
+>(props: NamespaceProps<T, O>): Namespace<T, O> {
+    todo();
+}
+
+function createNamespaceInternal<const N extends RecordType>(props: N): N {
     todo();
 }
 
@@ -150,7 +146,7 @@ const f3333 = () => {
                 return a;
             },
         },
-        decl: (props: { x: number }) => fieldF,
+        decl: fieldF,
     });
 
     const ns3 = createNamespace({
@@ -161,21 +157,23 @@ const f3333 = () => {
                 return a;
             },
         },
-        decl: () => fieldF,
+        decl: fieldF,
     });
 
     const ns2 = createNamespace({ name: "" });
 
     ns.op.f("dasda");
     ns.decl({
-        props: {
-            x: 1,
-        },
+        name: "",
     });
     ns3.decl();
 
     const nsD = ns.var;
     //    ^?
+
+    const ns4 = createNamespaceInternal({
+        decl: () => {},
+    });
 };
 
 // #endregion
@@ -266,7 +264,13 @@ console.log(BWrapper.unwrap(b));
 // #region [Field Type]
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type FieldType = Int | Bool | Enum<any> | Object<any> | Set<any>;
+export type FieldType =
+    | Int
+    | Bool
+    | Enum<any>
+    | Obj<any>
+    | Set<any>
+    | Pool<any>;
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 class FieldTypeUtil {
@@ -279,11 +283,14 @@ class FieldTypeUtil {
     static isEnum(value: unknown): value is Enum<readonly string[]> {
         return value instanceof EnumClass;
     }
-    static isObject(value: unknown): value is Object<RecordType<FieldType>> {
-        return value instanceof ObjectClass;
+    static isObj(value: unknown): value is Obj<RecordType<FieldType>> {
+        return value instanceof ObjClass;
     }
-    static isArray(value: unknown): value is Set<FieldType> {
+    static isSet(value: unknown): value is Set<FieldType> {
         return value instanceof SetClass;
+    }
+    static isPool(value: unknown): value is Pool<FieldType> {
+        return value instanceof PoolClass;
     }
 }
 
@@ -352,46 +359,66 @@ export type Enum<T extends readonly string[]> = EnumClass<T>;
 // #endregion
 // #region [Object Field Declaration]
 
-interface ObjectClassData<T extends RecordType<FieldType>> {
+interface ObjClassData<T extends RecordType<FieldType>> {
     fields: T;
 }
-class ObjectClass<T extends RecordType<FieldType>> {
-    private readonly [classData]: ObjectClassData<T>;
-    private constructor(data: ObjectClassData<T>) {
+class ObjClass<T extends RecordType<FieldType>> {
+    private readonly [classData]: ObjClassData<T>;
+    private constructor(data: ObjClassData<T>) {
         this[classData] = data;
     }
     static unwrap<T extends RecordType<FieldType>>(
-        value: Object<T>,
-    ): ObjectClassData<T> {
+        value: Obj<T>,
+    ): ObjClassData<T> {
         return value[classData];
     }
     static wrap<const T extends RecordType<FieldType>>(
-        value: ObjectClassData<T>,
-    ): Object<T> {
-        return new ObjectClass(value);
+        value: ObjClassData<T>,
+    ): Obj<T> {
+        return new ObjClass(value);
     }
 }
-export type Object<T extends RecordType<FieldType>> = ObjectClass<T>;
+export type Obj<T extends RecordType<FieldType>> = ObjClass<T>;
 
 // #endregion
-// #region [Array Field Declaration]
+// #region [Set Field Declaration]
 
-interface ArrayClassData<T extends FieldType> {
+interface SetClassData<T extends FieldType> {
     item: T;
 }
 class SetClass<T extends FieldType> {
-    private readonly [classData]: ArrayClassData<T>;
-    private constructor(data: ArrayClassData<T>) {
+    private readonly [classData]: SetClassData<T>;
+    private constructor(data: SetClassData<T>) {
         this[classData] = data;
     }
-    static unwrap<T extends FieldType>(value: Set<T>): ArrayClassData<T> {
+    static unwrap<T extends FieldType>(value: Set<T>): SetClassData<T> {
         return value[classData];
     }
-    static wrap<const T extends FieldType>(value: ArrayClassData<T>): Set<T> {
+    static wrap<const T extends FieldType>(value: SetClassData<T>): Set<T> {
         return new SetClass(value);
     }
 }
 export type Set<T extends FieldType> = SetClass<T>;
+
+// #endregion
+// #region Pool Field Declaration
+
+interface PoolClassData<T extends FieldType> {
+    values: T;
+}
+class PoolClass<T extends FieldType> {
+    private readonly [classData]: PoolClassData<T>;
+    private constructor(data: PoolClassData<T>) {
+        this[classData] = data;
+    }
+    static unwrap<T extends FieldType>(value: Pool<T>): PoolClassData<T> {
+        return value[classData];
+    }
+    static wrap<const T extends FieldType>(value: PoolClassData<T>): Pool<T> {
+        return new PoolClass(value);
+    }
+}
+export type Pool<T extends FieldType> = PoolClass<T>;
 
 // #endregion
 
@@ -399,6 +426,28 @@ export type Set<T extends FieldType> = SetClass<T>;
 // #region [[Var Value]]
 
 // #region [Variable]
+type RefVarFields<T extends FieldType> =
+    T extends Obj<infer R extends RecordType<FieldType>>
+        ? {
+              [K in keyof R as K extends string ? K : never]: Var<R[K]>;
+          }
+        : RecordType;
+
+function wrapRefVarFields<const T extends FieldType>(
+    values: RefVarClassData<T>,
+): RefVarFields<T> {
+    // return mapFields<T, BFields<T>>(obj, (key, value) => [
+    //     [
+    //         key,
+    //         {
+    //             id: id,
+    //             value: value,
+    //         },
+    //     ],
+    // ]);
+    todo();
+}
+
 interface RefVarClassData<T extends FieldType> {
     values: T;
 }
@@ -413,11 +462,11 @@ class RefVarClass<T extends FieldType> {
     static wrap<const T extends FieldType>(
         value: RefVarClassData<T>,
     ): RefVar<T> {
-        return new RefVarClass(value);
+        return wrapProxy(new RefVarClass(value), wrapRefVarFields(value));
     }
 }
 
-export type RefVar<T extends FieldType> = RefVarClass<T>;
+export type RefVar<T extends FieldType> = RefVarClass<T> & RefVarFields<T>;
 
 type CompositeVar<T> = T extends Int
     ? number
@@ -427,7 +476,7 @@ type CompositeVar<T> = T extends Int
         ? TVariants[number]
         : T extends Set<infer TItem extends FieldType>
           ? Var<TItem>[]
-          : T extends Object<infer TObj extends RecordType<FieldType>>
+          : T extends Obj<infer TObj extends RecordType<FieldType>>
             ? {
                   [K in keyof TObj]: Var<TObj[K]>;
               }
@@ -441,23 +490,22 @@ export type LiteralVar<T> = T extends Int
         ? TVariants[number]
         : T extends Set<infer TItem extends FieldType>
           ? LiteralVar<TItem>[]
-          : T extends Object<infer TObj extends RecordType<FieldType>>
+          : T extends Obj<infer TObj extends RecordType<FieldType>>
             ? {
                   [K in keyof TObj]: LiteralVar<TObj[K]>;
               }
             : never;
 
-interface TypeHolder<T> {
-    type: T;
+interface TypeHolder<T extends FieldType> {
+    var: Marker<T>;
 }
 
-export type Var<T> = T extends FieldType
-    ? RefVar<T> | CompositeVar<T>
-    : T extends TypeHolder<infer TInner extends FieldType>
-      ? Var<TInner>
-      : never;
+export type Var<T extends FieldType> = RefVar<T> | CompositeVar<T>;
 
-const x = ObjectClass.wrap({
+export type VarOf<H> =
+    H extends TypeHolder<infer T extends FieldType> ? Var<T> : never;
+
+const x = ObjClass.wrap({
     fields: {
         a1: IntClass.wrap({}),
         a2: IntClass.wrap({}),
@@ -739,7 +787,7 @@ const csacas = TableClass.wrap({
 
 const csacas2 = TableClass.wrap({
     a: EnumClass.wrap({ values: ["A", "B"] }),
-    b: ObjectClass.wrap({
+    b: ObjClass.wrap({
         fields: {
             x: IntClass.wrap({}),
         },
@@ -817,25 +865,7 @@ const quantorOp = {
 };
 
 // #endregion
-// #region [Pool]
-
-interface PoolClassData<T extends FieldType> {
-    values: T;
-}
-class PoolClass<T extends FieldType> {
-    private readonly [classData]: PoolClassData<T>;
-    private constructor(data: PoolClassData<T>) {
-        this[classData] = data;
-    }
-    static unwrap<T extends FieldType>(value: Pool<T>): PoolClassData<T> {
-        return value[classData];
-    }
-    static wrap<const T extends FieldType>(value: PoolClassData<T>): Pool<T> {
-        return new PoolClass(value);
-    }
-}
-
-export type Pool<T extends FieldType> = PoolClass<T>;
+// #region [Pool Op]
 
 const poolOp = {
     one: <T extends FieldType>(
@@ -1017,7 +1047,10 @@ class ModClass {
             name: params.name,
         });
     }
-    // namespace = createNamespace; TODO
+    /**
+     * Create a new namespace.
+     */
+    namespace = createNamespace;
     /**
      * Create a new rule, must be exported to be loaded.
      */
