@@ -19,7 +19,8 @@ include = [
   "ts/tsconfig.json",
   "ts/puzzles/example.ts",
   "ts/packs/**/*.ts",
-  "!ts/packs/api/puzzpt_api.ts",
+  "ts/api/**/*.ts",
+  "!ts/api/puzzpt_bindings.ts",
   "!ts/node_modules",
   "!ts/node_modules/**/*",
 ]

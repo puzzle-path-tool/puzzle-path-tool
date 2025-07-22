@@ -1,5 +1,5 @@
-import * as a from "./opaque_test.js";
-import { A } from "./opaque_test.js";
+import * as a from "../api/opaque_test.js";
+import { A } from "../api/opaque_test.js";
 
 const x: A = {} as A;
 

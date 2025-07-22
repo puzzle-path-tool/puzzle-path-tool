@@ -131,4 +131,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-packs/api/puzzpt_api.ts
+api/puzzpt_bindings.ts

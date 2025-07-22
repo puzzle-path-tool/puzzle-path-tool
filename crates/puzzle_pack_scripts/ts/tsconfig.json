@@ -28,5 +28,10 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": false
   },
-  "include": ["packs/**/*.ts", "puzzles/**/*.ts", "tests/**/*.ts"]
+  "include": [
+    "api/**/*.ts",
+    "packs/**/*.ts",
+    "puzzles/**/*.ts",
+    "tests/**/*.ts"
+  ]
 }

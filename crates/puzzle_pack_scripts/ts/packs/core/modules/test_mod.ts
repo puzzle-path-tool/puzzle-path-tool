@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Decl, int, Int, Obj, Var, VarOf } from "tests/opaque_test";
+import { Decl, int, Int, Obj, Var, VarOf } from "api/api";
 import { core_pack } from "../core_pack";
 
 declare const field: any;
 declare const op: any;
 declare const ty: any;
 declare const step: any;
+declare const dbg: any;
 type TODO = any;
 const todo = "TODO";
 
@@ -668,7 +669,9 @@ const step14 = test_mod.step({
 const step15 = test_mod.step({
     name: "step15",
     logic: (matcher: TODO, emitter: TODO) => {
+        const set1a = matcher.pool.get_one(full_set);
         const set1 = matcher.pool.get_one(full_set);
+        matcher.debugSymbols({ set1a });
 
         const max_value = matcher.get_one(ty.int());
         matcher.where(op.cmp(op.set.max(set1.values), "==", max_value));
