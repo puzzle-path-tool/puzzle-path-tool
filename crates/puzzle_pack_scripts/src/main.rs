@@ -1,11 +1,19 @@
 #![allow(dead_code)]
 #![allow(unused)]
 
-use std::{error::Error, sync::Arc};
+use std::{
+    error::Error,
+    io::{self, Write},
+    sync::Arc,
+};
 
 use puzzle_pack_bindings::ts_api::{PuzzptApiExport, examples::Example};
 use puzzle_pack_scripts::files::print_file_paths;
-use rquickjs::{Context, FromJs, Module, Object, Runtime, Symbol, Value, context};
+use rquickjs::{
+    Context, Ctx, FromJs, Module, Object, Runtime, Symbol, Undefined, Value, context,
+    function::{IntoJsFunc, ParamRequirement, Params, StaticJsFunction},
+    prelude::Rest,
+};
 use serde::Deserialize;
 use swc_common::{FileName, GLOBALS, Globals, Mark, source_map::SourceMap};
 use swc_ecma_ast::EsVersion;
@@ -45,6 +53,14 @@ fn main2() -> Result<(), Box<dyn Error>> {
         lib.set("val1", 1)?;
 
         globals.set("lib", lib)?;
+
+        let console = Object::new(ctx.clone())?;
+        let console_log = rquickjs::Function::new(ctx.clone(), |args: Rest<Value>| -> Undefined {
+            println!("JS LOG: {:#?}", args.0);
+            Undefined
+        })?;
+        console.set("log", console_log)?;
+        globals.set("console", console)?;
 
         let module_name = "test.ts";
         let code22: &'static str = r#"
@@ -251,6 +267,10 @@ class X {
     };
 }
 
+export const x = console.log;
+console.log("A", "B", {a: 1});
+console.log();
+console.log(1);
 
 export const a1 = new X();
 export const a2 = new X();
