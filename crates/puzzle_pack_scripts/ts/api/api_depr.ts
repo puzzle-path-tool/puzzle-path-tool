@@ -1,5 +1,5 @@
-import type { FullSet } from "packs/core/modules/classic/deductions";
-import type { ExamplePuzzptApi } from "./puzzpt_api";
+// import type { FullSet } from "packs/core/modules/classic/deductions";
+import type { ExamplePuzzptApi } from "./puzzpt_bindings";
 
 export function do_stuff(param: ExamplePuzzptApi): string {
     return "";

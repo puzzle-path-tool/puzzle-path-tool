@@ -1,4 +1,4 @@
-import { pack } from "tests/opaque_test";
+import { pack } from "api/api";
 
 export const core_pack = pack.create({
     name: "core",

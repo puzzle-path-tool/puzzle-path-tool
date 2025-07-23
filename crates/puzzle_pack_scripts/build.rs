@@ -8,7 +8,7 @@ use puzzle_pack_bindings::ts_api;
 
 fn main() {
     let types = ts_api::load_types();
-    fs::create_dir_all("ts/packs/api/").unwrap();
-    let mut file = File::create("ts/packs/api/puzzpt_api.ts").unwrap();
+    fs::create_dir_all("ts/api/").unwrap();
+    let mut file = File::create("ts/api/puzzpt_bindings.ts").unwrap();
     file.write_all(types.as_bytes()).unwrap();
 }

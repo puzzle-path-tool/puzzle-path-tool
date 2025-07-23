@@ -63,7 +63,7 @@ paths = '''
 
     const GITIGNORE_EXTRA: &str = indoc! {
         "
-            packs/api/
+            /api/
             packs/core/
         "
     };
@@ -127,8 +127,13 @@ pub mod packs {
 
     #[iftree::include_file_tree(
         "
-        base_folder = 'ts'
-        paths = '/packs/**/*.ts'
+base_folder = 'ts'
+paths = '''
+
+/packs/**/*.ts
+/api/**/*.ts
+
+'''
         "
     )]
     pub struct LoadedPackFile {

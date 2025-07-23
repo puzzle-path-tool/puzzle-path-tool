@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Decl, Int, Obj, Var, VarOf } from "tests/opaque_test";
+import { Decl, int, Int, Obj, Set, Var, VarOf } from "api/api";
 import { core_pack } from "../core_pack";
 
 declare const field: any;
 declare const op: any;
 declare const ty: any;
 declare const step: any;
+declare const dbg: any;
 type TODO = any;
 const todo = "TODO";
 
@@ -26,10 +27,18 @@ export const position_t = test_mod.namespace({
             o: PositionMathOp,
             b: VarOf<typeof position_t>,
         ): VarOf<typeof position_t> => {
-            return {
-                x: a.x,
-                y: a.y,
-            };
+            switch (o) {
+                case "+":
+                    return {
+                        x: int.op.math(a.x, "+", b.x),
+                        y: int.op.math(a.y, "+", b.y),
+                    };
+                case "-":
+                    return {
+                        x: int.op.math(a.x, "-", b.x),
+                        y: int.op.math(a.y, "-", b.y),
+                    };
+            }
         },
     },
 });
@@ -47,7 +56,7 @@ export function position(props?: TODO) {
     );
 }
 
-function int() {}
+function int_type() {}
 
 const arrow = test_mod.deduction({
     name: "arrow",
@@ -225,8 +234,8 @@ const step4 = test_mod.step({
     name: "step4",
     logic: (binding: TODO, step: TODO) => {
         const set1 = binding.get_one(full_set);
-        const max_value = binding.get_one(int());
-        const value_sum = binding.get_one(int());
+        const max_value = binding.get_one(int_type());
+        const value_sum = binding.get_one(int_type());
 
         return step.define({
             condition: op.and(
@@ -273,8 +282,8 @@ const step5 = test_mod.step({
     name: "step5",
     logic: (binding: TODO, step: TODO) => {
         const set1 = binding.get_one(full_set);
-        const max_value = binding.get_one(int());
-        const value_sum = binding.get_one(int());
+        const max_value = binding.get_one(int_type());
+        const value_sum = binding.get_one(int_type());
 
         return step.define({
             condition: op.and(
@@ -321,8 +330,8 @@ const step6 = test_mod.step({
     name: "step6",
     logic: (binding: TODO, step: TODO) => {
         const set1 = binding.get_one(full_set);
-        const max_value = binding.get_one(int());
-        const value_sum = binding.get_one(int());
+        const max_value = binding.get_one(int_type());
+        const value_sum = binding.get_one(int_type());
 
         return step.define({
             where: op.exists(set1, max_value, value_sum),
@@ -366,8 +375,8 @@ const step7 = test_mod.step({
     name: "step7",
     logic: (binding: TODO, step: TODO) => {
         const set1 = binding.get_one(full_set);
-        const max_value = binding.get_one(int());
-        const value_sum = binding.get_one(int());
+        const max_value = binding.get_one(int_type());
+        const value_sum = binding.get_one(int_type());
 
         const values = op.set.map(set1, (e: TODO) => e.values);
 
@@ -391,8 +400,8 @@ const step8 = test_mod.step({
     name: "step8",
     logic: (binding: TODO, step: TODO) => {
         const set1 = binding.get_one(full_set);
-        const max_value = binding.get_one(int());
-        const value_sum = binding.get_one(int());
+        const max_value = binding.get_one(int_type());
+        const value_sum = binding.get_one(int_type());
 
         const values = op.set.map(set1, (e: TODO) => e.values);
 
@@ -401,7 +410,7 @@ const step8 = test_mod.step({
             require: op.and(
                 op.cmp(
                     op.inline((binding: TODO) => {
-                        const max_value = binding.get_one(int());
+                        const max_value = binding.get_one(int_type());
 
                         return step.pack_inline({
                             where: op.exists(max_value),
@@ -458,7 +467,7 @@ const step8 = test_mod.step({
 
 function custom_max(values: TODO): TODO {
     return op.inline((binding: TODO) => {
-        const max_value = binding.get_one(int());
+        const max_value = binding.get_one(int_type());
 
         return step.pack_inline({
             where: op.exists(max_value),
@@ -492,8 +501,8 @@ const step9 = test_mod.step({
     name: "step9",
     logic: (binding: TODO) => {
         const set1 = binding.get_one(full_set);
-        const max_value = binding.get_one(int());
-        const value_sum = binding.get_one(int());
+        const max_value = binding.get_one(int_type());
+        const value_sum = binding.get_one(int_type());
 
         const values = op.set.map(set1, (e: TODO) => e.values);
 
@@ -519,10 +528,10 @@ const step10 = test_mod.step({
         const set1 = matcher.get_one(full_set);
         matcher.where(op.exists(set1));
 
-        const max_value = matcher.get_one(int());
+        const max_value = matcher.get_one(int_type());
         matcher.where(op.exists(max_value));
 
-        const value_sum = matcher.get_one(int());
+        const value_sum = matcher.get_one(int_type());
         matcher.where(op.exists(value_sum));
 
         matcher.require(op.cmp(op.set.sum(set1.values), "==", value_sum));
@@ -582,10 +591,10 @@ const step12 = test_mod.step({
         const set1 = matcher.get_one(full_set);
         matcher.where(op.exists(set1));
 
-        const max_value = matcher.get_one(int());
+        const max_value = matcher.get_one(int_type());
         matcher.where(op.exists(max_value));
 
-        const value_sum = matcher.get_one(int());
+        const value_sum = matcher.get_one(int_type());
         matcher.where(op.exists(value_sum));
 
         matcher.require(op.cmp(op.set.max(set1.values), "==", max_value));
@@ -660,7 +669,9 @@ const step14 = test_mod.step({
 const step15 = test_mod.step({
     name: "step15",
     logic: (matcher: TODO, emitter: TODO) => {
+        const set1a = matcher.pool.get_one(full_set);
         const set1 = matcher.pool.get_one(full_set);
+        matcher.debugSymbols({ set1a });
 
         const max_value = matcher.get_one(ty.int());
         matcher.where(op.cmp(op.set.max(set1.values), "==", max_value));
