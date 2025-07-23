@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Decl, int, Int, Obj, Var, VarOf } from "api/api";
+import { Decl, int, Int, Obj, Set, Var, VarOf } from "api/api";
 import { core_pack } from "../core_pack";
 
 declare const field: any;

@@ -5,7 +5,7 @@ use std::{error::Error, sync::Arc};
 
 use puzzle_pack_bindings::ts_api::{PuzzptApiExport, examples::Example};
 use puzzle_pack_scripts::files::print_file_paths;
-use rquickjs::{Context, Module, Object, Runtime, Value, context};
+use rquickjs::{Context, FromJs, Module, Object, Runtime, Symbol, Value, context};
 use serde::Deserialize;
 use swc_common::{FileName, GLOBALS, Globals, Mark, source_map::SourceMap};
 use swc_ecma_ast::EsVersion;
@@ -239,6 +239,24 @@ export const z13 = b;
 
 "#;
 
+let code = r#"
+
+const s1 = Symbol.for("puzzpt_export");
+class X {
+    [s1] = {
+        export_tag: "ExamplePuzzptApi",
+        value: "A",
+        number: 1,
+        stuff: { tag: "StuffC" }
+    };
+}
+
+
+export const a1 = new X();
+export const a2 = new X();
+export const b = "1";
+"#;
+
         let filename = Arc::new(FileName::Custom(module_name.into()));
         let cm: Arc<SourceMap> = Arc::default();
         let fm = cm.new_source_file(filename, code);
@@ -300,6 +318,8 @@ export const z13 = b;
 
         let props = namespace.props::<String, Value>();
 
+        let export_symbol = ctx.eval::<Symbol, _>(r#"Symbol.for("puzzpt_export")"#).unwrap();
+
         for prop in props {
             let Ok((key, value)) = prop else {
                 println!("{:?}", ctx.catch());
@@ -310,7 +330,8 @@ export const z13 = b;
             let Some(value) = value.as_object() else {
                 continue;
             };
-            let Ok(value) = value.get::<_, Value>("puzzpt_export") else {
+
+            let Ok(value) = value.get::<_, Value>(export_symbol.clone()) else {
                 continue;
             };
             let Ok(value) = rquickjs_serde::from_value::<serde_json::Value>(value) else {
