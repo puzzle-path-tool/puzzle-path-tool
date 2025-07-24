@@ -211,22 +211,12 @@ interface NamespaceInternalParams<
     op?: O;
 }
 
-type NamespaceFields<
-    T extends FieldType | undefined,
-    O extends RecordType | undefined,
-    D,
-> = (T extends FieldType
-    ? D extends undefined
-        ? {
-              readonly decl: (info?: Info) => Decl<T>;
-              readonly var: T;
-          }
-        : {
-              readonly decl: (param: D, info?: Info) => Decl<T>;
-          }
-    : unknown) &
-    (O extends RecordType ? { readonly op: O } : unknown) &
-    RecordType;
+type NamespaceFields<TOp extends RecordType | never, TDecl, TVar> = RecordType &
+    (TOp extends RecordType ? { readonly op: TOp } : unknown) &
+    ([TDecl] extends [never] ? unknown : { readonly decl: TDecl }) &
+    ([TVar] extends [never] ? unknown : { readonly var: TVar });
+
+declare const y23: NamespaceFields<{x: number}, number, string>;
 
 function wrapNamespaceFields<
     const T extends FieldType | undefined,
@@ -245,29 +235,19 @@ function wrapNamespaceFields<
     todo();
 }
 
-interface NamespaceClassData<
-    T extends FieldType | undefined,
-    O extends RecordType | undefined,
-    P,
-> {
+interface NamespaceClassData<TOp extends RecordType | never, TDecl, TVar> {
     name: string;
-    decl?: T extends FieldType ? Decl<T> : undefined; //TODO
-    op?: O;
+    module: Mod;
+    fields: NamespaceFields<TOp, TDecl, TVar>;
 }
-class NamespaceClass<
-    T extends FieldType | undefined,
-    O extends RecordType | undefined,
-    P,
-> {
-    private readonly [classData]: NamespaceClassData<T, O, P>;
-    private constructor(data: NamespaceClassData<T, O, P>) {
+class NamespaceClass<TOp extends RecordType | never, TDecl, TVar> {
+    private readonly [classData]: NamespaceClassData<TOp, TDecl, TVar>;
+    private constructor(data: NamespaceClassData<TOp, TDecl, TVar>) {
         this[classData] = data;
     }
-    static unwrap<
-        T extends FieldType | undefined,
-        O extends RecordType | undefined,
-        P,
-    >(value: Namespace<T, O, P>): NamespaceClassData<T, O, P> {
+    static unwrap<TOp extends RecordType | never, TDecl, TVar>(
+        value: Namespace<T, O, P>,
+    ): NamespaceClassData<T, O, P> {
         return value[classData];
     }
     static wrap<
@@ -296,10 +276,10 @@ class NamespaceClass<
 }
 
 export type Namespace<
-    T extends FieldType | undefined,
-    O extends RecordType | undefined,
-    P = undefined,
-> = NamespaceClass<T, O, P> & NamespaceFields<T, O, P>;
+    TOp extends RecordType | never,
+    TDecl,
+    TVar,
+> = NamespaceClass<TOp, TDecl, TVar> & NamespaceFields<TOp, TDecl, TVar>;
 
 declare const fieldF: Decl<Obj<{ x: Int }>>;
 declare const modF: Mod;
