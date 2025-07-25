@@ -203,11 +203,11 @@ interface NamespaceParams<
 interface NamespaceInternalParams<
     TOp extends RecordType | undefined,
     TDecl,
-    TVar,
+    TType,
 > {
     name: string;
     decl?: TDecl;
-    var?: TVar;
+    t?: TType;
     op?: TOp;
 }
 
@@ -220,24 +220,42 @@ type NamespaceFromParams<
     TType
 >;
 
+type NamespaceFieldsFromParams<
+    TType extends FieldType | undefined,
+    TOp extends RecordType | undefined,
+> = NamespaceFields<
+    TOp,
+    TType extends FieldType ? (info?: Info) => Decl<TType> : undefined,
+    TType
+>;
+
+type NamespaceClassDataFromParams<
+    TType extends FieldType | undefined,
+    TOp extends RecordType | undefined,
+> = NamespaceClassData<
+    TOp,
+    TType extends FieldType ? (info?: Info) => Decl<TType> : undefined,
+    TType
+>;
+
 type NamespaceFields<
     TOp extends RecordType | undefined,
     TDecl,
-    TVar,
+    TType,
 > = RecordType &
     (TOp extends RecordType ? { readonly op: TOp } : unknown) &
     (TDecl extends undefined ? unknown : { readonly decl: TDecl }) &
-    (TVar extends undefined ? unknown : { readonly var: TVar });
+    (TType extends undefined ? unknown : { readonly t: TType });
 
 declare const y23: NamespaceFields<{ x: number }, number, string>;
 
 function wrapNamespaceFields<
     const TOp extends RecordType | undefined,
     const TDecl,
-    const TVar,
+    const TType,
 >(
-    values: NamespaceClassData<TOp, TDecl, TVar>,
-): NamespaceFields<TOp, TDecl, TVar> {
+    values: NamespaceClassData<TOp, TDecl, TType>,
+): NamespaceFields<TOp, TDecl, TType> {
     // return mapFields<T, BFields<T>>(obj, (key, value) => [
     //     [
     //         key,
@@ -250,28 +268,28 @@ function wrapNamespaceFields<
     todo();
 }
 
-interface NamespaceClassData<TOp extends RecordType | undefined, TDecl, TVar> {
+interface NamespaceClassData<TOp extends RecordType | undefined, TDecl, TType> {
     name: string;
     module: Mod;
-    fields: NamespaceFields<TOp, TDecl, TVar>;
+    fields: NamespaceFields<TOp, TDecl, TType>;
 }
-class NamespaceClass<TOp extends RecordType | undefined, TDecl, TVar> {
-    private readonly [classData]: NamespaceClassData<TOp, TDecl, TVar>;
-    private constructor(data: NamespaceClassData<TOp, TDecl, TVar>) {
+class NamespaceClass<TOp extends RecordType | undefined, TDecl, TType> {
+    private readonly [classData]: NamespaceClassData<TOp, TDecl, TType>;
+    private constructor(data: NamespaceClassData<TOp, TDecl, TType>) {
         this[classData] = data;
     }
-    static unwrap<TOp extends RecordType | undefined, TDecl, TVar>(
-        value: Namespace<TOp, TDecl, TVar>,
-    ): NamespaceClassData<TOp, TDecl, TVar> {
+    static unwrap<TOp extends RecordType | undefined, TDecl, TType>(
+        value: Namespace<TOp, TDecl, TType>,
+    ): NamespaceClassData<TOp, TDecl, TType> {
         return value[classData];
     }
     static wrap<
         const TOp extends RecordType | undefined = undefined,
         const TDecl = undefined,
-        const TVar = undefined,
+        const TType = undefined,
     >(
-        value: NamespaceClassData<TOp, TDecl, TVar>,
-    ): Namespace<TOp, TDecl, TVar> {
+        value: NamespaceClassData<TOp, TDecl, TType>,
+    ): Namespace<TOp, TDecl, TType> {
         return wrapProxy(new NamespaceClass(value), wrapNamespaceFields(value));
     }
     static create<
@@ -286,11 +304,11 @@ class NamespaceClass<TOp extends RecordType | undefined, TDecl, TVar> {
     static createInternal<
         const TOp extends RecordType | undefined = undefined,
         const TDecl = undefined,
-        const TVar = undefined,
+        const TType = undefined,
     >(
-        params: NamespaceInternalParams<TOp, TDecl, TVar>,
+        params: NamespaceInternalParams<TOp, TDecl, TType>,
         module: Mod,
-    ): Namespace<TOp, TDecl, TVar> {
+    ): Namespace<TOp, TDecl, TType> {
         todo();
     }
 }
@@ -298,8 +316,8 @@ class NamespaceClass<TOp extends RecordType | undefined, TDecl, TVar> {
 export type Namespace<
     TOp extends RecordType | undefined,
     TDecl,
-    TVar,
-> = NamespaceClass<TOp, TDecl, TVar> & NamespaceFields<TOp, TDecl, TVar>;
+    TType,
+> = NamespaceClass<TOp, TDecl, TType> & NamespaceFields<TOp, TDecl, TType>;
 
 declare const fieldF: Decl<Obj<{ x: Int }>>;
 declare const modF: Mod;
@@ -341,7 +359,7 @@ const f3333 = () => {
     });
     ns3.decl();
 
-    const nsD = ns.var;
+    const nsD = ns.t;
     //    ^?
 
     // const ns4 = createInternalNamespace({
@@ -680,10 +698,11 @@ class ModClass {
     /**
      * Create a new deduction, must be exported to be loaded.
      */
-    deduction<const T extends FieldType>(
-        params: DeductionParams,
-    ): Deduction<T> {
-        return DeductionClass.create(params);
+    deduction<
+        const TType extends FieldType,
+        const TOp extends RecordType | undefined = undefined,
+    >(params: DeductionParams<TType, TOp>): Deduction<TType, TOp> {
+        return DeductionClass.create(params, this);
     }
     /**
      * Create a new logic step, must be exported to be loaded.
@@ -779,22 +798,7 @@ export type LiteralVar<T> = T extends Int
               }
             : never;
 
-interface TypeHolder<T extends FieldType> {
-    var: T;
-}
-
 export type Var<T extends FieldType> = RefVar<T> | CompositeVar<T>;
-
-export type VarOf<T extends TypeHolder<FieldType> | FieldType> = Var<
-    FieldTypeOf<T>
->;
-
-export type FieldTypeOf<T extends TypeHolder<FieldType> | FieldType> =
-    T extends TypeHolder<infer TInner extends FieldType>
-        ? TInner
-        : T extends FieldType
-          ? T
-          : never;
 
 const x = ObjClass.wrap({
     fields: {
@@ -1271,38 +1275,63 @@ class RuleClass {
 
 export type Rule = RuleClass;
 
-interface DeductionParams {
+type DeductionFields<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> = NamespaceFieldsFromParams<TType, TOp>;
+
+interface DeductionParams<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> {
     name: string;
+    decl: Decl<TType>;
+    op?: TOp;
 }
 
-interface DeductionClassData<T extends FieldType> {
+interface DeductionClassData<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> {
     name: string;
-    fieldType: T;
+    module: Mod;
+    namespace: NamespaceClassDataFromParams<TType, TOp>;
 }
-class DeductionClass<T extends FieldType> {
-    private readonly [classData]: DeductionClassData<T>;
+class DeductionClass<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> {
+    private readonly [classData]: DeductionClassData<TType, TOp>;
     private readonly [puzzptExport]: TODO;
-    private constructor(data: DeductionClassData<T>) {
+    private constructor(data: DeductionClassData<TType, TOp>) {
         this[classData] = data;
     }
-    static unwrap<T extends FieldType>(
-        value: Deduction<T>,
-    ): DeductionClassData<T> {
+    static unwrap<TType extends FieldType, TOp extends RecordType | undefined>(
+        value: Deduction<TType, TOp>,
+    ): DeductionClassData<TType, TOp> {
         return value[classData];
     }
-    static wrap<const T extends FieldType>(
-        value: DeductionClassData<T>,
-    ): Deduction<T> {
-        return new DeductionClass(value);
+    static wrap<
+        const TType extends FieldType,
+        const TOp extends RecordType | undefined = undefined,
+    >(value: DeductionClassData<TType, TOp>): Deduction<TType, TOp> {
+        return wrapProxy(
+            new DeductionClass(value),
+            wrapNamespaceFields(value.namespace),
+        );
     }
-    static create<const T extends FieldType>(
-        params: DeductionParams,
-    ): Deduction<T> {
+    static create<
+        const TType extends FieldType,
+        const TOp extends RecordType | undefined = undefined,
+    >(params: DeductionParams<TType, TOp>, module: Mod): Deduction<TType, TOp> {
         todo();
     }
 }
 
-export type Deduction<T extends FieldType> = DeductionClass<T>;
+export type Deduction<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> = DeductionClass<TType, TOp> & DeductionFields<TType, TOp>;
 
 interface LogicStepParams {
     name: string;

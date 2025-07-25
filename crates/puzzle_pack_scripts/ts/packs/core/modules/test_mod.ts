@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Decl, FieldTypeOf, int, Int, Obj, Set, Var, VarOf } from "api/api";
+import { Decl, int, Int, Obj, set, Set, Var } from "api/api";
 
 import { core_pack } from "../core_pack";
 
@@ -15,12 +15,7 @@ export const test_mod = core_pack.module({
     name: "test",
 });
 
-type T = VarOf<typeof int>;
-
 declare const fieldF: Decl<Obj<{ x: Int; y: Int }>>;
-declare const fieldF2: Decl<
-    Obj<{ x: typeof int.var; y: FieldTypeOf<typeof int>; z: Int }>
->;
 
 type PositionMathOp = "+" | "-";
 
@@ -29,10 +24,10 @@ export const position_t = test_mod.namespace({
     decl: fieldF,
     op: {
         math: (
-            a: VarOf<typeof position_t>,
+            a: Var<typeof position_t.t>,
             o: PositionMathOp,
-            b: VarOf<typeof position_t>,
-        ): VarOf<typeof position_t> => {
+            b: Var<typeof position_t.t>,
+        ): Var<typeof position_t.t> => {
             switch (o) {
                 case "+":
                     return {
@@ -48,6 +43,13 @@ export const position_t = test_mod.namespace({
         },
     },
 });
+
+declare const fieldF3: Decl<
+    Obj<{
+        x: typeof position_t.t;
+        y: typeof position_t.t;
+    }>
+>;
 
 const pos1 = position_t.op.math({ x: 1, y: 1 }, "+", { x: 2, y: 2 });
 //    ^?
@@ -66,11 +68,14 @@ function int_type() {}
 
 const arrow = test_mod.deduction({
     name: "arrow",
-    data: {
-        head: position(),
-        cells: field.set(position(), {
+    decl: {
+        head: position_t.decl(),
+        cells: set.decl(position_t.decl(), {
             ordered: true,
         }),
+    },
+    op: {
+        f: () => {},
     },
 });
 

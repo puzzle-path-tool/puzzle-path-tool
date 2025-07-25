@@ -10,8 +10,6 @@ export type {
     LogicStep,
     Decl,
     Var,
-    VarOf,
-    FieldTypeOf,
     LiteralVar,
     Enum,
     Matcher,
