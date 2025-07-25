@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Decl, int, Int, Obj, Set, Var, VarOf } from "api/api";
+import { Decl, FieldTypeOf, int, Int, Obj, Set, Var, VarOf } from "api/api";
+
 import { core_pack } from "../core_pack";
 
 declare const field: any;
@@ -14,7 +15,12 @@ export const test_mod = core_pack.module({
     name: "test",
 });
 
+type T = VarOf<typeof int>;
+
 declare const fieldF: Decl<Obj<{ x: Int; y: Int }>>;
+declare const fieldF2: Decl<
+    Obj<{ x: typeof int.var; y: FieldTypeOf<typeof int>; z: Int }>
+>;
 
 type PositionMathOp = "+" | "-";
 

@@ -391,37 +391,20 @@ class FieldTypeUtil {
 // #endregion
 // #region [Int Field Declaration]
 
-type IntClassData = object;
-
 class IntClass {
-    private readonly [classData]: IntClassData;
-    private constructor(data: IntClassData) {
-        this[classData] = data;
-    }
-    static unwrap(value: Int): IntClassData {
-        return value[classData];
-    }
-    static wrap(value: IntClassData): Int {
-        return new IntClass(value);
-    }
+    private readonly [classData]: undefined = undefined;
+    private constructor() {}
+    static readonly instance = new IntClass();
 }
 export type Int = IntClass;
 
 // #endregion
 // #region [Bool Field Declaration]
 
-type BoolClassData = object;
 class BoolClass {
-    private readonly [classData]: BoolClassData;
-    private constructor(data: BoolClassData) {
-        this[classData] = data;
-    }
-    static unwrap(value: Bool): BoolClassData {
-        return value[classData];
-    }
-    static wrap(value: BoolClassData): Bool {
-        return new BoolClass(value);
-    }
+    private readonly [classData]: undefined = undefined;
+    private constructor() {}
+    static readonly instance = new BoolClass();
 }
 export type Bool = BoolClass;
 
@@ -766,7 +749,7 @@ class RefVarClass<T extends FieldType> {
     }
 }
 
-export type RefVar<T extends FieldType> = RefVarClass<T> & RefVarFields<T>;
+type RefVar<T extends FieldType> = RefVarClass<T> & RefVarFields<T>;
 
 type CompositeVar<T> = T extends Int
     ? number
@@ -802,17 +785,21 @@ interface TypeHolder<T extends FieldType> {
 
 export type Var<T extends FieldType> = RefVar<T> | CompositeVar<T>;
 
-export type VarOf<T extends TypeHolder<FieldType> | FieldType> =
+export type VarOf<T extends TypeHolder<FieldType> | FieldType> = Var<
+    FieldTypeOf<T>
+>;
+
+export type FieldTypeOf<T extends TypeHolder<FieldType> | FieldType> =
     T extends TypeHolder<infer TInner extends FieldType>
-        ? Var<TInner>
+        ? TInner
         : T extends FieldType
-          ? Var<T>
+          ? T
           : never;
 
 const x = ObjClass.wrap({
     fields: {
-        a1: IntClass.wrap({}),
-        a2: IntClass.wrap({}),
+        a1: IntClass.instance,
+        a2: IntClass.instance,
     },
 });
 
@@ -824,7 +811,7 @@ function f11(p: Var<typeof x>, o: "==", p2: Var<typeof x>) {
 f11(
     {
         a1: 1,
-        a2: RefVarClass.wrap({ fieldType: IntClass.wrap({}) }),
+        a2: RefVarClass.wrap({ fieldType: IntClass.instance }),
     },
     "==",
     RefVarClass.wrap({ fieldType: x }),
@@ -867,7 +854,7 @@ type IntAllOp =
 export const int = apiMod.namespace({
     name: "int",
     decl: DeclClass.wrap({
-        fieldType: IntClass.wrap({}),
+        fieldType: IntClass.instance,
     }),
     op: {
         cmp: (a: Var<Int>, o: IntCmpOp, b: Var<Int>): Var<Bool> => {
@@ -1031,7 +1018,7 @@ type BoolAllOp = "==" | "!=" | "true" | "false";
 export const bool = apiMod.namespace({
     name: "bool",
     decl: DeclClass.wrap({
-        fieldType: BoolClass.wrap({}),
+        fieldType: BoolClass.instance,
     }),
     op: {
         cmp: (a: Var<Bool>, o: BoolCmpOp, b: Var<Bool>): Var<Bool> => {
@@ -1090,11 +1077,11 @@ class TableClass<TA extends FieldType, TB extends FieldType> {
 }
 
 const l1 = RefVarClass.wrap({
-    fieldType: IntClass.wrap({}),
+    fieldType: IntClass.instance,
 });
 
 const l2 = RefVarClass.wrap({
-    fieldType: IntClass.wrap({}),
+    fieldType: IntClass.instance,
 });
 
 const l3 = RefVarClass.wrap({
@@ -1106,7 +1093,7 @@ const l3 = RefVarClass.wrap({
 
 const csacas = TableClass.wrap({
     a: EnumClass.wrap({ variants: ["A", "B"] }),
-    b: IntClass.wrap({}),
+    b: IntClass.instance,
     mappings: [
         ["A", 4],
         ["B", 5],
@@ -1117,7 +1104,7 @@ const csacas2 = TableClass.wrap({
     a: EnumClass.wrap({ variants: ["A", "B"] }),
     b: ObjClass.wrap({
         fields: {
-            x: IntClass.wrap({}),
+            x: IntClass.instance,
         },
     }),
     mappings: [
@@ -1345,140 +1332,5 @@ export type LogicStep = LogicStepClass;
 
 // #endregion
 // #region [[Test]]
-
-// const field = {
-//     decl: {
-//         int: IntFieldDeclarationWrapper,
-//         bool: BoolFieldDeclarationWrapper,
-//         enum: EnumFieldDeclarationWrapper,
-//         obj: ObjectFieldDeclarationWrapper,
-//         arr: ArrayFieldDeclarationWrapper,
-//     },
-// } as const;
-
-// const b1 = field.decl.obj.wrap({
-//     fields: {
-//         a: field.decl.int.wrap({}),
-//         b: field.decl.obj.wrap({
-//             fields: {
-//                 c: field.decl.int.wrap({}),
-//                 d: field.decl.int.wrap({}),
-//                 e: field.decl.obj.wrap({
-//                     fields: {
-//                         f: field.decl.int.wrap({}),
-//                         g: field.decl.int.wrap({}),
-//                     },
-//                 }),
-//             },
-//         }),
-//         aa: field.decl.arr.wrap({
-//             item: field.decl.int.wrap({}),
-//         }),
-//         ab: field.decl.arr.wrap({
-//             item: field.decl.obj.wrap({
-//                 fields: {
-//                     a: field.decl.arr.wrap({
-//                         item: field.decl.arr.wrap({
-//                             item: field.decl.int.wrap({}),
-//                         }),
-//                     }),
-//                 },
-//             }),
-//         }),
-//         ac: field.decl.obj.wrap({
-//             fields: {
-//                 a: field.decl.enum.wrap({
-//                     values: ["1", "2", "3"],
-//                 }),
-//             },
-//         }),
-//     },
-// });
-
-// const b2 = field.decl.obj.wrap({
-//     fields: {
-//         a: field.decl.enum.wrap({
-//             values: ["1", "2", "3"],
-//         }),
-//         b: field.decl.bool.wrap({}),
-//     },
-// });
-
-// const f = makeInfix({
-//     x1: (a: string, b: string): string => {
-//         return a + b;
-//     },
-//     x2: (a: number, b: string): number => {
-//         return a;
-//     },
-//     x3: (a: number, b: number): number => {
-//         return a - b;
-//     },
-// });
-
-// const f2 = makePrefix({
-//     x1: (x: string): string => {
-//         return x + ": x1";
-//     },
-//     x2: (x: number): number => {
-//         return x + 3;
-//     },
-//     x3: (x: number): number => {
-//         return x - 5;
-//     },
-//     x4: (x: number): string => {
-//         return `a4: ${x}`;
-//     },
-// });
-
-// console.log(f("Hello", "x1", "World"));
-// console.log(f(1, "x2", "Ignore"));
-// console.log(f(10, "x3", 2));
-
-// console.log(f2("x1", "Hello"));
-// console.log(f2("x2", 3));
-// console.log(f2("x3", 10));
-// console.log(f2("x4", 100));
-
-// const int = {
-//     field: () => todo(),
-//     type: todo(), //
-//     const: () => todo(), //
-//     op: {},
-// };
-
-type TypeDef<Props, F, T, VarT, Op> = {
-    field: (props?: Props) => F;
-    type: T;
-    const: (value: VarT) => VarT;
-    op: Op;
-};
-
-// type VarOf<T extends TypeDef>
-
-// const int2 = makeType({
-//     fields: {},
-//     op: {
-//         do: makeInfix({
-//             "+": (a: number, b: number): number => {
-//                 return a + b;
-//             },
-//         }),
-//     },
-// });
-
-const name12 = {
-    x: 1,
-    type: 3,
-};
-
-// function name12point5(item: Var<typeof name12.type>) {
-//     todo();
-// }
-// function name12point6(item: VarOf<typeof name12>) {
-//     todo();
-// }
-
-const name13: typeof name12.x = 3;
 
 // #endregion
