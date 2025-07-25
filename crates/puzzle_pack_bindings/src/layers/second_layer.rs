@@ -16,6 +16,7 @@ impl TableId {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 struct FieldIdSupplier {
     current: usize,
 }
@@ -28,12 +29,17 @@ impl FieldIdSupplier {
         self.current += 1;
         result
     }
+    fn close_and_get_size(self) -> usize {
+        self.current
+    }
 }
 
+#[derive(Debug, Clone)]
 pub(super) struct DeductionTable {
     id: TableId,
     name: String,
     fields: Vec<Field>,
+    length: usize,
 }
 impl DeductionTable {
     fn new(
@@ -72,14 +78,22 @@ impl DeductionTable {
                 })
                 .concat(),
         );
-        (DeductionTable { id, name, fields }, array_tables)
+        (DeductionTable { id, name, fields, length: field_id_supplier.close_and_get_size() }, array_tables)
+    }
+    pub(super) fn get_id(&self) -> TableId {
+        self.id
+    }
+    pub(super) fn get_length(&self) -> usize {
+        self.length
     }
 }
 
+#[derive(Debug, Clone)]
 pub(super) struct ArrayTable {
     id: TableId,
     ref_id: TableId,
     field: Field,
+    length: usize,
 }
 impl ArrayTable {
     fn new(
@@ -88,13 +102,24 @@ impl ArrayTable {
         field_type: &TODO_FlatFieldTypeStandIn,
     ) -> Vec<ArrayTable> {
         let id = TableId::new();
+        let mut field_id_supplier = FieldIdSupplier::new();
         let (field, mut array_tables) =
-            Field::new(name, id, &mut FieldIdSupplier::new(), field_type);
-        array_tables.push(ArrayTable { id, ref_id, field });
-        return array_tables;
+            Field::new(name, id, &mut field_id_supplier, field_type);
+        array_tables.push(ArrayTable { id, ref_id, field, length: field_id_supplier.close_and_get_size() });
+        array_tables
+    }
+    pub(super) fn get_id(&self) -> TableId {
+        self.id
+    }
+    pub(super) fn get_ref_id(&self) -> TableId {
+        self.ref_id
+    }
+    pub(super) fn get_length(&self) -> usize {
+        self.length
     }
 }
 
+#[derive(Debug, Clone)]
 enum Field {
     Primitive {
         id: usize,
