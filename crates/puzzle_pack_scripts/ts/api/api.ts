@@ -192,37 +192,52 @@ interface Info {
 }
 
 interface NamespaceParams<
-    T extends FieldType | undefined,
-    O extends RecordType | undefined,
+    TType extends FieldType | undefined,
+    TOp extends RecordType | undefined,
 > {
     name: string;
-    decl?: T extends FieldType ? Decl<T> : undefined;
-    op?: O;
+    decl?: TType extends FieldType ? Decl<TType> : undefined;
+    op?: TOp;
 }
+
 interface NamespaceInternalParams<
-    T extends FieldType,
-    O extends RecordType | undefined,
-    D,
+    TOp extends RecordType | undefined,
+    TDecl,
+    TVar,
 > {
     name: string;
-    decl: T extends FieldType
-        ? (param: P extends undefined ? never : P) => Decl<T>
-        : never;
-    op?: O;
+    decl?: TDecl;
+    var?: TVar;
+    op?: TOp;
 }
 
-type NamespaceFields<TOp extends RecordType | never, TDecl, TVar> = RecordType &
-    (TOp extends RecordType ? { readonly op: TOp } : unknown) &
-    ([TDecl] extends [never] ? unknown : { readonly decl: TDecl }) &
-    ([TVar] extends [never] ? unknown : { readonly var: TVar });
+type NamespaceFromParams<
+    TType extends FieldType | undefined,
+    TOp extends RecordType | undefined,
+> = Namespace<
+    TOp,
+    TType extends FieldType ? (info?: Info) => Decl<TType> : undefined,
+    TType
+>;
 
-declare const y23: NamespaceFields<{x: number}, number, string>;
+type NamespaceFields<
+    TOp extends RecordType | undefined,
+    TDecl,
+    TVar,
+> = RecordType &
+    (TOp extends RecordType ? { readonly op: TOp } : unknown) &
+    (TDecl extends undefined ? unknown : { readonly decl: TDecl }) &
+    (TVar extends undefined ? unknown : { readonly var: TVar });
+
+declare const y23: NamespaceFields<{ x: number }, number, string>;
 
 function wrapNamespaceFields<
-    const T extends FieldType | undefined,
-    const O extends RecordType | undefined,
-    const P,
->(values: NamespaceClassData<T, O, P>): NamespaceFields<T, O, P> {
+    const TOp extends RecordType | undefined,
+    const TDecl,
+    const TVar,
+>(
+    values: NamespaceClassData<TOp, TDecl, TVar>,
+): NamespaceFields<TOp, TDecl, TVar> {
     // return mapFields<T, BFields<T>>(obj, (key, value) => [
     //     [
     //         key,
@@ -235,48 +250,53 @@ function wrapNamespaceFields<
     todo();
 }
 
-interface NamespaceClassData<TOp extends RecordType | never, TDecl, TVar> {
+interface NamespaceClassData<TOp extends RecordType | undefined, TDecl, TVar> {
     name: string;
     module: Mod;
     fields: NamespaceFields<TOp, TDecl, TVar>;
 }
-class NamespaceClass<TOp extends RecordType | never, TDecl, TVar> {
+class NamespaceClass<TOp extends RecordType | undefined, TDecl, TVar> {
     private readonly [classData]: NamespaceClassData<TOp, TDecl, TVar>;
     private constructor(data: NamespaceClassData<TOp, TDecl, TVar>) {
         this[classData] = data;
     }
-    static unwrap<TOp extends RecordType | never, TDecl, TVar>(
-        value: Namespace<T, O, P>,
-    ): NamespaceClassData<T, O, P> {
+    static unwrap<TOp extends RecordType | undefined, TDecl, TVar>(
+        value: Namespace<TOp, TDecl, TVar>,
+    ): NamespaceClassData<TOp, TDecl, TVar> {
         return value[classData];
     }
     static wrap<
-        const T extends FieldType | undefined,
-        const O extends RecordType | undefined,
-        const P = undefined,
-    >(value: NamespaceClassData<T, O, P>): Namespace<T, O, P> {
+        const TOp extends RecordType | undefined = undefined,
+        const TDecl = undefined,
+        const TVar = undefined,
+    >(
+        value: NamespaceClassData<TOp, TDecl, TVar>,
+    ): Namespace<TOp, TDecl, TVar> {
         return wrapProxy(new NamespaceClass(value), wrapNamespaceFields(value));
     }
     static create<
-        const T extends FieldType | undefined,
-        const O extends RecordType | undefined,
-    >(params: NamespaceParams<T, O>, module: Mod): Namespace<T, O> {
+        const TType extends FieldType | undefined = undefined,
+        const TOp extends RecordType | undefined = undefined,
+    >(
+        params: NamespaceParams<TType, TOp>,
+        module: Mod,
+    ): NamespaceFromParams<TType, TOp> {
         todo();
     }
     static createInternal<
-        const T extends FieldType,
-        const O extends RecordType | undefined,
-        const P,
+        const TOp extends RecordType | undefined = undefined,
+        const TDecl = undefined,
+        const TVar = undefined,
     >(
-        params: NamespaceInternalParams<T, O, P>,
+        params: NamespaceInternalParams<TOp, TDecl, TVar>,
         module: Mod,
-    ): Namespace<T, O, P> {
+    ): Namespace<TOp, TDecl, TVar> {
         todo();
     }
 }
 
 export type Namespace<
-    TOp extends RecordType | never,
+    TOp extends RecordType | undefined,
     TDecl,
     TVar,
 > = NamespaceClass<TOp, TDecl, TVar> & NamespaceFields<TOp, TDecl, TVar>;
@@ -663,9 +683,9 @@ class ModClass {
      * Create a new namespace.
      */
     namespace<
-        const T extends FieldType | undefined,
-        const O extends RecordType | undefined,
-    >(params: NamespaceParams<T, O>): Namespace<T, O> {
+        TType extends FieldType | undefined = undefined,
+        TOp extends RecordType | undefined = undefined,
+    >(params: NamespaceParams<TType, TOp>): NamespaceFromParams<TType, TOp> {
         return NamespaceClass.create(params, this);
     }
     /**
