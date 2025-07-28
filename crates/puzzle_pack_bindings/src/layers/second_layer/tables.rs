@@ -20,7 +20,7 @@ impl FieldIdSupplier {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct DeductionTable {
+pub(crate) struct DeductionTable {
     id: super::TableId,
     name: String,
     description: String,
@@ -67,16 +67,16 @@ impl DeductionTable {
         );
         (DeductionTable { id, name, description, fields, length: field_id_supplier.close_and_get_size() }, array_tables)
     }
-    pub(super) fn get_id(&self) -> super::TableId {
+    pub(crate) fn get_id(&self) -> super::TableId {
         self.id
     }
-    pub(super) fn get_length(&self) -> usize {
+    pub(crate) fn get_length(&self) -> usize {
         self.length
     }
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct ArrayTable {
+pub(crate) struct ArrayTable {
     id: super::TableId,
     ref_id: super::TableId,
     field: Field,
@@ -95,19 +95,19 @@ impl ArrayTable {
         array_tables.push(ArrayTable { id, ref_id, field, length: field_id_supplier.close_and_get_size() });
         array_tables
     }
-    pub(super) fn get_id(&self) -> super::TableId {
+    pub(crate) fn get_id(&self) -> super::TableId {
         self.id
     }
-    pub(super) fn get_ref_id(&self) -> super::TableId {
+    pub(crate) fn get_ref_id(&self) -> super::TableId {
         self.ref_id
     }
-    pub(super) fn get_length(&self) -> usize {
+    pub(crate) fn get_length(&self) -> usize {
         self.length
     }
 }
 
 #[derive(Debug, Clone)]
-enum Field {
+pub(super) enum Field {
     Primitive {
         id: usize,
         name: String,
