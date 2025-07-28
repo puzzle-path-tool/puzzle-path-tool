@@ -8,11 +8,25 @@ pub struct TableId {
     value: usize,
 }
 
-static COUNTER: atomic::AtomicUsize = atomic::AtomicUsize::new(1);
+static COUNTER_TABLE: atomic::AtomicUsize = atomic::AtomicUsize::new(1);
 impl TableId {
     fn new() -> TableId {
         TableId {
-            value: COUNTER.fetch_add(1, atomic::Ordering::Relaxed),
+            value: COUNTER_TABLE.fetch_add(1, atomic::Ordering::Relaxed),
+        }
+    }
+}
+
+static COUNTER_STEP: atomic::AtomicUsize = atomic::AtomicUsize::new(1);
+#[derive(Debug, Clone, Copy)]
+pub struct StepId {
+    value: usize,
+}
+
+impl StepId {
+    fn new() -> TableId {
+        TableId {
+            value: COUNTER_STEP.fetch_add(1, atomic::Ordering::Relaxed),
         }
     }
 }

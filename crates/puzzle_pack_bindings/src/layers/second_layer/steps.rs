@@ -1,10 +1,11 @@
 use std::fmt::Debug;
 
-use crate::layers::second_layer::{TableId, tables::Field};
+use crate::layers::second_layer::{tables::Field, StepId, TableId};
 
 #[derive(Debug)]
 pub(super) struct LogicStep {
     name: String,
+    id: StepId,
     description: String,
     step_objects: Vec<Box<dyn StepObject>>,
     step_sets: Vec<Box<SetObject>>,
@@ -164,6 +165,11 @@ enum SetOutput {
         set: Box<SetOutput>,
         stand_in_id: usize,
         mapping: SetMapping,
+    },
+    FilteredSet {
+        set: Box<SetOutput>,
+        stand_in_id: usize,
+        filter: BooleanOutput,
     },
     SetObject {
         set_object_id: usize,
