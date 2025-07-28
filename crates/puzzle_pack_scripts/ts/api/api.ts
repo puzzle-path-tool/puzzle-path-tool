@@ -187,28 +187,46 @@ console.log(BWrapper.unwrap(b));
 // #endregion
 // #region [[Namespace]]
 
-interface Info {
+interface InfoParams {
+    doc: string;
+}
+
+interface NamespaceInfoParams {
     name: string;
+    description?: string;
+}
+
+interface NamespaceCreateParams<
+    TType extends FieldType | undefined,
+    TOp extends RecordType | undefined,
+> {
+    decl?: TType extends FieldType ? Decl<TType> : undefined;
+    op?: TOp;
 }
 
 interface NamespaceParams<
     TType extends FieldType | undefined,
     TOp extends RecordType | undefined,
+> extends NamespaceInfoParams {
+    create?: () => NamespaceCreateParams<TType, TOp>;
+}
+
+interface NamespaceInternalCreateParams<
+    TOp extends RecordType | undefined,
+    TDecl,
+    TType,
 > {
-    name: string;
-    decl?: TType extends FieldType ? Decl<TType> : undefined;
     op?: TOp;
+    decl?: TDecl;
+    t?: TType;
 }
 
 interface NamespaceInternalParams<
     TOp extends RecordType | undefined,
     TDecl,
     TType,
-> {
-    name: string;
-    decl?: TDecl;
-    t?: TType;
-    op?: TOp;
+> extends NamespaceInfoParams {
+    create?: () => NamespaceInternalCreateParams<TOp, TDecl, TType>;
 }
 
 type NamespaceFromParams<
@@ -216,7 +234,7 @@ type NamespaceFromParams<
     TOp extends RecordType | undefined,
 > = Namespace<
     TOp,
-    TType extends FieldType ? (info?: Info) => Decl<TType> : undefined,
+    TType extends FieldType ? (info?: InfoParams) => Decl<TType> : undefined,
     TType
 >;
 
@@ -225,7 +243,7 @@ type NamespaceFieldsFromParams<
     TOp extends RecordType | undefined,
 > = NamespaceFields<
     TOp,
-    TType extends FieldType ? (info?: Info) => Decl<TType> : undefined,
+    TType extends FieldType ? (info?: InfoParams) => Decl<TType> : undefined,
     TType
 >;
 
@@ -234,7 +252,7 @@ type NamespaceClassDataFromParams<
     TOp extends RecordType | undefined,
 > = NamespaceClassData<
     TOp,
-    TType extends FieldType ? (info?: Info) => Decl<TType> : undefined,
+    TType extends FieldType ? (info?: InfoParams) => Decl<TType> : undefined,
     TType
 >;
 
@@ -270,6 +288,7 @@ function wrapNamespaceFields<
 
 interface NamespaceClassData<TOp extends RecordType | undefined, TDecl, TType> {
     name: string;
+    description?: string;
     module: Mod;
     fields: NamespaceFields<TOp, TDecl, TType>;
 }
@@ -322,67 +341,13 @@ export type Namespace<
 declare const fieldF: Decl<Obj<{ x: Int }>>;
 declare const modF: Mod;
 
-const f3333 = () => {
-    const ns = NamespaceClass.create(
-        {
-            name: "ns",
-            op: {
-                x: 1,
-                f: <T>(a: T): T => {
-                    return a;
-                },
-            },
-            decl: fieldF,
-        },
-        modF,
-    );
-
-    const ns3 = NamespaceClass.create(
-        {
-            name: "ns",
-            op: {
-                x: 1,
-                f: <T>(a: T): T => {
-                    return a;
-                },
-            },
-            decl: fieldF,
-        },
-        modF,
-    );
-
-    const ns2 = NamespaceClass.create({ name: "" }, modF);
-
-    ns.op.f("dasda");
-    ns.decl({
-        name: "",
-    });
-    ns3.decl();
-
-    const nsD = ns.t;
-    //    ^?
-
-    // const ns4 = createInternalNamespace({
-    //     decl: () => {},
-    //     op: {
-    //         x: 1,
-    //     },
-    // });
-};
-
 // #endregion
 // #region [[Field Types]]
 
 // #region [Field Type]
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type FieldType =
-    | Int
-    | Bool
-    | Enum<any>
-    | Obj<any>
-    | Set<any>
-    | Pool<any>;
+export type FieldType = Int | Bool | Enum<any> | Obj<any> | Set<any>;
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 class FieldTypeUtil {
@@ -400,9 +365,6 @@ class FieldTypeUtil {
     }
     static isSet(value: unknown): value is Set<FieldType> {
         return value instanceof SetClass;
-    }
-    static isPool(value: unknown): value is Pool<FieldType> {
-        return value instanceof PoolClass;
     }
 }
 
@@ -517,26 +479,6 @@ class SetClass<T extends FieldType> {
 export type Set<T extends FieldType> = SetClass<T>;
 
 // #endregion
-// #region Pool Field Declaration
-
-interface PoolClassData<T extends FieldType> {
-    values: T;
-}
-class PoolClass<T extends FieldType> {
-    private readonly [classData]: PoolClassData<T>;
-    private constructor(data: PoolClassData<T>) {
-        this[classData] = data;
-    }
-    static unwrap<T extends FieldType>(value: Pool<T>): PoolClassData<T> {
-        return value[classData];
-    }
-    static wrap<const T extends FieldType>(value: PoolClassData<T>): Pool<T> {
-        return new PoolClass(value);
-    }
-}
-export type Pool<T extends FieldType> = PoolClass<T>;
-
-// #endregion
 
 // #endregion
 // #region [[Decl Value]]
@@ -548,6 +490,7 @@ class DeclClass<T extends FieldType> {
     private readonly [classData]: DeclClassData<T>;
     private constructor(data: DeclClassData<T>) {
         this[classData] = data;
+        this.t = data.fieldType;
     }
     static unwrap<T extends FieldType>(value: Decl<T>): DeclClassData<T> {
         return value[classData];
@@ -555,6 +498,7 @@ class DeclClass<T extends FieldType> {
     static wrap<const T extends FieldType>(value: DeclClassData<T>): Decl<T> {
         return new DeclClass(value);
     }
+    readonly t: T;
 }
 
 export type Decl<T extends FieldType> = DeclClass<T>;
@@ -857,46 +801,48 @@ type IntAllOp =
 
 export const int = apiMod.namespace({
     name: "int",
-    decl: DeclClass.wrap({
-        fieldType: IntClass.instance,
+    create: () => ({
+        decl: DeclClass.wrap({
+            fieldType: IntClass.instance,
+        }),
+        op: {
+            cmp: (a: Var<Int>, o: IntCmpOp, b: Var<Int>): Var<Bool> => {
+                todo();
+            },
+
+            math: (a: Var<Int>, o: IntMathOp, b: Var<Int>): Var<Int> => {
+                todo();
+            },
+
+            fold: (o: IntFoldOp, a: Var<Set<Int>>): Var<Int> => {
+                todo();
+            },
+
+            sum: (...items: Var<Int>[]): Var<Int> => {
+                todo();
+            },
+
+            product: (...items: Var<Int>[]): Var<Int> => {
+                todo();
+            },
+
+            min: (...items: Var<Int>[]): Var<Int> => {
+                todo();
+            },
+
+            max: (...items: Var<Int>[]): Var<Int> => {
+                todo();
+            },
+
+            all: (o: IntAllOp, items: Var<Set<Int>>): Var<Bool> => {
+                todo();
+            },
+
+            is_prime: (...items: Var<Int>[]): Var<Bool> => {
+                todo();
+            },
+        },
     }),
-    op: {
-        cmp: (a: Var<Int>, o: IntCmpOp, b: Var<Int>): Var<Bool> => {
-            todo();
-        },
-
-        math: (a: Var<Int>, o: IntMathOp, b: Var<Int>): Var<Int> => {
-            todo();
-        },
-
-        fold: (o: IntFoldOp, a: Var<Set<Int>>): Var<Int> => {
-            todo();
-        },
-
-        sum: (...items: Var<Int>[]): Var<Int> => {
-            todo();
-        },
-
-        product: (...items: Var<Int>[]): Var<Int> => {
-            todo();
-        },
-
-        min: (...items: Var<Int>[]): Var<Int> => {
-            todo();
-        },
-
-        max: (...items: Var<Int>[]): Var<Int> => {
-            todo();
-        },
-
-        all: (o: IntAllOp, items: Var<Set<Int>>): Var<Bool> => {
-            todo();
-        },
-
-        is_prime: (...items: Var<Int>[]): Var<Bool> => {
-            todo();
-        },
-    },
 });
 
 // #endregion
@@ -925,88 +871,98 @@ type SetAllOp = "==" | "!=" | "disjoint";
 export const set = NamespaceClass.createInternal(
     {
         name: "set",
-        op: {
-            cmp: <T extends FieldType>(
-                a: Var<Set<T>>,
-                o: SetCmpOp,
-                b: Var<Set<T>>,
-            ): Var<Bool> => {
+        create: () => ({
+            decl: <const T extends FieldType>(
+                item: Decl<T>,
+                info?: InfoParams,
+            ): Decl<Set<T>> => {
                 todo();
             },
+            op: {
+                cmp: <const T extends FieldType>(
+                    a: Var<Set<T>>,
+                    o: SetCmpOp,
+                    b: Var<Set<T>>,
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            element_of: <T extends FieldType>(
-                a: Var<T>,
-                o: "element of",
-                b: Var<Set<T>>,
-            ): Var<Bool> => {
-                todo();
-            },
+                element_of: <const T extends FieldType>(
+                    a: Var<T>,
+                    o: "element of",
+                    b: Var<Set<T>>,
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            contains: <T extends FieldType>(
-                a: Var<Set<T>>,
-                o: "contains",
-                b: Var<T>,
-            ): Var<Bool> => {
-                todo();
-            },
+                contains: <const T extends FieldType>(
+                    a: Var<Set<T>>,
+                    o: "contains",
+                    b: Var<T>,
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            join: <T extends FieldType>(
-                a: Var<Set<T>>,
-                o: SetJoinOp,
-                b: Var<Set<T>>,
-            ): Var<Set<T>> => {
-                todo();
-            },
+                join: <const T extends FieldType>(
+                    a: Var<Set<T>>,
+                    o: SetJoinOp,
+                    b: Var<Set<T>>,
+                ): Var<Set<T>> => {
+                    todo();
+                },
 
-            fold: <T extends FieldType>(
-                o: SetFoldOp,
-                items: Var<Set<Set<T>>>,
-            ): Var<Set<T>> => {
-                todo();
-            },
+                fold: <const T extends FieldType>(
+                    o: SetFoldOp,
+                    items: Var<Set<Set<T>>>,
+                ): Var<Set<T>> => {
+                    todo();
+                },
 
-            union: <T extends FieldType>(
-                ...items: Var<Set<T>>[]
-            ): Var<Set<T>> => {
-                todo();
-            },
+                union: <const T extends FieldType>(
+                    ...items: Var<Set<T>>[]
+                ): Var<Set<T>> => {
+                    todo();
+                },
 
-            intersect: <T extends FieldType>(
-                ...items: Var<Set<T>>[]
-            ): Var<Set<T>> => {
-                todo();
-            },
+                intersect: <const T extends FieldType>(
+                    ...items: Var<Set<T>>[]
+                ): Var<Set<T>> => {
+                    todo();
+                },
 
-            disjunctive_union: <T extends FieldType>(
-                ...items: Var<Set<T>>[]
-            ): Var<Set<T>> => {
-                todo();
-            },
+                disjunctive_union: <const T extends FieldType>(
+                    ...items: Var<Set<T>>[]
+                ): Var<Set<T>> => {
+                    todo();
+                },
 
-            all: <T extends FieldType>(
-                o: SetAllOp,
-                items: Var<Set<Set<T>>>,
-            ): Var<Bool> => {
-                todo();
-            },
+                all: <const T extends FieldType>(
+                    o: SetAllOp,
+                    items: Var<Set<Set<T>>>,
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            all_disjoint: <T extends FieldType>(
-                ...items: Var<Set<T>>[]
-            ): Var<Bool> => {
-                todo();
-            },
+                all_disjoint: <const T extends FieldType>(
+                    ...items: Var<Set<T>>[]
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            size: <T extends FieldType>(item: Var<Set<T>>): Var<Int> => {
-                todo();
-            },
+                size: <const T extends FieldType>(
+                    item: Var<Set<T>>,
+                ): Var<Int> => {
+                    todo();
+                },
 
-            map: <T extends FieldType, R extends FieldType>(
-                item: Var<Set<T>>,
-                f: (value: Var<T>) => Var<R>,
-            ): Var<Set<R>> => {
-                todo();
+                map: <const T extends FieldType, R extends FieldType>(
+                    item: Var<Set<T>>,
+                    f: (value: Var<T>) => Var<R>,
+                ): Var<Set<R>> => {
+                    todo();
+                },
             },
-        },
+        }),
     },
     apiMod,
 );
@@ -1021,38 +977,40 @@ type BoolAllOp = "==" | "!=" | "true" | "false";
 
 export const bool = apiMod.namespace({
     name: "bool",
-    decl: DeclClass.wrap({
-        fieldType: BoolClass.instance,
+    create: () => ({
+        decl: DeclClass.wrap({
+            fieldType: BoolClass.instance,
+        }),
+        op: {
+            cmp: (a: Var<Bool>, o: BoolCmpOp, b: Var<Bool>): Var<Bool> => {
+                todo();
+            },
+
+            logic: (a: Var<Bool>, o: BoolLogicOp, b: Var<Bool>): Var<Bool> => {
+                todo();
+            },
+
+            fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
+                todo();
+            },
+
+            all: (o: BoolAllOp, items: Var<Set<Bool>>): Var<Bool> => {
+                todo();
+            },
+
+            none: (...items: Var<Bool>[]): Var<Bool> => {
+                todo();
+            },
+
+            and: (...items: Var<Bool>[]): Var<Bool> => {
+                todo();
+            },
+
+            or: (...items: Var<Bool>[]): Var<Bool> => {
+                todo();
+            },
+        },
     }),
-    op: {
-        cmp: (a: Var<Bool>, o: BoolCmpOp, b: Var<Bool>): Var<Bool> => {
-            todo();
-        },
-
-        logic: (a: Var<Bool>, o: BoolLogicOp, b: Var<Bool>): Var<Bool> => {
-            todo();
-        },
-
-        fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
-            todo();
-        },
-
-        all: (o: BoolAllOp, items: Var<Set<Bool>>): Var<Bool> => {
-            todo();
-        },
-
-        none: (...items: Var<Bool>[]): Var<Bool> => {
-            todo();
-        },
-
-        and: (...items: Var<Bool>[]): Var<Bool> => {
-            todo();
-        },
-
-        or: (...items: Var<Bool>[]): Var<Bool> => {
-            todo();
-        },
-    },
 });
 
 // #endregion
@@ -1124,23 +1082,25 @@ export type Table<TA extends FieldType, TB extends FieldType> = TableClass<
 
 export const table = apiMod.namespace({
     name: "table",
-    op: {
-        forwards: <TA extends FieldType, TB extends FieldType>(
-            item: Var<TA>,
-            o: "via",
-            table: Table<TA, TB>,
-        ): Var<TB> => {
-            todo();
-        },
+    create: () => ({
+        op: {
+            forwards: <const TA extends FieldType, const TB extends FieldType>(
+                item: Var<TA>,
+                o: "via",
+                table: Table<TA, TB>,
+            ): Var<TB> => {
+                todo();
+            },
 
-        backwards: <TA extends FieldType, TB extends FieldType>(
-            item: Var<TB>,
-            o: "via",
-            table: Table<TA, TB>,
-        ): Var<TA> => {
-            todo();
+            backwards: <const TA extends FieldType, const TB extends FieldType>(
+                item: Var<TB>,
+                o: "via",
+                table: Table<TA, TB>,
+            ): Var<TA> => {
+                todo();
+            },
         },
-    },
+    }),
 });
 
 // #endregion
@@ -1149,35 +1109,49 @@ export const table = apiMod.namespace({
 type ObjCmpOp = "==" | "!=";
 type ObjAllOp = "==" | "!=";
 
+type DeclObjOf<T extends RecordType<FieldType>> = {
+    [K in keyof T]: Decl<T[K]>;
+};
+
 export const obj = NamespaceClass.createInternal(
     {
         name: "obj",
-        op: {
-            cmp: <T extends FieldType>(
-                a: Var<T>,
-                o: ObjCmpOp,
-                b: Var<T>,
-            ): Var<Bool> => {
+        create: () => ({
+            decl: <const T extends RecordType<FieldType>>(
+                fields: DeclObjOf<T>,
+                info?: InfoParams,
+            ): Decl<Obj<T>> => {
                 todo();
             },
+            op: {
+                cmp: <const T extends FieldType>(
+                    a: Var<T>,
+                    o: ObjCmpOp,
+                    b: Var<T>,
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            all: <T extends FieldType>(
-                o: ObjAllOp,
-                items: Var<Set<T>>,
-            ): Var<Bool> => {
-                todo();
-            },
+                all: <const T extends FieldType>(
+                    o: ObjAllOp,
+                    items: Var<Set<T>>,
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            equal: <T extends FieldType>(...items: Var<T>[]): Var<Bool> => {
-                todo();
-            },
+                equal: <const T extends FieldType>(
+                    ...items: Var<T>[]
+                ): Var<Bool> => {
+                    todo();
+                },
 
-            none_equal: <T extends FieldType>(
-                ...items: Var<T>[]
-            ): Var<Bool> => {
-                todo();
+                none_equal: <const T extends FieldType>(
+                    ...items: Var<T>[]
+                ): Var<Bool> => {
+                    todo();
+                },
             },
-        },
+        }),
     },
     apiMod,
 );
@@ -1185,36 +1159,69 @@ export const obj = NamespaceClass.createInternal(
 // #endregion
 // #region [Quantor Op]
 
-// interface MatcherClassData {
-//     name: string
-// }
+interface MatcherClassData {
+    name: string;
+}
 
 class MatcherClass {
-    // private readonly [classData]: RefVarClassData;
+    // private readonly [classData]: MatcherClassData;
     // private constructor(data: RefVarClassData<T>) {
     //     this[classData] = data;
     // }
     // static unwrap<T extends FieldType>(value: RefVar<T>): RefVarClassData<T> {
     //     return value[classData];
     // }
+    readonly pool = {
+        get_one: <const T extends FieldType>(
+            deduction: DeductionVar<T>,
+        ): Var<T> => {
+            const item = this.get_one(deduction.t);
+            this.where(pool.op.one(item, "from", deduction));
+            return item;
+        },
+        get_many: <const T extends FieldType>(
+            deduction: DeductionVar<T>,
+        ): Var<Set<T>> => {
+            const items = this.get_many(deduction.t);
+            this.where(pool.op.many(items, "from", deduction));
+            return items;
+        },
+    };
+    get_one<const T extends FieldType>(fieldType: T): Var<T> {
+        todo();
+    }
+    get_many<const T extends FieldType>(fieldType: T): Var<Set<T>> {
+        todo();
+    }
+    debugSymbols<const T extends RecordType>(symbols: T) {}
+    where(condition: Var<Bool>) {}
+    require(condition: Var<Bool>) {}
 }
 
 export type Matcher = MatcherClass;
 
-class EmitterClass {}
+class EmitterClass {
+    emit_one<
+        const TType extends FieldType,
+        const TOp extends RecordType | undefined,
+    >(deduction: Deduction<TType, TOp>, value: Var<TType>) {}
+    emit_error(description: string) {}
+}
 
 export type Emitter = EmitterClass;
 
 export const quantor = apiMod.namespace({
     name: "quantor",
-    op: {
-        all: (f: (matcher: Matcher) => void): Var<Bool> => {
-            todo();
+    create: () => ({
+        op: {
+            all: (f: (matcher: Matcher) => void): Var<Bool> => {
+                todo();
+            },
+            exists: (f: (matcher: Matcher) => void): Var<Bool> => {
+                todo();
+            },
         },
-        exists: (f: (matcher: Matcher) => void): Var<Bool> => {
-            todo();
-        },
-    },
+    }),
 });
 
 // #endregion
@@ -1222,23 +1229,25 @@ export const quantor = apiMod.namespace({
 
 export const pool = apiMod.namespace({
     name: "pool",
-    op: {
-        one: <T extends FieldType>(
-            a: Var<T>,
-            o: "from",
-            b: Var<Pool<T>>,
-        ): Var<Bool> => {
-            todo();
-        },
+    create: () => ({
+        op: {
+            one: <const T extends FieldType>(
+                a: Var<T>,
+                o: "from",
+                b: DeductionVar<T>,
+            ): Var<Bool> => {
+                todo();
+            },
 
-        many: <T extends FieldType>(
-            a: Var<Set<T>>,
-            o: "from",
-            b: Var<Pool<T>>,
-        ): Var<Bool> => {
-            todo();
+            many: <const T extends FieldType>(
+                a: Var<Set<T>>,
+                o: "from",
+                b: DeductionVar<T>,
+            ): Var<Bool> => {
+                todo();
+            },
         },
-    },
+    }),
 });
 
 // #endregion
@@ -1280,13 +1289,19 @@ type DeductionFields<
     TOp extends RecordType | undefined,
 > = NamespaceFieldsFromParams<TType, TOp>;
 
-interface DeductionParams<
+interface DeductionCreateParams<
     TType extends FieldType,
     TOp extends RecordType | undefined,
 > {
-    name: string;
     decl: Decl<TType>;
     op?: TOp;
+}
+
+interface DeductionParams<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> extends NamespaceInfoParams {
+    create?: () => DeductionCreateParams<TType, TOp>;
 }
 
 interface DeductionClassData<
@@ -1326,6 +1341,7 @@ class DeductionClass<
     >(params: DeductionParams<TType, TOp>, module: Mod): Deduction<TType, TOp> {
         todo();
     }
+    readonly t!: TType;
 }
 
 export type Deduction<
@@ -1333,8 +1349,12 @@ export type Deduction<
     TOp extends RecordType | undefined,
 > = DeductionClass<TType, TOp> & DeductionFields<TType, TOp>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DeductionVar<T extends FieldType> = Deduction<T, any>;
+
 interface LogicStepParams {
     name: string;
+    logic: (matcher: Matcher, emitter: Emitter) => void;
 }
 
 interface LogicStepClassData {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Decl, int, Int, Obj, set, Set, Var } from "api/api";
+import { Decl, int, Int, obj, Obj, set, Set, Var } from "api/api";
 
 import { core_pack } from "../core_pack";
 
@@ -18,73 +18,96 @@ export const test_mod = core_pack.module({
 declare const fieldF: Decl<Obj<{ x: Int; y: Int }>>;
 
 type PositionMathOp = "+" | "-";
+type PositionTransformOp = "mod" | "rem";
 
-export const position_t = test_mod.namespace({
+export const position = test_mod.namespace({
     name: "position",
-    decl: fieldF,
-    op: {
-        math: (
-            a: Var<typeof position_t.t>,
-            o: PositionMathOp,
-            b: Var<typeof position_t.t>,
-        ): Var<typeof position_t.t> => {
-            switch (o) {
-                case "+":
-                    return {
-                        x: int.op.math(a.x, "+", b.x),
-                        y: int.op.math(a.y, "+", b.y),
-                    };
-                case "-":
-                    return {
-                        x: int.op.math(a.x, "-", b.x),
-                        y: int.op.math(a.y, "-", b.y),
-                    };
-            }
-        },
+    description: "Position on the Grid",
+    create: () => {
+        const position = obj.decl({
+            x: int.decl({ doc: "Horizontal (X) Position" }),
+            y: int.decl({ doc: "Vertical (Y) Position" }),
+        });
+        const op = {
+            math: (
+                a: Var<typeof position.t>,
+                o: PositionMathOp,
+                b: Var<typeof position.t>,
+            ): Var<typeof position.t> => {
+                switch (o) {
+                    case "+":
+                        return {
+                            x: int.op.math(a.x, "+", b.x),
+                            y: int.op.math(a.y, "+", b.y),
+                        };
+                    case "-":
+                        return {
+                            x: int.op.math(a.x, "-", b.x),
+                            y: int.op.math(a.y, "-", b.y),
+                        };
+                }
+            },
+            transform: (
+                a: Var<typeof position.t>,
+                o: PositionTransformOp,
+                v: Var<Int>,
+            ): Var<typeof position.t> => {
+                switch (o) {
+                    case "mod":
+                        return {
+                            x: int.op.math(a.x, "mod", v),
+                            y: int.op.math(a.y, "mod", v),
+                        };
+                    case "rem":
+                        return {
+                            x: int.op.math(a.x, "rem", v),
+                            y: int.op.math(a.y, "rem", v),
+                        };
+                }
+            },
+        };
+        return {
+            decl: position,
+            op,
+        };
     },
 });
 
 declare const fieldF3: Decl<
     Obj<{
-        x: typeof position_t.t;
-        y: typeof position_t.t;
+        x: typeof position.t;
+        y: typeof position.t;
     }>
 >;
 
-const pos1 = position_t.op.math({ x: 1, y: 1 }, "+", { x: 2, y: 2 });
+const pos1 = position.op.math({ x: 1, y: 1 }, "+", { x: 2, y: 2 });
 //    ^?
-
-export function position(props?: TODO) {
-    return field.object(
-        {
-            x: field.int(),
-            y: field.int(),
-        },
-        props,
-    );
-}
-
-function int_type() {}
 
 const arrow = test_mod.deduction({
     name: "arrow",
-    decl: {
-        head: position_t.decl(),
-        cells: set.decl(position_t.decl(), {
-            ordered: true,
-        }),
-    },
-    op: {
-        f: () => {},
+    create: () => {
+        const arrow = obj.decl({
+            head: position.decl(),
+            cells: set.decl(position.decl()),
+        });
+        const op = {
+            f: () => {},
+        };
+        return {
+            decl: arrow,
+            op,
+        };
     },
 });
 
 const full_set = test_mod.deduction({
     name: "full_set",
-    data: {
-        values: field.set(field.int()),
-        cells: field.set(position()),
-    },
+    create: () => ({
+        decl: obj.decl({
+            values: set.decl(int.decl()),
+            cells: set.decl(position.decl()),
+        }),
+    }),
 });
 
 const another_ded = full_set;
@@ -679,27 +702,36 @@ const step14 = test_mod.step({
 
 const step15 = test_mod.step({
     name: "step15",
-    logic: (matcher: TODO, emitter: TODO) => {
+    logic: (matcher, emitter) => {
         const set1a = matcher.pool.get_one(full_set);
         const set1 = matcher.pool.get_one(full_set);
-        matcher.debugSymbols({ set1a });
+        matcher.debugSymbols({ set1a, set1 });
 
-        const max_value = matcher.get_one(ty.int());
-        matcher.where(op.cmp(op.set.max(set1.values), "==", max_value));
+        const max_value = matcher.get_one(int.t);
+        matcher.where(
+            int.op.cmp(int.op.fold("max", set1.values), "==", max_value),
+        );
 
-        const value_sum = matcher.get_one(ty.int());
-        matcher.where(op.cmp(op.set.sum(set1.values), "==", value_sum));
+        const value_sum = matcher.get_one(int.t);
+        matcher.where(
+            int.op.cmp(int.op.fold("+", set1.values), "==", value_sum),
+        );
 
-        matcher.require(op.cmp(op.int(max_value, "*", 3), ">", value_sum));
+        matcher.require(
+            int.op.cmp(int.op.math(max_value, "*", 3), ">", value_sum),
+        );
 
-        const output = another_ded.const({
-            max: max_value,
-            sum: value_sum,
+        // const output = {
+        //     max: max_value,
+        //     sum: value_sum,
+        // };
+
+        // matcher.require(another_ded.op.fold(""));
+        // matcher.require(another_ded.invariant.something(output));
+
+        emitter.emit_one(another_ded, {
+            cells: set1a.cells,
+            values: set1.values,
         });
-
-        matcher.require(another_ded.op.fold(""));
-        matcher.require(another_ded.invariant.something(output));
-
-        emitter.emit_one(another_ded, output);
     },
 });
