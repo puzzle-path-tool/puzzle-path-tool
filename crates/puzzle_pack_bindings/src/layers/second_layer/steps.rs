@@ -1,44 +1,35 @@
 use std::fmt::Debug;
 
-use crate::layers::second_layer::{tables::Field, StepId, TableId};
+use crate::layers::second_layer::{StepId, TableId, tables::Field};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) struct LogicStep {
     name: String,
     id: StepId,
     description: String,
-    step_objects: Vec<Box<dyn StepObject>>,
+    step_objects: Vec<Box<StepObject>>,
     step_sets: Vec<Box<SetObject>>,
     match_statement: BooleanOutput,
 }
 
-trait StepObject: Debug {}
-trait SetObjectValue: Debug {}
-
-#[derive(Debug, Clone, Copy)]
-struct DeductionObject {
-    id: usize,
-    table: TableId,
-    in_pool: bool,
-    emmit_or_consum: bool,
-}
-impl StepObject for DeductionObject {}
-impl SetObjectValue for DeductionObject {}
-
 #[derive(Debug, Clone)]
-struct BuildObject {
-    id: usize,
-    fields: Vec<Field>,
+enum StepObject {
+    DeductionObject {
+        id: usize,
+        table: TableId,
+        in_pool: bool,
+        emmit_or_consum: bool,
+    },
+    BuildObject {
+        id: usize,
+        fields: Vec<Field>,
+    },
 }
-impl StepObject for BuildObject {}
-
-impl SetObjectValue for BuildObject {}
-
-#[derive(Debug)]
-struct SetObject {
-    object: Box<dyn SetObjectValue>,
+#[derive(Debug, Clone)]
+enum SetObject {
+    SetOfObjects(Box<StepObject>),
+    SetOfSets(Box<SetObject>),
 }
-impl SetObjectValue for SetObject {}
 
 #[derive(Debug, Clone)]
 enum BooleanOutput {
