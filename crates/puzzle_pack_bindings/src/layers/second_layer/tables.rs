@@ -109,7 +109,7 @@ impl ArrayTable {
 }
 
 #[derive(Debug, Clone)]
-pub(super) enum Field {
+pub(crate) enum Field {
     Primitive {
         id: usize,
         name: String,

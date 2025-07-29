@@ -3,17 +3,35 @@ use std::fmt::Debug;
 use crate::layers::second_layer::{StepId, TableId, tables::Field};
 
 #[derive(Debug, Clone)]
-pub(super) struct LogicStep {
+pub(crate) struct LogicStep {
     name: String,
     id: StepId,
     description: String,
-    step_objects: Vec<Box<StepObject>>,
-    step_sets: Vec<Box<SetObject>>,
+    step_objects: Vec<StepObject>,
+    step_sets: Vec<SetObject>,
     match_statement: BooleanOutput,
+}
+impl LogicStep {
+    pub(crate) fn get_id(&self) -> StepId{
+        self.id
+    }
+    pub(crate) fn get_step_objects(&self) -> Vec<&StepObject>{
+        self.step_objects.iter().map(|item|{
+            item
+        }).collect()
+    }
+    pub(crate) fn get_step_sets(&self) -> Vec<&SetObject>{
+        self.step_sets.iter().map(|item|{
+            item
+        }).collect()
+    }
+    pub(crate) fn get_match_statement(&self) -> &BooleanOutput {
+        &self.match_statement
+    }
 }
 
 #[derive(Debug, Clone)]
-enum StepObject {
+pub(crate) enum StepObject {
     DeductionObject {
         id: usize,
         table: TableId,
@@ -26,8 +44,8 @@ enum StepObject {
     },
 }
 #[derive(Debug, Clone)]
-enum SetObject {
-    SetOfObjects(Box<StepObject>),
+pub(crate) enum SetObject {
+    SetOfObjects(StepObject),
     SetOfSets(Box<SetObject>),
 }
 
