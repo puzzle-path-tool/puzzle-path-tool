@@ -1,5 +1,6 @@
 use itertools::Itertools;
 
+use crate::layers::second_layer::TableId;
 
 #[derive(Debug, Clone, Copy)]
 struct FieldIdSupplier {
@@ -35,17 +36,9 @@ impl DeductionTable {
     ) -> (DeductionTable, Vec<ArrayTable>) {
         let id = super::TableId::new();
         let mut field_id_supplier = FieldIdSupplier::new();
-        let (fields, mut array_tables) = field_types
+        let (fields, array_tables) = field_types
             .iter()
-            .filter_map(|(name, field_type)| match field_type {
-                TODO_FieldTypeStandIn::Array(_flat_field_type) => None,
-                TODO_FieldTypeStandIn::Flat(flat_field_tiype) => Some(Field::new(
-                    name,
-                    id,
-                    &mut field_id_supplier,
-                    flat_field_tiype,
-                )),
-            })
+            .map(|(name, field_type)| Field::new(name, id, &mut field_id_supplier, field_type))
             .fold(
                 (vec![], vec![]),
                 |(mut field_acc, mut array_acc), (field_item, mut array_tables_item)| {
@@ -54,18 +47,16 @@ impl DeductionTable {
                     (field_acc, array_acc)
                 },
             );
-        array_tables.append(
-            &mut field_types
-                .iter()
-                .filter_map(|(field_name, field_type)| match field_type {
-                    TODO_FieldTypeStandIn::Array(field_type) => {
-                        Some(ArrayTable::new(field_name, id, field_type))
-                    }
-                    TODO_FieldTypeStandIn::Flat(_todo_flat_field_type_stand_in) => None,
-                })
-                .concat(),
-        );
-        (DeductionTable { id, name, description, fields, length: field_id_supplier.close_and_get_size() }, array_tables)
+        (
+            DeductionTable {
+                id,
+                name,
+                description,
+                fields,
+                length: field_id_supplier.close_and_get_size(),
+            },
+            array_tables,
+        )
     }
     pub(crate) fn get_id(&self) -> super::TableId {
         self.id
@@ -87,13 +78,24 @@ impl ArrayTable {
         name: &String,
         ref_id: super::TableId,
         field_type: &TODO_FlatFieldTypeStandIn,
-    ) -> Vec<ArrayTable> {
+    ) -> (TableId, Vec<ArrayTable>) {
         let id = super::TableId::new();
         let mut field_id_supplier = FieldIdSupplier::new();
-        let (field, mut array_tables) =
-            Field::new(name, id, &mut field_id_supplier, field_type);
-        array_tables.push(ArrayTable { id, ref_id, field, length: field_id_supplier.close_and_get_size() });
-        array_tables
+        let (field, mut array_tables) = Field::new(
+            name,
+            id,
+            &mut field_id_supplier,
+            &TODO_FieldTypeStandIn::Flat(field_type.clone()),
+        );
+        let array_table = ArrayTable {
+            id,
+            ref_id,
+            field,
+            length: field_id_supplier.close_and_get_size(),
+        };
+        let table_id = array_table.get_id();
+        array_tables.push(array_table);
+        (table_id, array_tables)
     }
     pub(crate) fn get_id(&self) -> super::TableId {
         self.id
@@ -117,64 +119,55 @@ pub(super) enum Field {
         name: String,
         fields: Vec<Field>,
     },
+    Array {
+        id: TableId,
+    },
 }
 impl Field {
     fn new(
         name: &String,
         ref_id: super::TableId,
         id_supplier: &mut FieldIdSupplier,
-        field_type: &TODO_FlatFieldTypeStandIn,
+        field_type: &TODO_FieldTypeStandIn,
     ) -> (Field, Vec<ArrayTable>) {
         match field_type {
-            TODO_FlatFieldTypeStandIn::Object(items) => {
-                let (fields, mut array_tables) = items
-                    .iter()
-                    .filter_map(|(field_name, field_type)| match field_type {
-                        TODO_FieldTypeStandIn::Array(_field_type) => None,
-                        TODO_FieldTypeStandIn::Flat(todo_flat_field_type_stand_in) => {
-                            Some(Field::new(
-                                field_name,
-                                ref_id,
-                                id_supplier,
-                                todo_flat_field_type_stand_in,
-                            ))
-                        }
-                    })
-                    .fold(
-                        (vec![], vec![]),
-                        |(mut field_acc, mut array_acc), (field_item, mut array_tables_item)| {
-                            field_acc.push(field_item);
-                            array_acc.append(&mut array_tables_item);
-                            (field_acc, array_acc)
-                        },
-                    );
-                array_tables.append(
-                    &mut items
-                        .iter()
-                        .filter_map(|(field_name, field_type)| match field_type {
-                            TODO_FieldTypeStandIn::Array(field_type) => {
-                                Some(ArrayTable::new(field_name, ref_id, field_type))
-                            }
-                            TODO_FieldTypeStandIn::Flat(_todo_flat_field_type_stand_in) => None,
-                        })
-                        .concat(),
-                );
-                (
-                    Field::Object {
-                        name: name.clone(),
-                        fields,
-                    },
-                    array_tables,
-                )
+            TODO_FieldTypeStandIn::Array(flat_field_type) => {
+                let (array_id, array_tables) = ArrayTable::new(name, ref_id, flat_field_type);
+                (Field::Array { id: array_id }, array_tables)
             }
-            TODO_FlatFieldTypeStandIn::Primitive(field_type) => (
-                Field::Primitive {
-                    id: id_supplier.next(),
-                    name: name.clone(),
-                    field_type: field_type.clone(),
-                },
-                vec![],
-            ),
+            TODO_FieldTypeStandIn::Flat(flat_field_type) => match flat_field_type {
+                TODO_FlatFieldTypeStandIn::Object(items) => {
+                    let (fields, array_tables) = items
+                        .iter()
+                        .map(|(field_name, field_type)| {
+                            Field::new(field_name, ref_id, id_supplier, field_type)
+                        })
+                        .fold(
+                            (vec![], vec![]),
+                            |(mut field_acc, mut array_acc),
+                             (field_item, mut array_tables_item)| {
+                                field_acc.push(field_item);
+                                array_acc.append(&mut array_tables_item);
+                                (field_acc, array_acc)
+                            },
+                        );
+                    (
+                        Field::Object {
+                            name: name.clone(),
+                            fields,
+                        },
+                        array_tables,
+                    )
+                }
+                TODO_FlatFieldTypeStandIn::Primitive(field_type) => (
+                    Field::Primitive {
+                        id: id_supplier.next(),
+                        name: name.clone(),
+                        field_type: field_type.clone(),
+                    },
+                    vec![],
+                ),
+            },
         }
     }
 }
