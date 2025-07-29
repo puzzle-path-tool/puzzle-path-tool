@@ -6,23 +6,17 @@ import {
     required_value,
 } from "./deductions";
 
-declare const quantor: any;
-declare const set: any;
-declare const int: any;
-type TODO = any;
-const todo = "TODO";
-
 const required_from_full_set = classic_mod.step({
     name: "required_from_full_set",
-    logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.pool.get_one(full_set);
+    logic: (matcher, emitter) => {
+        const set1 = matcher.pool.getOne(full_set);
 
-        const cell_set = matcher.pool.get_many(allowed_values.cells);
+        const cell_set = matcher.pool.getMany(allowed_values.cells);
         matcher.where(set.do(cell_set, "true subset of", set1.cells));
-        const value = matcher.get_one(int);
+        const value = matcher.getOne(int);
         matcher.where(
-            quantor.all((matcher: TODO) => {
-                const allowed_values1 = matcher.pool.get_one(allowed_values);
+            quantor.all((matcher) => {
+                const allowed_values1 = matcher.pool.getOne(allowed_values);
                 matcher.require(
                     set.do(allowed_values1.cell, "element of", cell_set),
                 );
@@ -32,8 +26,8 @@ const required_from_full_set = classic_mod.step({
             }),
         );
         matcher.require(
-            quantor.all((matcher: TODO) => {
-                const allowed_values1 = matcher.pool.get_one(allowed_values);
+            quantor.all((matcher) => {
+                const allowed_values1 = matcher.pool.getOne(allowed_values);
                 matcher.where(
                     set.do(
                         allowed_values1.cell,
@@ -47,7 +41,7 @@ const required_from_full_set = classic_mod.step({
             }),
         );
 
-        emitter.emit(required_value, [
+        emitter.emitOne(required_value, [
             {
                 cells: cell_set,
                 value: value,
@@ -58,14 +52,14 @@ const required_from_full_set = classic_mod.step({
 
 const required_in_non_repeat_set = classic_mod.step({
     name: "required_in_non_repeat_set",
-    logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.pool.get_one(non_repeat_set);
-        const required_value1 = matcher.pool.get_one(required_value);
+    logic: (matcher, emitter) => {
+        const set1 = matcher.pool.getOne(non_repeat_set);
+        const required_value1 = matcher.pool.getOne(required_value);
         matcher.require(
             set.do(required_value1.cells, "true subset of", set1.cells),
         );
 
-        const allowed_values_set = matcher.pool.get_many(allowed_values, {
+        const allowed_values_set = matcher.pool.getMany(allowed_values, {
             invalidate: true,
         });
         matcher.where(
@@ -78,7 +72,7 @@ const required_in_non_repeat_set = classic_mod.step({
             ),
         );
 
-        emitter.emit(
+        emitter.emitOne(
             allowed_values,
             set.op.map(allowed_values_set, (x: TODO) => {
                 return {
@@ -92,8 +86,8 @@ const required_in_non_repeat_set = classic_mod.step({
 
 const required_set_to_allowed = classic_mod.step({
     name: "required_set_to_allowed",
-    logic: (matcher: TODO, emitter: TODO) => {
-        const required_value_set = matcher.pool.get_many(required_value);
+    logic: (matcher, emitter) => {
+        const required_value_set = matcher.pool.getMany(required_value);
         const cells = set.union(
             set.op.map(required_value_set, (x: TODO) => {
                 return x.cells;
@@ -103,7 +97,7 @@ const required_set_to_allowed = classic_mod.step({
             int.op.cmp(required_value_set.size(), "==", cells.size),
         );
 
-        emitter.emit(
+        emitter.emitOne(
             allowed_values,
             set.op.map(cells, (i: TODO) => {
                 return {

@@ -1,19 +1,12 @@
 import { classic_mod } from "../classic_mod";
 import { allowed_values, full_set, non_repeat_set } from "./deductions";
 
-declare const quantor: any;
-declare const set: any;
-declare const int: any;
-declare const obj: any;
-type TODO = any;
-const todo = "TODO";
-
 const split_full_set_step = classic_mod.step({
     name: "split_full_set",
-    logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.pool.get_one(full_set);
+    logic: (matcher, emitter) => {
+        const set1 = matcher.pool.getOne(full_set);
 
-        const allowed_values_set = matcher.pool.get_many(allowed_values);
+        const allowed_values_set = matcher.pool.getMany(allowed_values);
         matcher.where(
             set.do(
                 set.op.map(allowed_values_set, (x: TODO) => {
@@ -37,7 +30,7 @@ const split_full_set_step = classic_mod.step({
             values: values,
         };
 
-        emitter.emit(full_set, [
+        emitter.emitOne(full_set, [
             set2,
             {
                 cells: set.do(set1.cells, "without", set2.cells),
@@ -45,7 +38,7 @@ const split_full_set_step = classic_mod.step({
             },
         ]);
 
-        const outer_allowed_values_set = matcher.pool.get_many(
+        const outer_allowed_values_set = matcher.pool.getMany(
             allowed_values_set,
             {
                 invalidate: true,
@@ -61,7 +54,7 @@ const split_full_set_step = classic_mod.step({
             ),
         );
 
-        emitter.emit(
+        emitter.emitOne(
             allowed_values,
             set.op.map(outer_allowed_values_set, (i: TODO) => {
                 return {
@@ -77,10 +70,10 @@ const split_full_set_step = classic_mod.step({
 
 const split_non_repeat_set_step = classic_mod.step({
     name: "split_non_repeat_set",
-    logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.pool.get_one(non_repeat_set);
+    logic: (matcher, emitter) => {
+        const set1 = matcher.pool.getOne(non_repeat_set);
 
-        const allowed_values_set = matcher.pool.get_many(allowed_values);
+        const allowed_values_set = matcher.pool.getMany(allowed_values);
         matcher.require(
             set.do(
                 set.op.map(allowed_values_set, (x: TODO) => {
@@ -104,9 +97,9 @@ const split_non_repeat_set_step = classic_mod.step({
             values: values,
         };
 
-        emitter.emit(full_set, [set2]);
+        emitter.emitOne(full_set, [set2]);
 
-        const outer_allowed_values_set = matcher.pool.get_many(allowed_values, {
+        const outer_allowed_values_set = matcher.pool.getMany(allowed_values, {
             invalidate: true,
         });
         matcher.where(
@@ -119,7 +112,7 @@ const split_non_repeat_set_step = classic_mod.step({
             ),
         );
 
-        emitter.emit(
+        emitter.emitOne(
             allowed_values,
             set.op.map(outer_allowed_values_set, (i: TODO) => {
                 return {

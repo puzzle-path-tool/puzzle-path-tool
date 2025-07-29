@@ -636,8 +636,11 @@ class ModClass {
     /**
      * Create a new rule, must be exported to be loaded.
      */
-    rule(params: RuleParams): Rule {
-        return RuleClass.create(params);
+    rule<
+        const TType extends FieldType,
+        const TOp extends RecordType | undefined = undefined,
+    >(params: RuleParams<TType, TOp>): Rule<TType, TOp> {
+        return RuleClass.create(params, this);
     }
     /**
      * Create a new deduction, must be exported to be loaded.
@@ -1172,25 +1175,25 @@ class MatcherClass {
     //     return value[classData];
     // }
     readonly pool = {
-        get_one: <const T extends FieldType>(
-            deduction: DeductionVar<T>,
+        getOne: <const T extends FieldType>(
+            deduction: DeductionLikeVar<T>,
         ): Var<T> => {
-            const item = this.get_one(deduction.t);
+            const item = this.getOne(deduction.t);
             this.where(pool.op.one(item, "from", deduction));
             return item;
         },
-        get_many: <const T extends FieldType>(
-            deduction: DeductionVar<T>,
+        getMany: <const T extends FieldType>(
+            deduction: DeductionLikeVar<T>,
         ): Var<Set<T>> => {
-            const items = this.get_many(deduction.t);
+            const items = this.getMany(deduction.t);
             this.where(pool.op.many(items, "from", deduction));
             return items;
         },
     };
-    get_one<const T extends FieldType>(fieldType: T): Var<T> {
+    getOne<const T extends FieldType>(fieldType: T): Var<T> {
         todo();
     }
-    get_many<const T extends FieldType>(fieldType: T): Var<Set<T>> {
+    getMany<const T extends FieldType>(fieldType: T): Var<Set<T>> {
         todo();
     }
     debugSymbols<const T extends RecordType>(symbols: T) {}
@@ -1201,11 +1204,17 @@ class MatcherClass {
 export type Matcher = MatcherClass;
 
 class EmitterClass {
-    emit_one<
-        const TType extends FieldType,
-        const TOp extends RecordType | undefined,
-    >(deduction: Deduction<TType, TOp>, value: Var<TType>) {}
-    emit_error(description: string) {}
+    emitOne<const T extends FieldType>(
+        deduction: DeductionLikeVar<T>,
+        value: Var<T>,
+        description?: string,
+    ) {}
+    emitError(description?: string) {}
+    emitRuleResolved<const T extends FieldType>(
+        rule: RuleVar<T>,
+        value: Var<T>,
+        description?: string,
+    ) {}
 }
 
 export type Emitter = EmitterClass;
@@ -1234,7 +1243,7 @@ export const pool = apiMod.namespace({
             one: <const T extends FieldType>(
                 a: Var<T>,
                 o: "from",
-                b: DeductionVar<T>,
+                b: DeductionLikeVar<T>,
             ): Var<Bool> => {
                 todo();
             },
@@ -1242,7 +1251,7 @@ export const pool = apiMod.namespace({
             many: <const T extends FieldType>(
                 a: Var<Set<T>>,
                 o: "from",
-                b: DeductionVar<T>,
+                b: DeductionLikeVar<T>,
             ): Var<Bool> => {
                 todo();
             },
@@ -1257,32 +1266,6 @@ export const pool = apiMod.namespace({
 
 // #endregion
 // #region [[Export]]
-
-interface RuleParams {
-    name: string;
-}
-
-interface RuleClassData {
-    name: string;
-}
-class RuleClass {
-    private readonly [classData]: RuleClassData;
-    private readonly [puzzptExport]: TODO;
-    private constructor(data: RuleClassData) {
-        this[classData] = data;
-    }
-    static unwrap(value: Rule): RuleClassData {
-        return value[classData];
-    }
-    static wrap(value: RuleClassData): Rule {
-        return new RuleClass(value);
-    }
-    static create(params: RuleParams): Rule {
-        todo();
-    }
-}
-
-export type Rule = RuleClass;
 
 type DeductionFields<
     TType extends FieldType,
@@ -1351,6 +1334,77 @@ export type Deduction<
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DeductionVar<T extends FieldType> = Deduction<T, any>;
+
+type RuleFields<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> = NamespaceFieldsFromParams<TType, TOp>;
+
+interface RuleCreateParams<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> {
+    decl: Decl<TType>;
+    op?: TOp;
+}
+
+interface RuleParams<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> extends NamespaceInfoParams {
+    create?: () => RuleCreateParams<TType, TOp>;
+}
+
+interface RuleClassData<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> extends DeductionClassData<TType, TOp> {
+    a: string;
+}
+class RuleClass<TType extends FieldType, TOp extends RecordType | undefined> {
+    private readonly [classData]: RuleClassData<TType, TOp>;
+    private readonly [puzzptExport]: TODO;
+    private constructor(data: RuleClassData<TType, TOp>) {
+        this[classData] = data;
+    }
+    static unwrap<TType extends FieldType, TOp extends RecordType | undefined>(
+        value: Rule<TType, TOp>,
+    ): RuleClassData<TType, TOp> {
+        return value[classData];
+    }
+    static wrap<
+        const TType extends FieldType,
+        const TOp extends RecordType | undefined = undefined,
+    >(value: RuleClassData<TType, TOp>): Rule<TType, TOp> {
+        return wrapProxy(
+            new RuleClass(value),
+            wrapNamespaceFields(value.namespace),
+        );
+    }
+    static create<
+        const TType extends FieldType,
+        const TOp extends RecordType | undefined = undefined,
+    >(params: RuleParams<TType, TOp>, module: Mod): Rule<TType, TOp> {
+        todo();
+    }
+    readonly t!: TType;
+}
+
+export type Rule<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> = RuleClass<TType, TOp> & RuleFields<TType, TOp>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RuleVar<T extends FieldType> = Rule<T, any>;
+
+type DeductionLike<
+    TType extends FieldType,
+    TOp extends RecordType | undefined,
+> = Deduction<TType, TOp> | Rule<TType, TOp>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DeductionLikeVar<T extends FieldType> = DeductionLike<T, any>;
 
 interface LogicStepParams {
     name: string;
