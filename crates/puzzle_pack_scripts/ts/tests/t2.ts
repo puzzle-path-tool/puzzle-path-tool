@@ -9,3 +9,7 @@ type X<A, B, C> = ([A] extends [never] ? unknown : { a: A }) &
     ([C] extends [never] ? unknown : { c: C });
 
 declare const x: X<number, string, never>;
+
+function f<const T extends X<A, B, C>, const A, const B, const C>(p: T) {}
+
+f<X<string, never, never>, string, never, never>({ a: "1" });

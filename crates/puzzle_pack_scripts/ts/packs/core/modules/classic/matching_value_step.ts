@@ -6,19 +6,12 @@ import {
     non_repeat_set,
 } from "./deductions";
 
-declare const quantor: any;
-declare const set: any;
-declare const obj: any;
-declare const int: any;
-type TODO = any;
-const todo = "TODO";
-
 const matching_from_full_set = classic_mod.step({
     name: "matching_from_full_set",
-    logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.pool.get_one(full_set);
-        const set2 = matcher.pool.get_one(full_set);
-        matcher.require(set.op.cmp(set1, "!=", set2))
+    logic: (matcher, emitter) => {
+        const set1 = matcher.pool.getOne(full_set);
+        const set2 = matcher.pool.getOne(full_set);
+        matcher.require(set.op.cmp(set1, "!=", set2));
 
         const set1w2 = set.do(set1.cells, "without", set2.cells);
         const set2w1 = set.do(set2.cells, "without", set1.cells);
@@ -26,13 +19,13 @@ const matching_from_full_set = classic_mod.step({
         matcher.where(int.op.cmp(set1w2.size, "==", 1));
         matcher.where(int.op.cmp(set2w1.size, "==", 1));
 
-        const cell1 = matcher.pool.get_one(allowed_values.cell);
+        const cell1 = matcher.pool.getOne(allowed_values.cell);
         matcher.require(set.do(cell1, "element of", set1w2));
 
-        const cell2 = matcher.pool.get_one(allowed_values.cell);
+        const cell2 = matcher.pool.getOne(allowed_values.cell);
         matcher.require(set.do(cell1, "element of", set2w1));
 
-        emitter.emit(matching_cells, [
+        emitter.emitOne(matching_cells, [
             {
                 cells: [cell1, cell2],
             },
@@ -42,12 +35,12 @@ const matching_from_full_set = classic_mod.step({
 
 const increase_matching_from_full_set = classic_mod.step({
     name: "increase_matching_from_full_set",
-    logic: (matcher: TODO, emitter: TODO) => {
-        const set1 = matcher.pool.get_one(full_set);
-        const matching_cells1 = matcher.pool.get_one(matching_cells, {
+    logic: (matcher, emitter) => {
+        const set1 = matcher.pool.getOne(full_set);
+        const matching_cells1 = matcher.pool.getOne(matching_cells, {
             invalidate: true,
         });
-        const allowed_values1 = matcher.pool.get_one(allowed_values);
+        const allowed_values1 = matcher.pool.getOne(allowed_values);
 
         matcher.where(set.do(allowed_values1.values, "subset of", set1.values));
         matcher.where(
@@ -61,11 +54,11 @@ const increase_matching_from_full_set = classic_mod.step({
             ),
         );
 
-        const non_repeat_set_set = matcher.pool.get_many(non_repeat_set);
+        const non_repeat_set_set = matcher.pool.getMany(non_repeat_set);
         matcher.where(
-            quantor.all((matcher: TODO) => {
+            quantor.all((matcher) => {
                 const current_non_repeat_set =
-                    matcher.pool.get_one(non_repeat_set);
+                    matcher.pool.getOne(non_repeat_set);
                 matcher.require(
                     int.op.cmp(
                         set.do(
@@ -93,7 +86,7 @@ const increase_matching_from_full_set = classic_mod.step({
         );
         matcher.require(int.op.cmp(cells1.size, "==", 1));
 
-        emitter.emit(matching_cells, [
+        emitter.emitOne(matching_cells, [
             { cells: set.do(matching_cells1.cells, "union", cells1) },
         ]);
     },
