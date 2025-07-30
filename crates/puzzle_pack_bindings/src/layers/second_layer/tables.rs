@@ -170,6 +170,24 @@ impl Field {
             },
         }
     }
+    pub(crate) fn flatten(&self) -> (Vec<usize>, Vec<TableId>) {
+        match self {
+            Field::Primitive { id, name: _, field_type: _ } => {
+                (vec![*id], vec![])
+            },
+            Field::Object { name: _, fields } => {
+                fields.iter().fold((vec![], vec![]), |(mut id_acc, mut array_acc), item|{
+                    let (mut current_ids, mut current_arrays) = item.flatten();
+                    id_acc.append(&mut current_ids);
+                    array_acc.append(&mut current_arrays);
+                    (id_acc, array_acc)
+                })
+            },
+            Field::Array { id } => {
+                (vec![], vec![*id])
+            },
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]

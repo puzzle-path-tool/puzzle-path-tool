@@ -3,7 +3,7 @@ use std::sync::atomic;
 pub(super) mod tables;
 pub(super) mod steps;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct TableId {
     value: usize,
 }
@@ -18,7 +18,7 @@ impl TableId {
 }
 
 static COUNTER_STEP: atomic::AtomicUsize = atomic::AtomicUsize::new(1);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct StepId {
     value: usize,
 }

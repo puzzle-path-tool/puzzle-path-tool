@@ -12,18 +12,14 @@ pub(crate) struct LogicStep {
     match_statement: BooleanOutput,
 }
 impl LogicStep {
-    pub(crate) fn get_id(&self) -> StepId{
+    pub(crate) fn get_id(&self) -> StepId {
         self.id
     }
-    pub(crate) fn get_step_objects(&self) -> Vec<&StepObject>{
-        self.step_objects.iter().map(|item|{
-            item
-        }).collect()
+    pub(crate) fn get_step_objects(&self) -> Vec<&StepObject> {
+        self.step_objects.iter().map(|item| item).collect()
     }
-    pub(crate) fn get_step_sets(&self) -> Vec<&SetObject>{
-        self.step_sets.iter().map(|item|{
-            item
-        }).collect()
+    pub(crate) fn get_step_sets(&self) -> Vec<&SetObject> {
+        self.step_sets.iter().map(|item| item).collect()
     }
     pub(crate) fn get_match_statement(&self) -> &BooleanOutput {
         &self.match_statement
@@ -40,8 +36,53 @@ pub(crate) enum StepObject {
     },
     BuildObject {
         id: usize,
-        fields: Vec<Field>,
+        fields: BuildObjectFields,
     },
+}
+#[derive(Debug, Clone)]
+pub(crate) struct BuildObjectFields {
+    value_fields: Vec<Field>,
+    array_fields: Vec<(TableId, BuildObjectFields)>,
+}
+impl BuildObjectFields {
+    pub(crate) fn flatten(
+        &self,
+    ) -> (
+        Vec<(usize, Option<TableId>)>,
+        Vec<(TableId, Vec<(usize, Option<TableId>)>)>,
+    ) {
+        let (field_ids, array_ids) = self.value_fields.iter().fold(
+            (vec![], vec![]),
+            |(mut acc_ids, mut acc_arrays), item| {
+                let (mut current_ids, mut current_arrays) = item.flatten();
+                acc_ids.append(&mut current_ids);
+                acc_arrays.append(&mut current_arrays);
+                (acc_ids, acc_arrays)
+            },
+        );
+        let mut max_id = field_ids
+            .iter()
+            .fold(0, |x, item| if x < *item { *item } else { x });
+        let mut fields: Vec<(usize, Option<TableId>)> =
+            field_ids.iter().map(|item| (*item, None)).collect();
+        let mut arrays: Vec<(TableId, Vec<(usize, Option<TableId>)>)> = vec![];
+        for array_id in array_ids {
+            max_id += 1;
+            fields.push((max_id, Some(array_id)));
+            if let Some(current) = self
+                .array_fields
+                .iter()
+                .find(|item: &&(TableId, BuildObjectFields)| item.0 == array_id)
+            {
+                let (fields_of_array, mut arrayfields_of_array) = current.1.flatten();
+                arrays.push((array_id, fields_of_array));
+                arrays.append(&mut arrayfields_of_array);
+            } else {
+                panic!("BuildObjectFields missing array of id: {array_id:?}")
+            }
+        }
+        (fields, arrays)
+    }
 }
 #[derive(Debug, Clone)]
 pub(crate) enum SetObject {
@@ -50,7 +91,7 @@ pub(crate) enum SetObject {
 }
 
 #[derive(Debug, Clone)]
-enum BooleanOutput {
+pub(crate) enum BooleanOutput {
     BoolCombination {
         first: Box<BooleanOutput>,
         second: Box<BooleanOutput>,
@@ -59,6 +100,7 @@ enum BooleanOutput {
     SetComparison {
         first: Box<SetOutput>,
         second: Box<SetOutput>,
+        operator: SetComparor,
     },
     ElementOfSet {
         element: Box<ObjectOutput>,
@@ -89,14 +131,15 @@ enum BooleanOutput {
 }
 
 #[derive(Debug, Clone, Copy)]
-enum BoolCombinator {
+pub(crate) enum BoolCombinator {
     And,
     Or,
     XOr,
 }
 
 #[derive(Debug, Clone, Copy)]
-enum SetComparor {
+pub(crate) enum SetComparor {
+    Equal,
     SubsetOf,
     TrueSubsetOf,
     SupersetOf,
@@ -104,7 +147,7 @@ enum SetComparor {
 }
 
 #[derive(Debug, Clone, Copy)]
-enum NumberComparor {
+pub(crate) enum NumberComparor {
     Equal,
     Unequal,
     Smaller,
@@ -114,7 +157,7 @@ enum NumberComparor {
 }
 
 #[derive(Debug, Clone)]
-enum NumberOutput {
+pub(crate) enum NumberOutput {
     Mapping, //ToDo
     Number {
         value: i32,
@@ -137,7 +180,7 @@ enum NumberOutput {
 }
 
 #[derive(Debug, Clone, Copy)]
-enum MathOperator {
+pub(crate) enum MathOperator {
     Add,
     Subtr,
     Mult,
@@ -148,7 +191,7 @@ enum MathOperator {
 }
 
 #[derive(Debug, Clone)]
-enum EnumOutput {
+pub(crate) enum EnumOutput {
     Mapping, //ToDo
     Enum {
         value: String,
@@ -163,13 +206,13 @@ enum EnumOutput {
 }
 
 #[derive(Debug, Clone)]
-struct ObjectOutput {
+pub(crate) struct ObjectOutput {
     object_id: usize,
     partial: Option<Vec<usize>>,
 }
 
 #[derive(Debug, Clone)]
-enum SetOutput {
+pub(crate) enum SetOutput {
     MappedSet {
         set: Box<SetOutput>,
         stand_in_id: usize,
@@ -197,7 +240,7 @@ enum SetOutput {
     },
 }
 #[derive(Debug, Clone)]
-enum SetMapping {
+pub(crate) enum SetMapping {
     NumberOp { output: Box<NumberOutput> },
     BoolOp { output: Box<BooleanOutput> },
     EnumOp { output: Box<EnumOutput> },
@@ -205,7 +248,7 @@ enum SetMapping {
     SetOp { output: Box<SetOutput> },
 }
 #[derive(Debug, Clone, Copy)]
-enum TwoSetOperator {
+pub(crate) enum TwoSetOperator {
     Union,
     Intersect,
     Without,
@@ -214,7 +257,7 @@ enum TwoSetOperator {
     DisjunctiveUnion,
 }
 #[derive(Debug, Clone, Copy)]
-enum MultiSetOperator {
+pub(crate) enum MultiSetOperator {
     Union,
     Intersect,
 }
