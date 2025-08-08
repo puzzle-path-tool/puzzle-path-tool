@@ -1,7 +1,7 @@
 use std::sync::atomic;
 
-pub(super) mod tables;
 pub(super) mod steps;
+pub(super) mod tables;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct TableId {
@@ -29,4 +29,36 @@ impl StepId {
             value: COUNTER_STEP.fetch_add(1, atomic::Ordering::Relaxed),
         }
     }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct PathString {
+    path: Vec<String>,
+}
+impl PathString {
+    fn new() -> PathString {
+        PathString { path: vec![] }
+    }
+    fn push(&mut self, value: String) {
+        self.path.push(value)
+    }
+    fn out_of(&self, path: &PathString) -> Option<PathString> {
+        if self.path.len() > path.path.len() {
+            let mut self_path = self.path.clone();
+            let self_rest = self_path.split_off(path.path.len());
+            if self_path == path.path {
+                Some(PathString { path: self_rest })
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub(crate) enum FieldId {
+    Primitive(usize),
+    Array(TableId),
 }

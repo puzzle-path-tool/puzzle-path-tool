@@ -1,6 +1,10 @@
 use std::fmt::Debug;
 
-use crate::layers::second_layer::{StepId, TableId, tables::Field};
+use itertools::Itertools;
+
+use crate::layers::second_layer::{
+    tables::Field, FieldId, PathString, StepId, TableId
+};
 
 #[derive(Debug, Clone)]
 pub(crate) struct LogicStep {
@@ -39,49 +43,73 @@ pub(crate) enum StepObject {
         fields: BuildObjectFields,
     },
 }
+impl StepObject {
+    pub(crate) fn get_object_fields(
+        &self,
+        partial: &Option<PathString>,
+        tables: &(
+            Vec<&super::tables::DeductionTable>,
+            Vec<&super::tables::ArrayTable>,
+        ),
+    ) -> Vec<(FieldId, PathString)> {
+        match self {
+            StepObject::DeductionObject { id: _, table, in_pool: _, emmit_or_consum: _ } => {
+                if let Some(table) =  tables.0.iter().find(|item|{item.get_id() == *table}){
+                    table.table_fields(&tables.1, partial)
+                } else {
+                    panic!("Deduction not in pool")
+                }
+            },
+            StepObject::BuildObject { id: _, fields } => {
+                fields.object_fields(partial)
+            },
+        }
+    }
+}
 #[derive(Debug, Clone)]
 pub(crate) struct BuildObjectFields {
     value_fields: Vec<Field>,
     array_fields: Vec<(TableId, BuildObjectFields)>,
 }
 impl BuildObjectFields {
-    pub(crate) fn flatten(
+    pub(crate) fn flat_type(
         &self,
     ) -> (
-        Vec<(usize, Option<TableId>)>,
-        Vec<(TableId, Vec<(usize, Option<TableId>)>)>,
+        Vec<(FieldId, PathString)>,
+        Vec<(TableId, Vec<(FieldId, PathString)>)>,
     ) {
-        let (field_ids, array_ids) = self.value_fields.iter().fold(
-            (vec![], vec![]),
-            |(mut acc_ids, mut acc_arrays), item| {
-                let (mut current_ids, mut current_arrays) = item.flatten();
-                acc_ids.append(&mut current_ids);
-                acc_arrays.append(&mut current_arrays);
-                (acc_ids, acc_arrays)
-            },
-        );
-        let mut max_id = field_ids
-            .iter()
-            .fold(0, |x, item| if x < *item { *item } else { x });
-        let mut fields: Vec<(usize, Option<TableId>)> =
-            field_ids.iter().map(|item| (*item, None)).collect();
-        let mut arrays: Vec<(TableId, Vec<(usize, Option<TableId>)>)> = vec![];
-        for array_id in array_ids {
-            max_id += 1;
-            fields.push((max_id, Some(array_id)));
-            if let Some(current) = self
-                .array_fields
-                .iter()
-                .find(|item: &&(TableId, BuildObjectFields)| item.0 == array_id)
-            {
-                let (fields_of_array, mut arrayfields_of_array) = current.1.flatten();
-                arrays.push((array_id, fields_of_array));
-                arrays.append(&mut arrayfields_of_array);
-            } else {
-                panic!("BuildObjectFields missing array of id: {array_id:?}")
+        let fields = self.value_fields.iter().map(|item|{
+            item.flatten()
+        }).concat();
+        let arrays = self.array_fields.iter().fold(vec![], 
+            |mut acc, (table_id, fields)| {
+                let (current_fields, mut additonal_arrays) = fields.flat_type();
+                acc.push((*table_id, current_fields));
+                acc.append(&mut additonal_arrays);
+                acc
             }
-        }
+        );
         (fields, arrays)
+    }
+    pub(crate) fn object_fields(
+        &self,
+        partial: &Option<PathString>,
+    ) -> Vec<(FieldId, PathString)> {
+        let (fields, _) = self.flat_type();
+        if let Some(partial) = partial {
+            fields
+                .iter()
+                .filter_map(|(id, name)| {
+                    if let Some(name) = name.out_of(partial) {
+                        Some((*id, name))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        } else {
+            fields
+        }
     }
 }
 #[derive(Debug, Clone)]
@@ -103,7 +131,7 @@ pub(crate) enum BooleanOutput {
         operator: SetComparor,
     },
     ElementOfSet {
-        element: Box<ObjectOutput>,
+        element: Box<Output>,
         set: Box<SetOutput>,
     },
     NumberComparison {
@@ -206,9 +234,19 @@ pub(crate) enum EnumOutput {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ObjectOutput {
-    object_id: usize,
-    partial: Option<Vec<usize>>,
+pub(crate) enum ObjectOutput {
+    MappingStandIn {
+        stand_in_id: usize,
+        partial: Option<PathString>,
+        item_type: BuildObjectFields,
+    },
+    StepObject {
+        object_id: usize,
+        partial: Option<PathString>,
+    },
+    FixedObject {
+        fields: Vec<(PathString, usize, Output)>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -216,7 +254,7 @@ pub(crate) enum SetOutput {
     MappedSet {
         set: Box<SetOutput>,
         stand_in_id: usize,
-        mapping: SetMapping,
+        mapping: Output,
     },
     FilteredSet {
         set: Box<SetOutput>,
@@ -237,15 +275,20 @@ pub(crate) enum SetOutput {
     },
     MappingStandIn {
         stand_in_id: usize,
+        item_type: (),
     },
 }
 #[derive(Debug, Clone)]
-pub(crate) enum SetMapping {
-    NumberOp { output: Box<NumberOutput> },
-    BoolOp { output: Box<BooleanOutput> },
-    EnumOp { output: Box<EnumOutput> },
-    ObjectOp { output: Box<ObjectOutput> },
-    SetOp { output: Box<SetOutput> },
+pub(crate) enum Output {
+    Object(Box<ObjectOutput>),
+    Set(Box<SetOutput>),
+    Primitive(PrimitiveOutput),
+}
+#[derive(Debug, Clone)]
+pub(crate) enum PrimitiveOutput {
+    Number(Box<NumberOutput>),
+    Boolean(Box<BooleanOutput>),
+    Enum(Box<EnumOutput>),
 }
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum TwoSetOperator {
