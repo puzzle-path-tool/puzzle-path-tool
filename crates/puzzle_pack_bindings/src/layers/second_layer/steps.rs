@@ -2,9 +2,7 @@ use std::fmt::Debug;
 
 use itertools::Itertools;
 
-use crate::layers::second_layer::{
-    tables::Field, FieldId, PathString, StepId, TableId
-};
+use crate::layers::second_layer::{FieldId, PathString, StepId, TableId, tables::Field};
 
 #[derive(Debug, Clone)]
 pub(crate) struct LogicStep {
@@ -27,6 +25,16 @@ impl LogicStep {
     }
     pub(crate) fn get_match_statement(&self) -> &BooleanOutput {
         &self.match_statement
+    }
+    pub(crate) fn get_setp_object_by_id(&self, object_id: usize) -> Option<&StepObject> {
+        self.step_objects
+            .iter()
+            .find(|item| item.get_id() == object_id)
+    }
+    pub(crate) fn get_step_set_by_id(&self, object_id: usize) -> Option<&SetObject> {
+        self.step_sets
+            .iter()
+            .find(|item| item.get_id() == object_id)
     }
 }
 
@@ -53,28 +61,31 @@ impl StepObject {
         ),
     ) -> Vec<(FieldId, PathString)> {
         match self {
-            StepObject::DeductionObject { id: _, table, in_pool: _, emmit_or_consum: _ } => {
-                if let Some(table) =  tables.0.iter().find(|item|{item.get_id() == *table}){
+            StepObject::DeductionObject {
+                id: _,
+                table,
+                in_pool: _,
+                emmit_or_consum: _,
+            } => {
+                if let Some(table) = tables.0.iter().find(|item| item.get_id() == *table) {
                     table.table_fields(&tables.1, partial)
                 } else {
                     panic!("Deduction not in pool")
                 }
-            },
-            StepObject::BuildObject { id: _, fields } => {
-                fields.object_fields(partial)
-            },
+            }
+            StepObject::BuildObject { id: _, fields } => fields.object_fields(partial),
         }
     }
     pub(crate) fn get_id(&self) -> usize {
         match self {
-                    StepObject::BuildObject { id, fields: _ }
-                    | StepObject::DeductionObject {
-                        id,
-                        table: _,
-                        in_pool: _,
-                        emmit_or_consum: _,
-                    } => *id,
-                }
+            StepObject::BuildObject { id, fields: _ }
+            | StepObject::DeductionObject {
+                id,
+                table: _,
+                in_pool: _,
+                emmit_or_consum: _,
+            } => *id,
+        }
     }
 }
 #[derive(Debug, Clone)]
@@ -89,23 +100,19 @@ impl BuildObjectFields {
         Vec<(FieldId, PathString)>,
         Vec<(TableId, Vec<(FieldId, PathString)>)>,
     ) {
-        let fields = self.value_fields.iter().map(|item|{
-            item.flatten()
-        }).concat();
-        let arrays = self.array_fields.iter().fold(vec![], 
-            |mut acc, (table_id, fields)| {
+        let fields = self.value_fields.iter().map(|item| item.flatten()).concat();
+        let arrays = self
+            .array_fields
+            .iter()
+            .fold(vec![], |mut acc, (table_id, fields)| {
                 let (current_fields, mut additonal_arrays) = fields.flat_type();
                 acc.push((*table_id, current_fields));
                 acc.append(&mut additonal_arrays);
                 acc
-            }
-        );
+            });
         (fields, arrays)
     }
-    pub(crate) fn object_fields(
-        &self,
-        partial: &Option<PathString>,
-    ) -> Vec<(FieldId, PathString)> {
+    pub(crate) fn object_fields(&self, partial: &Option<PathString>) -> Vec<(FieldId, PathString)> {
         let (fields, _) = self.flat_type();
         if let Some(partial) = partial {
             fields
@@ -131,9 +138,7 @@ pub(crate) enum SetObject {
 impl SetObject {
     pub(crate) fn get_id(&self) -> usize {
         match self {
-            SetObject::SetOfObjects(step_object) => {
-                step_object.get_id()
-            },
+            SetObject::SetOfObjects(step_object) => step_object.get_id(),
             SetObject::SetOfSets(set_object) => set_object.get_id(),
         }
     }
@@ -266,8 +271,13 @@ pub(crate) enum ObjectOutput {
         partial: Option<PathString>,
     },
     FixedObject {
-        fields: Vec<(PathString, usize, Output)>,
+        fields: Vec<(PathString, Option<FieldId>, Output)>,
     },
+}
+pub(crate) enum ObjectOutputField {
+    Id(FieldId),
+    PrimitiveValue(PrimitiveOutput),
+    Set(SetOutput),
 }
 
 #[derive(Debug, Clone)]
