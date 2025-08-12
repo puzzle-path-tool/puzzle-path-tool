@@ -119,7 +119,6 @@ enum ValueOperation {
         second: Box<SetOperation>,
         operator: ValueTwoSetOperator,
     },
-    //ElementOfSet as filtered setsize > 0
     SetSize {
         set: Box<SetOperation>,
     },
@@ -130,10 +129,10 @@ enum ValueOperation {
         object_id: usize,
         field_id: usize,
     },
-    MappingStandIn {
+    MappedValue {
         mapping_id: usize,
     },
-    MappingStandInFieldValue {
+    MappedObjectFieldValue {
         mapping_id: usize,
         field_id: usize,
     },
@@ -229,7 +228,7 @@ impl ValueOperation {
                     },
                     second_layer::steps::Output::Primitive(primitive_output) => {
                         ValueOperation::TwoValueOp {
-                            first: Box::new(ValueOperation::MappingStandIn {
+                            first: Box::new(ValueOperation::MappedValue {
                                 mapping_id: stand_in_id,
                             }),
                             second: Box::new(ValueOperation::from_second_layer_output(
@@ -317,9 +316,14 @@ impl ValueOperation {
                 first,
                 second,
                 equal,
-            } => {
-                todo!()
-            }
+            } => ValueOperation::compare_objects(
+                first.as_ref(),
+                second.as_ref(),
+                *equal,
+                step,
+                map_id_supplier,
+                tables,
+            ),
             second_layer::steps::BooleanOutput::ObjectFieldBoolean { object, field_id } => {
                 ValueOperation::field_value_from_second_layer(
                     object,
@@ -330,7 +334,7 @@ impl ValueOperation {
                 )
             }
             second_layer::steps::BooleanOutput::MappingStandIn { stand_in_id } => {
-                ValueOperation::MappingStandIn {
+                ValueOperation::MappedValue {
                     mapping_id: map_id_supplier.convert(*stand_in_id),
                 }
             }
@@ -395,7 +399,7 @@ impl ValueOperation {
                 )
             }
             second_layer::steps::NumberOutput::MappingStandIn { stand_in_id } => {
-                ValueOperation::MappingStandIn {
+                ValueOperation::MappedValue {
                     mapping_id: map_id_supplier.convert(*stand_in_id),
                 }
             }
@@ -425,7 +429,7 @@ impl ValueOperation {
                 )
             }
             second_layer::steps::EnumOutput::MappingStandIn { stand_in_id } => {
-                ValueOperation::MappingStandIn {
+                ValueOperation::MappedValue {
                     mapping_id: map_id_supplier.convert(*stand_in_id),
                 }
             }
@@ -434,7 +438,7 @@ impl ValueOperation {
     fn object_element_of_set(
         object: &second_layer::steps::ObjectOutput,
         set: &second_layer::steps::SetOutput,
-        stand_in_id: usize,
+        mapping_id: usize,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
         tables: &(
@@ -447,77 +451,25 @@ impl ValueOperation {
                 stand_in_id,
                 partial,
                 item_type,
-            } => todo!(),
-            second_layer::steps::ObjectOutput::StepObject { object_id, partial } => {
-                if let Some(object) = step.get_step_objects().iter().find(|item| match item {
-                    second_layer::steps::StepObject::BuildObject { id, fields: _ }
-                    | second_layer::steps::StepObject::DeductionObject {
-                        id,
-                        table: _,
-                        in_pool: _,
-                        emmit_or_consum: _,
-                    } => id == object_id,
-                }) {
-                    match object {
-                        second_layer::steps::StepObject::DeductionObject {
-                            id,
-                            table: _,
-                            in_pool: _,
-                            emmit_or_consum: _,
-                        } => todo!(),
-                        second_layer::steps::StepObject::BuildObject { id, fields } => todo!(),
-                    }
-                } else {
-                    panic!("No object of given id")
-                }
-            }
-            second_layer::steps::ObjectOutput::FixedObject { fields } => fields.iter().fold(
-                ValueOperation::FixedValue { value: 1 },
-                |acc, (field_name, _id, field_value)| ValueOperation::TwoValueOp {
-                    first: Box::new(acc),
-                    second: Box::new(match field_value {
-                        second_layer::steps::Output::Object(output) => {
-                            todo!()
-                        }
-                        second_layer::steps::Output::Set(output) => {
-                            if let (_, Some(second_value)) = ValueOperation::mapped_field_by_name(
-                                set,
-                                step,
-                                field_name,
-                                stand_in_id,
-                                map_id_supplier,
-                                tables,
-                            ) {
-                                ValueOperation::TwoSetOp {
-                                    first: Box::new(SetOperation::from_second_layer(
-                                        output.as_ref(),
-                                        step,
-                                        map_id_supplier,
-                                        tables,
-                                    )),
-                                    second: Box::new(second_value),
-                                    operator: ValueTwoSetOperator::Equal,
-                                }
-                            } else {
-                                panic!()
-                            }
-                        }
-                        second_layer::steps::Output::Primitive(primitive_output) => {
-                            if let (Some(second_value), _) = ValueOperation::mapped_field_by_name(
-                                set,
-                                step,
-                                field_name,
-                                stand_in_id,
-                                map_id_supplier,
-                                tables,
-                            ) {
+            } => {
+                let fields = item_type.object_fields(partial);
+                let matches = fields.iter().map(|(field_id, field_name)| {
+                    let mapped_field = ValueOperation::mapped_field_by_name(
+                        set,
+                        step,
+                        field_name,
+                        mapping_id,
+                        map_id_supplier,
+                        tables,
+                    );
+                    match field_id {
+                        FieldId::Primitive(field_id) => {
+                            if let (Some(second_value), _) = mapped_field {
                                 ValueOperation::TwoValueOp {
-                                    first: Box::new(ValueOperation::from_second_layer_output(
-                                        primitive_output,
-                                        step,
-                                        map_id_supplier,
-                                        tables,
-                                    )),
+                                    first: Box::new(ValueOperation::MappedObjectFieldValue {
+                                        mapping_id: map_id_supplier.convert(*stand_in_id),
+                                        field_id: *field_id,
+                                    }),
                                     second: Box::new(second_value),
                                     operator: TwoValueOperator::Equal,
                                 }
@@ -525,10 +477,327 @@ impl ValueOperation {
                                 panic!("no primitive field in mapping")
                             }
                         }
-                    }),
-                    operator: TwoValueOperator::And,
-                },
-            ),
+                        FieldId::Array(table_id) => {
+                            if let (_, Some(second_set)) = mapped_field {
+                                ValueOperation::TwoSetOp {
+                                    first: Box::new(SetOperation::MappingStandInFieldSet {
+                                        mapping_id: map_id_supplier.convert(*stand_in_id),
+                                        field_id: *table_id,
+                                    }),
+                                    second: Box::new(second_set),
+                                    operator: ValueTwoSetOperator::Equal,
+                                }
+                            } else {
+                                panic!("no set field in mapping")
+                            }
+                        }
+                    }
+                });
+                ValueOperation::all_true(matches.collect())
+            }
+            second_layer::steps::ObjectOutput::StepObject { object_id, partial } => {
+                if let Some(object) = step
+                    .get_step_objects()
+                    .iter()
+                    .find(|item| item.get_id() == *object_id)
+                {
+                    let fields = object.get_object_fields(partial, tables);
+                    let matches = fields.iter().map(|(field_id, field_name)| {
+                        let mapped_field = ValueOperation::mapped_field_by_name(
+                            set,
+                            step,
+                            field_name,
+                            mapping_id,
+                            map_id_supplier,
+                            tables,
+                        );
+                        match field_id {
+                            FieldId::Primitive(field_id) => {
+                                if let (Some(second_value), _) = mapped_field {
+                                    ValueOperation::TwoValueOp {
+                                        first: Box::new(ValueOperation::FieldValue {
+                                            object_id: *object_id,
+                                            field_id: *field_id,
+                                        }),
+                                        second: Box::new(second_value),
+                                        operator: TwoValueOperator::Equal,
+                                    }
+                                } else {
+                                    panic!("no primitive field in mapping")
+                                }
+                            }
+                            FieldId::Array(table_id) => {
+                                if let (_, Some(second_set)) = mapped_field {
+                                    ValueOperation::TwoSetOp {
+                                        first: Box::new(SetOperation::FieldSet {
+                                            object_id: *object_id,
+                                            field_id: *table_id,
+                                        }),
+                                        second: Box::new(second_set),
+                                        operator: ValueTwoSetOperator::Equal,
+                                    }
+                                } else {
+                                    panic!("no set field in mapping")
+                                }
+                            }
+                        }
+                    });
+                    ValueOperation::all_true(matches.collect())
+                } else {
+                    panic!("No object of given id")
+                }
+            }
+            second_layer::steps::ObjectOutput::FixedObject { fields } => {
+                let matches =
+                    fields
+                        .iter()
+                        .map(|(field_name, _id, field_value)| match field_value {
+                            second_layer::steps::Output::Object(output) => {
+                                ValueOperation::object_element_of_set(
+                                    output.as_ref(),
+                                    set,
+                                    mapping_id,
+                                    step,
+                                    map_id_supplier,
+                                    tables,
+                                )
+                            }
+                            second_layer::steps::Output::Set(output) => {
+                                if let (_, Some(second_value)) =
+                                    ValueOperation::mapped_field_by_name(
+                                        set,
+                                        step,
+                                        field_name,
+                                        mapping_id,
+                                        map_id_supplier,
+                                        tables,
+                                    )
+                                {
+                                    ValueOperation::TwoSetOp {
+                                        first: Box::new(SetOperation::from_second_layer(
+                                            output.as_ref(),
+                                            step,
+                                            map_id_supplier,
+                                            tables,
+                                        )),
+                                        second: Box::new(second_value),
+                                        operator: ValueTwoSetOperator::Equal,
+                                    }
+                                } else {
+                                    panic!()
+                                }
+                            }
+                            second_layer::steps::Output::Primitive(primitive_output) => {
+                                if let (Some(second_value), _) =
+                                    ValueOperation::mapped_field_by_name(
+                                        set,
+                                        step,
+                                        field_name,
+                                        mapping_id,
+                                        map_id_supplier,
+                                        tables,
+                                    )
+                                {
+                                    ValueOperation::TwoValueOp {
+                                        first: Box::new(ValueOperation::from_second_layer_output(
+                                            primitive_output,
+                                            step,
+                                            map_id_supplier,
+                                            tables,
+                                        )),
+                                        second: Box::new(second_value),
+                                        operator: TwoValueOperator::Equal,
+                                    }
+                                } else {
+                                    panic!("no primitive field in mapping")
+                                }
+                            }
+                        });
+                ValueOperation::all_true(matches.collect())
+            }
+        }
+    }
+    fn compare_objects(
+        first: &second_layer::steps::ObjectOutput,
+        second: &second_layer::steps::ObjectOutput,
+        equal: bool,
+        step: &second_layer::steps::LogicStep,
+        map_id_supplier: &mut IdSupplier,
+        tables: &(
+            Vec<&second_layer::tables::DeductionTable>,
+            Vec<&second_layer::tables::ArrayTable>,
+        ),
+    ) -> ValueOperation {
+        let matches: Vec<ValueOperation> = match first {
+            second_layer::steps::ObjectOutput::MappingStandIn {
+                stand_in_id,
+                partial,
+                item_type,
+            } => {
+                let fields = item_type.object_fields(partial);
+                fields
+                    .iter()
+                    .map(|(field_id, field_name)| {
+                        let field = ValueOperation::object_field_by_name(
+                            second,
+                            step,
+                            field_name,
+                            map_id_supplier,
+                            tables,
+                        );
+                        match field_id {
+                            FieldId::Primitive(field_id) => {
+                                if let (Some(second_value), _) = field {
+                                    ValueOperation::TwoValueOp {
+                                        first: Box::new(ValueOperation::MappedObjectFieldValue {
+                                            mapping_id: map_id_supplier.convert(*stand_in_id),
+                                            field_id: *field_id,
+                                        }),
+                                        second: Box::new(second_value),
+                                        operator: TwoValueOperator::Equal,
+                                    }
+                                } else {
+                                    panic!("no primitive field in Object")
+                                }
+                            }
+                            FieldId::Array(table_id) => {
+                                if let (_, Some(second_set)) = field {
+                                    ValueOperation::TwoSetOp {
+                                        first: Box::new(SetOperation::MappingStandInFieldSet {
+                                            mapping_id: map_id_supplier.convert(*stand_in_id),
+                                            field_id: *table_id,
+                                        }),
+                                        second: Box::new(second_set),
+                                        operator: ValueTwoSetOperator::Equal,
+                                    }
+                                } else {
+                                    panic!("no set field in mapping")
+                                }
+                            }
+                        }
+                    })
+                    .collect()
+            }
+            second_layer::steps::ObjectOutput::StepObject { object_id, partial } => {
+                if let Some(object) = step
+                    .get_step_objects()
+                    .iter()
+                    .find(|item| item.get_id() == *object_id)
+                {
+                    let fields = object.get_object_fields(partial, tables);
+                    fields
+                        .iter()
+                        .map(|(field_id, field_name)| {
+                            let field = ValueOperation::object_field_by_name(
+                                second,
+                                step,
+                                field_name,
+                                map_id_supplier,
+                                tables,
+                            );
+                            match field_id {
+                                FieldId::Primitive(field_id) => {
+                                    if let (Some(second_value), _) = field {
+                                        ValueOperation::TwoValueOp {
+                                            first: Box::new(ValueOperation::FieldValue {
+                                                object_id: *object_id,
+                                                field_id: *field_id,
+                                            }),
+                                            second: Box::new(second_value),
+                                            operator: TwoValueOperator::Equal,
+                                        }
+                                    } else {
+                                        panic!("no primitive field in mapping")
+                                    }
+                                }
+                                FieldId::Array(table_id) => {
+                                    if let (_, Some(second_set)) = field {
+                                        ValueOperation::TwoSetOp {
+                                            first: Box::new(SetOperation::FieldSet {
+                                                object_id: *object_id,
+                                                field_id: *table_id,
+                                            }),
+                                            second: Box::new(second_set),
+                                            operator: ValueTwoSetOperator::Equal,
+                                        }
+                                    } else {
+                                        panic!("no set field in mapping")
+                                    }
+                                }
+                            }
+                        })
+                        .collect()
+                } else {
+                    panic!("No object of given id")
+                }
+            }
+            second_layer::steps::ObjectOutput::FixedObject { fields } => fields
+                .iter()
+                .map(|(field_name, _id, field_value)| match field_value {
+                    second_layer::steps::Output::Object(output) => ValueOperation::compare_objects(
+                        output.as_ref(),
+                        second,
+                        true,
+                        step,
+                        map_id_supplier,
+                        tables,
+                    ),
+                    second_layer::steps::Output::Set(output) => {
+                        if let (_, Some(second_value)) = ValueOperation::object_field_by_name(
+                            second,
+                            step,
+                            field_name,
+                            map_id_supplier,
+                            tables,
+                        ) {
+                            ValueOperation::TwoSetOp {
+                                first: Box::new(SetOperation::from_second_layer(
+                                    output.as_ref(),
+                                    step,
+                                    map_id_supplier,
+                                    tables,
+                                )),
+                                second: Box::new(second_value),
+                                operator: ValueTwoSetOperator::Equal,
+                            }
+                        } else {
+                            panic!()
+                        }
+                    }
+                    second_layer::steps::Output::Primitive(primitive_output) => {
+                        if let (Some(second_value), _) = ValueOperation::object_field_by_name(
+                            second,
+                            step,
+                            field_name,
+                            map_id_supplier,
+                            tables,
+                        ) {
+                            ValueOperation::TwoValueOp {
+                                first: Box::new(ValueOperation::from_second_layer_output(
+                                    primitive_output,
+                                    step,
+                                    map_id_supplier,
+                                    tables,
+                                )),
+                                second: Box::new(second_value),
+                                operator: TwoValueOperator::Equal,
+                            }
+                        } else {
+                            panic!("no primitive field in mapping")
+                        }
+                    }
+                })
+                .collect(),
+        };
+        let matches = ValueOperation::all_true(matches);
+        if equal {
+            matches
+        } else {
+            ValueOperation::TwoValueOp {
+                first: Box::new(matches),
+                second: Box::new(ValueOperation::FixedValue { value: 0 }),
+                operator: TwoValueOperator::Equal,
+            }
         }
     }
     fn field_value_from_second_layer(
@@ -544,11 +813,12 @@ impl ValueOperation {
         match object.as_ref() {
             second_layer::steps::ObjectOutput::MappingStandIn {
                 stand_in_id,
-                partial,
-                item_type,
-            } => {
-                todo!()
-            }
+                partial: _,
+                item_type: _,
+            } => ValueOperation::MappedObjectFieldValue {
+                mapping_id: map_id_supplier.convert(*stand_in_id),
+                field_id: *field_id,
+            },
             second_layer::steps::ObjectOutput::StepObject {
                 object_id,
                 partial: _,
@@ -609,8 +879,46 @@ impl ValueOperation {
                 stand_in_id: _,
                 filter: _,
             } => Self::mapped_field_by_name(set, step, name, mapping_id, map_id_supplier, tables),
-            second_layer::steps::SetOutput::SetObject { set_object_id: _ } => {
-                panic!("incompatible set output")
+            second_layer::steps::SetOutput::SetObject { set_object_id } => {
+                if let Some(set_object) = step
+                    .get_step_sets()
+                    .iter()
+                    .find(|set_object| set_object.get_id() == *set_object_id)
+                {
+                    match set_object {
+                        second_layer::steps::SetObject::SetOfObjects(step_object) => {
+                            if let Some((field_id, _)) = step_object
+                                .get_object_fields(&None, tables)
+                                .iter()
+                                .find(|(_, field_name)| field_name == name)
+                            {
+                                match field_id {
+                                    FieldId::Primitive(primitive_id) => (
+                                        Some(ValueOperation::MappedObjectFieldValue {
+                                            mapping_id,
+                                            field_id: *primitive_id,
+                                        }),
+                                        None,
+                                    ),
+                                    FieldId::Array(table_id) => (
+                                        None,
+                                        Some(SetOperation::MappingStandInFieldSet {
+                                            mapping_id,
+                                            field_id: *table_id,
+                                        }),
+                                    ),
+                                }
+                            } else {
+                                (None, None)
+                            }
+                        }
+                        second_layer::steps::SetObject::SetOfSets(_set_object) => {
+                            panic!("incompatible set output")
+                        }
+                    }
+                } else {
+                    (None, None)
+                }
             }
             second_layer::steps::SetOutput::TwoSetOperation {
                 first,
@@ -621,9 +929,37 @@ impl ValueOperation {
                 Self::mapped_field_by_name(set, step, name, mapping_id, map_id_supplier, tables)
             }
             second_layer::steps::SetOutput::MappingStandIn {
-                stand_in_id,
+                stand_in_id: _,
                 item_type,
-            } => todo!(),
+                set_in_set_depth,
+            } => {
+                if set_in_set_depth > &0 {
+                    panic!("incompatible set output")
+                } else if let Some((field_id, _)) = item_type
+                    .object_fields(&None)
+                    .iter()
+                    .find(|(_, field_name)| field_name == name)
+                {
+                    match field_id {
+                        FieldId::Primitive(primitive_id) => (
+                            Some(ValueOperation::MappedObjectFieldValue {
+                                mapping_id,
+                                field_id: *primitive_id,
+                            }),
+                            None,
+                        ),
+                        FieldId::Array(table_id) => (
+                            None,
+                            Some(SetOperation::MappingStandInFieldSet {
+                                mapping_id,
+                                field_id: *table_id,
+                            }),
+                        ),
+                    }
+                } else {
+                    (None, None)
+                }
+            }
         }
     }
     fn mapped_object_field_by_name(
@@ -639,7 +975,7 @@ impl ValueOperation {
     ) -> (Option<ValueOperation>, Option<SetOperation>) {
         match object {
             second_layer::steps::ObjectOutput::MappingStandIn {
-                stand_in_id,
+                stand_in_id: _,
                 partial,
                 item_type,
             } => {
@@ -650,8 +986,8 @@ impl ValueOperation {
                 {
                     match field_id {
                         FieldId::Primitive(field_id) => (
-                            Some(ValueOperation::MappingStandInFieldValue {
-                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                            Some(ValueOperation::MappedObjectFieldValue {
+                                mapping_id,
                                 field_id: *field_id,
                             }),
                             None,
@@ -659,7 +995,7 @@ impl ValueOperation {
                         FieldId::Array(table_id) => (
                             None,
                             Some(SetOperation::MappingStandInFieldSet {
-                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                mapping_id,
                                 field_id: *table_id,
                             }),
                         ),
@@ -669,17 +1005,11 @@ impl ValueOperation {
                 }
             }
             second_layer::steps::ObjectOutput::StepObject { object_id, partial } => {
-                if let Some(step_object) = step.get_step_objects().iter().find(|item| match item {
-                    second_layer::steps::StepObject::DeductionObject {
-                        id,
-                        table: _,
-                        in_pool: _,
-                        emmit_or_consum: _,
-                    }
-                    | second_layer::steps::StepObject::BuildObject { id, fields: _ } => {
-                        id == object_id
-                    }
-                }) {
+                if let Some(step_object) = step
+                    .get_step_objects()
+                    .iter()
+                    .find(|item| item.get_id() == *object_id)
+                {
                     if let Some((field_id, _)) = step_object
                         .get_object_fields(partial, tables)
                         .iter()
@@ -687,7 +1017,7 @@ impl ValueOperation {
                     {
                         match field_id {
                             FieldId::Primitive(field_id) => (
-                                Some(ValueOperation::MappingStandInFieldValue {
+                                Some(ValueOperation::MappedObjectFieldValue {
                                     mapping_id,
                                     field_id: *field_id,
                                 }),
@@ -709,7 +1039,7 @@ impl ValueOperation {
                 }
             }
             second_layer::steps::ObjectOutput::FixedObject { fields } => {
-                if let Some(mapped_field) = fields.iter().find_map(|(field_name, id, output)| {
+                if let Some(mapped_field) = fields.iter().find_map(|(field_name, _id, output)| {
                     if name == field_name {
                         match output {
                             second_layer::steps::Output::Object(_output) => None,
@@ -760,6 +1090,132 @@ impl ValueOperation {
             }
         }
     }
+    fn object_field_by_name(
+        object: &second_layer::steps::ObjectOutput,
+        step: &second_layer::steps::LogicStep,
+        name: &PathString,
+        map_id_supplier: &mut IdSupplier,
+        tables: &(
+            Vec<&second_layer::tables::DeductionTable>,
+            Vec<&second_layer::tables::ArrayTable>,
+        ),
+    ) -> (Option<ValueOperation>, Option<SetOperation>) {
+        match object {
+            second_layer::steps::ObjectOutput::MappingStandIn {
+                stand_in_id,
+                partial,
+                item_type,
+            } => {
+                if let Some((field_id, _)) = item_type
+                    .object_fields(partial)
+                    .iter()
+                    .find(|(_, field_name)| field_name == name)
+                {
+                    match field_id {
+                        FieldId::Primitive(field_id) => (
+                            Some(ValueOperation::MappedObjectFieldValue {
+                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                field_id: *field_id,
+                            }),
+                            None,
+                        ),
+                        FieldId::Array(table_id) => (
+                            None,
+                            Some(SetOperation::MappingStandInFieldSet {
+                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                field_id: *table_id,
+                            }),
+                        ),
+                    }
+                } else {
+                    panic!()
+                }
+            }
+            second_layer::steps::ObjectOutput::StepObject { object_id, partial } => {
+                if let Some(step_object) = step
+                    .get_step_objects()
+                    .iter()
+                    .find(|item| item.get_id() == *object_id)
+                {
+                    if let Some((field_id, _)) = step_object
+                        .get_object_fields(partial, tables)
+                        .iter()
+                        .find(|(_, field_name)| name == field_name)
+                    {
+                        match field_id {
+                            FieldId::Primitive(field_id) => (
+                                Some(ValueOperation::FieldValue {
+                                    object_id: *object_id,
+                                    field_id: *field_id,
+                                }),
+                                None,
+                            ),
+                            FieldId::Array(table_id) => (
+                                None,
+                                Some(SetOperation::FieldSet {
+                                    object_id: *object_id,
+                                    field_id: *table_id,
+                                }),
+                            ),
+                        }
+                    } else {
+                        panic!()
+                    }
+                } else {
+                    panic!()
+                }
+            }
+            second_layer::steps::ObjectOutput::FixedObject { fields } => {
+                if let Some(field) = fields.iter().find_map(|(field_name, _id, output)| {
+                    if name == field_name {
+                        match output {
+                            second_layer::steps::Output::Object(_output) => None,
+                            second_layer::steps::Output::Set(output) => Some((
+                                None,
+                                Some(SetOperation::from_second_layer(
+                                    output.as_ref(),
+                                    step,
+                                    map_id_supplier,
+                                    tables,
+                                )),
+                            )),
+                            second_layer::steps::Output::Primitive(primitive_output) => Some((
+                                Some(ValueOperation::from_second_layer_output(
+                                    primitive_output,
+                                    step,
+                                    map_id_supplier,
+                                    tables,
+                                )),
+                                None,
+                            )),
+                        }
+                    } else {
+                        match output {
+                            second_layer::steps::Output::Object(output) => {
+                                let x = Self::object_field_by_name(
+                                    output.as_ref(),
+                                    step,
+                                    name,
+                                    map_id_supplier,
+                                    tables,
+                                );
+                                if x.0.is_some() || x.1.is_some() {
+                                    Some(x)
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        }
+                    }
+                }) {
+                    field
+                } else {
+                    (None, None)
+                }
+            }
+        }
+    }
     fn from_second_layer_output(
         output: &second_layer::steps::PrimitiveOutput,
         step: &second_layer::steps::LogicStep,
@@ -786,6 +1242,16 @@ impl ValueOperation {
                 Self::from_second_layer_enum_output(output.as_ref(), step, map_id_supplier, tables)
             }
         }
+    }
+    fn all_true(list: Vec<Self>) -> Self {
+        list.iter()
+            .fold(ValueOperation::FixedValue { value: 1 }, |acc, item| {
+                ValueOperation::TwoValueOp {
+                    first: Box::new(acc),
+                    second: Box::new(item.to_owned()),
+                    operator: TwoValueOperator::And,
+                }
+            })
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -829,7 +1295,7 @@ enum SetOperation {
     },
     FieldSet {
         object_id: usize,
-        field_id: usize,
+        field_id: TableId,
     },
     TwoSetOp {
         first: Box<SetOperation>,
@@ -969,6 +1435,7 @@ impl SetOperation {
             second_layer::steps::SetOutput::MappingStandIn {
                 stand_in_id,
                 item_type: _,
+                set_in_set_depth,
             } => Self::MappingStandIn {
                 mapping_id: map_id_supplier.convert(*stand_in_id),
             },
@@ -978,7 +1445,7 @@ impl SetOperation {
 #[derive(Debug, Clone)]
 enum SetMapping {
     Value(ValueOperation),
-    FixedObject(BuildObjectFields, ValueOperation),
+    FixedObject{item_type: BuildObjectFields, mapping_id: usize, of_set: ValueOperation},
     Set(SetOperation),
 }
 #[derive(Debug, Clone, Copy)]

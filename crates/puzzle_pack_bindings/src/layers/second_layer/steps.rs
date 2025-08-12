@@ -32,15 +32,15 @@ impl LogicStep {
 
 #[derive(Debug, Clone)]
 pub(crate) enum StepObject {
+    BuildObject {
+        id: usize,
+        fields: BuildObjectFields,
+    },
     DeductionObject {
         id: usize,
         table: TableId,
         in_pool: bool,
         emmit_or_consum: bool,
-    },
-    BuildObject {
-        id: usize,
-        fields: BuildObjectFields,
     },
 }
 impl StepObject {
@@ -64,6 +64,17 @@ impl StepObject {
                 fields.object_fields(partial)
             },
         }
+    }
+    pub(crate) fn get_id(&self) -> usize {
+        match self {
+                    StepObject::BuildObject { id, fields: _ }
+                    | StepObject::DeductionObject {
+                        id,
+                        table: _,
+                        in_pool: _,
+                        emmit_or_consum: _,
+                    } => *id,
+                }
     }
 }
 #[derive(Debug, Clone)]
@@ -116,6 +127,16 @@ impl BuildObjectFields {
 pub(crate) enum SetObject {
     SetOfObjects(StepObject),
     SetOfSets(Box<SetObject>),
+}
+impl SetObject {
+    pub(crate) fn get_id(&self) -> usize {
+        match self {
+            SetObject::SetOfObjects(step_object) => {
+                step_object.get_id()
+            },
+            SetObject::SetOfSets(set_object) => set_object.get_id(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -275,7 +296,8 @@ pub(crate) enum SetOutput {
     },
     MappingStandIn {
         stand_in_id: usize,
-        item_type: (),
+        item_type: BuildObjectFields,
+        set_in_set_depth: i32,
     },
 }
 #[derive(Debug, Clone)]
