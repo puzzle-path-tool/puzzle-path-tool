@@ -62,3 +62,17 @@ pub(crate) enum FieldId {
     Primitive(usize),
     Array(TableId),
 }
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct EnumTableId {
+    value: usize,
+}
+
+static COUNTER_ENUM: atomic::AtomicUsize = atomic::AtomicUsize::new(1);
+impl EnumTableId {
+    fn new() -> EnumTableId {
+        EnumTableId {
+            value: COUNTER_ENUM.fetch_add(1, atomic::Ordering::Relaxed),
+        }
+    }
+}

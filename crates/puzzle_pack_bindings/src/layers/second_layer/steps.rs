@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use itertools::Itertools;
 
-use crate::layers::second_layer::{FieldId, PathString, StepId, TableId, tables::Field};
+use crate::layers::second_layer::{tables::Field, EnumTableId, FieldId, PathString, StepId, TableId};
 
 #[derive(Debug, Clone)]
 pub(crate) struct LogicStep {
@@ -55,10 +55,7 @@ impl StepObject {
     pub(crate) fn get_object_fields(
         &self,
         partial: &Option<PathString>,
-        tables: &(
-            Vec<&super::tables::DeductionTable>,
-            Vec<&super::tables::ArrayTable>,
-        ),
+        tables: &super::tables::TableBundle,
     ) -> Vec<(FieldId, PathString)> {
         match self {
             StepObject::DeductionObject {
@@ -67,8 +64,8 @@ impl StepObject {
                 in_pool: _,
                 emmit_or_consum: _,
             } => {
-                if let Some(table) = tables.0.iter().find(|item| item.get_id() == *table) {
-                    table.table_fields(&tables.1, partial)
+                if let Some(table) = tables.get_deduction_table_by_id(*table) {
+                    table.table_fields(tables, partial)
                 } else {
                     panic!("Deduction not in pool")
                 }
@@ -212,7 +209,10 @@ pub(crate) enum NumberComparor {
 
 #[derive(Debug, Clone)]
 pub(crate) enum NumberOutput {
-    Mapping, //ToDo
+    Mapping {
+        mapped_enum: Box<EnumOutput>,
+        mapping_table: EnumTableId, 
+    },
     Number {
         value: i32,
     },
@@ -246,8 +246,12 @@ pub(crate) enum MathOperator {
 
 #[derive(Debug, Clone)]
 pub(crate) enum EnumOutput {
-    Mapping, //ToDo
+    Mapping {
+        mapped_number: Box<NumberOutput>,
+        mapping_table: EnumTableId,
+    },
     Enum {
+        enum_id: EnumTableId,
         value: String,
     },
     ObjectFieldEnum {

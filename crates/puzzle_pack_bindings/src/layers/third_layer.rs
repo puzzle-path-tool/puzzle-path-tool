@@ -1,5 +1,5 @@
 use crate::layers::second_layer::{
-    self, StepId, TableId,
+    self, EnumTableId as LookUpTableId, TableId, tables::TableBundle as SecondLayerTables,
 };
 
 mod steps;
@@ -34,10 +34,64 @@ impl ArrayTable {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct LookUpTable {
+    id: LookUpTableId,
+    look_up_table: Vec<(i32, i32)>,
+}
+impl LookUpTable {
+    fn from_second_layer_enum_int_mapping(
+        mapping: second_layer::tables::EnumIntMapping,
+        enum_tables: &SecondLayerTables,
+    ) -> LookUpTable {
+        if let Some(enum_table) = enum_tables.get_enum_by_id(mapping.get_ref_id()) {
+            LookUpTable {
+                id: mapping.get_id(),
+                look_up_table: mapping
+                    .get_look_up_table()
+                    .iter()
+                    .map(|(enum_value, result_number)| {
+                        if let Some(key_number) = enum_table.convert(enum_value) {
+                            (key_number, *result_number)
+                        } else {
+                            panic!()
+                        }
+                    })
+                    .collect(),
+            }
+        } else {
+            panic!()
+        }
+    }
+    fn from_second_layer_int_enum_mapping(
+        mapping: second_layer::tables::IntEnumMapping,
+        enum_tables: &SecondLayerTables,
+    ) -> LookUpTable {
+        if let Some(enum_table) = enum_tables.get_enum_by_id(mapping.get_ref_id()) {
+            LookUpTable {
+                id: mapping.get_id(),
+                look_up_table: mapping
+                    .get_look_up_table()
+                    .iter()
+                    .map(|(key_number, enum_value)| {
+                        if let Some(result_number) = enum_table.convert(enum_value) {
+                            (*key_number, result_number)
+                        } else {
+                            panic!()
+                        }
+                    })
+                    .collect(),
+            }
+        } else {
+            panic!()
+        }
+    }
+}
+
 #[derive(Debug)]
 struct IdSupplier {
     current: usize,
-    conversion: Vec<(usize, usize)>,
+    conversion: Vec<(WrappedId, usize)>,
 }
 impl IdSupplier {
     fn new() -> IdSupplier {
@@ -51,13 +105,24 @@ impl IdSupplier {
         self.current += 1;
         result
     }
-    fn convert(&mut self, old_id: usize) -> usize {
-        if let Some((_, new_id)) = self.conversion.iter().find(|item| item.0 == old_id) {
+    fn convert(&mut self, wrapped_id: WrappedId) -> usize {
+        if let Some((_, new_id)) = self
+            .conversion
+            .iter()
+            .find(|(item_wrapped_id, _)| *item_wrapped_id == wrapped_id)
+        {
             *new_id
         } else {
             let new_id = self.next();
-            self.conversion.push((old_id, new_id));
+            self.conversion.push((wrapped_id, new_id));
             new_id
         }
     }
+    fn new_wrapped_id(&mut self) -> WrappedId {
+        WrappedId { id: self.next() }
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct WrappedId {
+    id: usize,
 }

@@ -1,7 +1,10 @@
 use itertools::Itertools;
 
 use crate::layers::{
-    second_layer::{self, FieldId, PathString, StepId, TableId},
+    second_layer::{
+        self, EnumTableId as LookUpTableId, FieldId, PathString, StepId, TableId,
+        tables::TableBundle as SecondLayerTables,
+    },
     third_layer::IdSupplier,
 };
 
@@ -14,10 +17,7 @@ pub struct LogicStep {
 impl LogicStep {
     fn from_second_layer(
         logic_step: &second_layer::steps::LogicStep,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> LogicStep {
         LogicStep {
             id: logic_step.get_id(),
@@ -138,17 +138,17 @@ enum ValueOperation {
         mapping_id: usize,
         field_id: usize,
     },
-    Mapping, //ToDo
+    ConvertedValue {
+        converted_value: Box<ValueOperation>,
+        look_up_table: LookUpTableId,
+    },
 }
 impl ValueOperation {
     fn from_second_layer_bool_output(
         bool_output: &second_layer::steps::BooleanOutput,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> ValueOperation {
         match bool_output {
             second_layer::steps::BooleanOutput::BoolCombination {
@@ -253,7 +253,9 @@ impl ValueOperation {
                                 tables,
                             )),
                             stand_in_id,
-                            mapping: Box::new(SetMapping::SingleValue(SetMappingValue::Value(mapping))),
+                            mapping: Box::new(SetMapping::SingleValue(SetMappingValue::Value(
+                                mapping,
+                            ))),
                             filter: true,
                         }),
                     }),
@@ -346,13 +348,21 @@ impl ValueOperation {
         number_output: &second_layer::steps::NumberOutput,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> ValueOperation {
         match number_output {
-            second_layer::steps::NumberOutput::Mapping => todo!(),
+            second_layer::steps::NumberOutput::Mapping {
+                mapped_enum,
+                mapping_table,
+            } => ValueOperation::ConvertedValue {
+                converted_value: Box::new(ValueOperation::from_second_layer_enum_output(
+                    mapped_enum.as_ref(),
+                    step,
+                    map_id_supplier,
+                    tables,
+                )),
+                look_up_table: *mapping_table,
+            },
             second_layer::steps::NumberOutput::Number { value } => {
                 ValueOperation::FixedValue { value: *value }
             }
@@ -411,15 +421,32 @@ impl ValueOperation {
         enum_output: &second_layer::steps::EnumOutput,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> ValueOperation {
         match enum_output {
-            second_layer::steps::EnumOutput::Mapping => todo!(),
-            second_layer::steps::EnumOutput::Enum { value } => {
-                ValueOperation::FixedValue { value: todo!() }
+            second_layer::steps::EnumOutput::Mapping {
+                mapped_number,
+                mapping_table,
+            } => ValueOperation::ConvertedValue {
+                converted_value: Box::new(ValueOperation::from_second_layer_number_output(
+                    mapped_number.as_ref(),
+                    step,
+                    map_id_supplier,
+                    tables,
+                )),
+                look_up_table: *mapping_table,
+            },
+            second_layer::steps::EnumOutput::Enum { value, enum_id } => {
+                if let Some(value) = tables
+                    .get_enum_by_id(*enum_id)
+                    .and_then(|enum_table| enum_table.convert(value))
+                {
+                    ValueOperation::FixedValue {
+                        value: i32::from(value),
+                    }
+                } else {
+                    panic!("Enumtable or conversion not found")
+                }
             }
             second_layer::steps::EnumOutput::ObjectFieldEnum { object, field_id } => {
                 ValueOperation::field_value_from_second_layer(
@@ -443,10 +470,7 @@ impl ValueOperation {
         mapping_id: usize,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> ValueOperation {
         match object {
             second_layer::steps::ObjectOutput::MappingStandIn {
@@ -498,9 +522,7 @@ impl ValueOperation {
                 ValueOperation::all_true(matches.collect())
             }
             second_layer::steps::ObjectOutput::StepObject { object_id, partial } => {
-                if let Some(object) = step
-                    .get_setp_object_by_id(*object_id)
-                {
+                if let Some(object) = step.get_setp_object_by_id(*object_id) {
                     let fields = object.get_object_fields(partial, tables);
                     let matches = fields.iter().map(|(field_id, field_name)| {
                         let mapped_field = ValueOperation::mapped_field_by_name(
@@ -623,10 +645,7 @@ impl ValueOperation {
         equal: bool,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> ValueOperation {
         let matches: Vec<ValueOperation> = match first {
             second_layer::steps::ObjectOutput::MappingStandIn {
@@ -805,10 +824,7 @@ impl ValueOperation {
         field_id: &usize,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> ValueOperation {
         match object.as_ref() {
             second_layer::steps::ObjectOutput::MappingStandIn {
@@ -827,8 +843,9 @@ impl ValueOperation {
                 field_id: *field_id,
             },
             second_layer::steps::ObjectOutput::FixedObject { fields } => {
-                if let Some((_, _, output)) =
-                    fields.iter().find(|(_, item_id, _)| item_id == &Some(FieldId::Primitive(*field_id)))
+                if let Some((_, _, output)) = fields
+                    .iter()
+                    .find(|(_, item_id, _)| item_id == &Some(FieldId::Primitive(*field_id)))
                 {
                     match output {
                         second_layer::steps::Output::Primitive(primitive_output) => {
@@ -853,10 +870,7 @@ impl ValueOperation {
         name: &PathString,
         mapping_id: usize,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> (Option<ValueOperation>, Option<SetOperation>) {
         match set {
             second_layer::steps::SetOutput::MappedSet {
@@ -968,10 +982,7 @@ impl ValueOperation {
         name: &PathString,
         mapping_id: usize,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> (Option<ValueOperation>, Option<SetOperation>) {
         match object {
             second_layer::steps::ObjectOutput::MappingStandIn {
@@ -1095,10 +1106,7 @@ impl ValueOperation {
         step: &second_layer::steps::LogicStep,
         name: &PathString,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> (Option<ValueOperation>, Option<SetOperation>) {
         match object {
             second_layer::steps::ObjectOutput::MappingStandIn {
@@ -1220,10 +1228,7 @@ impl ValueOperation {
         output: &second_layer::steps::PrimitiveOutput,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> ValueOperation {
         match output {
             second_layer::steps::PrimitiveOutput::Number(output) => {
@@ -1319,10 +1324,7 @@ impl SetOperation {
         set_output: &second_layer::steps::SetOutput,
         step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),
+        tables: &SecondLayerTables,
     ) -> SetOperation {
         match set_output {
             second_layer::steps::SetOutput::MappedSet {
@@ -1337,7 +1339,12 @@ impl SetOperation {
                     tables,
                 )),
                 stand_in_id: map_id_supplier.convert(*stand_in_id),
-                mapping: Box::new(SetMapping::from_second_layer_output(mapping, step, map_id_supplier, tables)),
+                mapping: Box::new(SetMapping::from_second_layer_output(
+                    mapping,
+                    step,
+                    map_id_supplier,
+                    tables,
+                )),
                 filter: false,
             },
             second_layer::steps::SetOutput::FilteredSet {
@@ -1418,7 +1425,7 @@ impl SetOperation {
             second_layer::steps::SetOutput::MappingStandIn {
                 stand_in_id,
                 item_type: _,
-                set_in_set_depth,
+                set_in_set_depth: _,
             } => Self::MappingStandIn {
                 mapping_id: map_id_supplier.convert(*stand_in_id),
             },
@@ -1435,81 +1442,100 @@ enum SetMappingValue {
     Value(ValueOperation),
     Set(SetOperation),
 }
-impl SetMapping{
-    fn from_second_layer_output(mapping:&second_layer::steps::Output, step:&second_layer::steps::LogicStep,
+impl SetMapping {
+    fn from_second_layer_output(
+        mapping: &second_layer::steps::Output,
+        step: &second_layer::steps::LogicStep,
         map_id_supplier: &mut IdSupplier,
-        tables: &(
-            Vec<&second_layer::tables::DeductionTable>,
-            Vec<&second_layer::tables::ArrayTable>,
-        ),) -> SetMapping {
+        tables: &SecondLayerTables,
+    ) -> SetMapping {
         match mapping {
             second_layer::steps::Output::Object(output) => {
-                SetMapping::FixedObject(
-                match output.as_ref() {
-                    second_layer::steps::ObjectOutput::MappingStandIn { stand_in_id, partial, item_type } => {
-                        item_type.object_fields(partial).iter().map(|(field_id, _)|{
-                            match field_id {
-                                FieldId::Primitive(primitive_id) => (
-                                    *field_id, 
-                                    SetMappingValue::Value(ValueOperation::MappedObjectFieldValue { 
-                                        mapping_id: map_id_supplier.convert(*stand_in_id), 
-                                        field_id: *primitive_id 
-                                    })
-                                ),
-                                FieldId::Array(table_id) => (
-                                    *field_id, 
-                                    SetMappingValue::Set(SetOperation::MappingStandInFieldSet { 
-                                        mapping_id: map_id_supplier.convert(*stand_in_id), 
-                                        field_id: *table_id 
-                                    })
-                                ),
-                            }
-                        }).collect()
-                    },
+                SetMapping::FixedObject(match output.as_ref() {
+                    second_layer::steps::ObjectOutput::MappingStandIn {
+                        stand_in_id,
+                        partial,
+                        item_type,
+                    } => item_type
+                        .object_fields(partial)
+                        .iter()
+                        .map(|(field_id, _)| match field_id {
+                            FieldId::Primitive(primitive_id) => (
+                                *field_id,
+                                SetMappingValue::Value(ValueOperation::MappedObjectFieldValue {
+                                    mapping_id: map_id_supplier.convert(*stand_in_id),
+                                    field_id: *primitive_id,
+                                }),
+                            ),
+                            FieldId::Array(table_id) => (
+                                *field_id,
+                                SetMappingValue::Set(SetOperation::MappingStandInFieldSet {
+                                    mapping_id: map_id_supplier.convert(*stand_in_id),
+                                    field_id: *table_id,
+                                }),
+                            ),
+                        })
+                        .collect(),
                     second_layer::steps::ObjectOutput::StepObject { object_id, partial } => {
                         if let Some(step_object) = step.get_setp_object_by_id(*object_id) {
-                            step_object.get_object_fields(partial, tables).iter().map(|(field_id, _)|{
-                                match field_id {
-                                FieldId::Primitive(primitive_id) => (
-                                    *field_id, 
-                                    SetMappingValue::Value(ValueOperation::FieldValue { 
-                                        object_id: *object_id, 
-                                        field_id: *primitive_id 
-                                    })
-                                ),
-                                FieldId::Array(table_id) => (
-                                    *field_id, 
-                                    SetMappingValue::Set(SetOperation::FieldSet { 
-                                        object_id: *object_id, 
-                                        field_id: *table_id 
-                                    })
-                                ),
+                            step_object
+                                .get_object_fields(partial, tables)
+                                .iter()
+                                .map(|(field_id, _)| match field_id {
+                                    FieldId::Primitive(primitive_id) => (
+                                        *field_id,
+                                        SetMappingValue::Value(ValueOperation::FieldValue {
+                                            object_id: *object_id,
+                                            field_id: *primitive_id,
+                                        }),
+                                    ),
+                                    FieldId::Array(table_id) => (
+                                        *field_id,
+                                        SetMappingValue::Set(SetOperation::FieldSet {
+                                            object_id: *object_id,
+                                            field_id: *table_id,
+                                        }),
+                                    ),
+                                })
+                                .collect()
+                        } else {
+                            panic!()
+                        }
+                    }
+                    second_layer::steps::ObjectOutput::FixedObject { fields } => fields
+                        .iter()
+                        .map(|(_, field_id, output)| {
+                            match SetMapping::from_second_layer_output(
+                                output,
+                                step,
+                                map_id_supplier,
+                                tables,
+                            ) {
+                                SetMapping::SingleValue(set_mapping_value) => {
+                                    if let Some(field_id) = field_id {
+                                        vec![(*field_id, set_mapping_value)]
+                                    } else {
+                                        panic!()
+                                    }
                                 }
-                            }).collect()
-                        } else {panic!()}
-                    },
-                    second_layer::steps::ObjectOutput::FixedObject { fields } => {
-                        fields.iter().map(|(_, field_id, output)|{
-                            match SetMapping::from_second_layer_output(output, step, map_id_supplier, tables){
-                                SetMapping::SingleValue(set_mapping_value) => if let Some(field_id) = field_id {
-                                    vec![(*field_id, set_mapping_value)]
-                                } else {panic!()},
                                 SetMapping::FixedObject(items) => items,
                             }
-                        }).concat()
-                    },
+                        })
+                        .concat(),
                 })
             }
-            second_layer::steps::Output::Set(output) => SetMapping::SingleValue(SetMappingValue::Set(
-                SetOperation::from_second_layer(output.as_ref(), step, map_id_supplier, tables),
-            )),
-            second_layer::steps::Output::Primitive(output) => {
-                SetMapping::SingleValue(SetMappingValue::Value(ValueOperation::from_second_layer_output(
-                    output,
+            second_layer::steps::Output::Set(output) => {
+                SetMapping::SingleValue(SetMappingValue::Set(SetOperation::from_second_layer(
+                    output.as_ref(),
                     step,
                     map_id_supplier,
                     tables,
                 )))
+            }
+            second_layer::steps::Output::Primitive(output) => {
+                SetMapping::SingleValue(SetMappingValue::Value(
+                    ValueOperation::from_second_layer_output(output, step, map_id_supplier, tables),
+                ))
             }
         }
     }

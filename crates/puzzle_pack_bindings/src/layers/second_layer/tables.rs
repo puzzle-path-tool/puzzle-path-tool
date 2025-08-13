@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::layers::second_layer::{FieldId, PathString, TableId, steps::ObjectOutput};
+use crate::layers::second_layer::{EnumTableId, FieldId, PathString, TableId};
 
 #[derive(Debug, Clone, Copy)]
 struct FieldIdSupplier {
@@ -17,6 +17,53 @@ impl FieldIdSupplier {
     }
     fn close_and_get_size(self) -> usize {
         self.current
+    }
+}
+
+pub(crate) struct TableBundle {
+    deduction_tables: Vec<DeductionTable>,
+    array_tables: Vec<ArrayTable>,
+
+    enum_tables: Vec<EnumTable>,
+    enum_mappings: (Vec<EnumIntMapping>, Vec<IntEnumMapping>),
+}
+impl TableBundle {
+    pub(crate) fn get_deduction_table_by_id(&self, table_id: TableId) -> Option<&DeductionTable> {
+        self.deduction_tables
+            .iter()
+            .find(|table| table.get_id() == table_id)
+    }
+    pub(crate) fn get_array_table_by_id(&self, table_id: TableId) -> Option<&ArrayTable> {
+        self.array_tables
+            .iter()
+            .find(|table| table.get_id() == table_id)
+    }
+    pub(crate) fn get_all_array_tables_of_deduction(&self, table_id: TableId) -> Vec<&ArrayTable> {
+        self.array_tables
+            .iter()
+            .filter(|table| table.get_ref_id() == table_id)
+            .collect()
+    }
+    pub(crate) fn get_enum_by_id(&self, enum_id: EnumTableId) -> Option<&EnumTable> {
+        self.enum_tables.iter().find(|table| table.id == enum_id)
+    }
+    pub(crate) fn get_enum_int_mapping_by_id(
+        &self,
+        enum_id: EnumTableId,
+    ) -> Option<&IntEnumMapping> {
+        self.enum_mappings
+            .1
+            .iter()
+            .find(|table| table.id == enum_id)
+    }
+    pub(crate) fn get_int_enum_mapping_by_id(
+        &self,
+        enum_id: EnumTableId,
+    ) -> Option<&EnumIntMapping> {
+        self.enum_mappings
+            .0
+            .iter()
+            .find(|table| table.id == enum_id)
     }
 }
 
@@ -84,20 +131,15 @@ impl DeductionTable {
     }
     pub(crate) fn table_fields(
         &self,
-        array_tables: &Vec<&ArrayTable>,
+        tables: &TableBundle,
         partial: &Option<PathString>,
     ) -> Vec<(FieldId, PathString)> {
         let mut fields = self.fields.iter().map(|item| item.flatten()).concat();
         fields.append(
-            &mut array_tables
+            &mut tables
+                .get_all_array_tables_of_deduction(self.get_id())
                 .iter()
-                .filter_map(|array_table| {
-                    if array_table.get_ref_id() == self.get_id() {
-                        Some((FieldId::Array(array_table.get_id()), array_table.get_name()))
-                    } else {
-                        None
-                    }
-                })
+                .map(|array_table| (FieldId::Array(array_table.get_id()), array_table.get_name()))
                 .collect(),
         );
         if let Some(partial) = partial {
@@ -165,6 +207,62 @@ impl ArrayTable {
         let mut name = self.ref_name.clone();
         name.push(self.field.get_name().to_string());
         name
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct EnumTable {
+    id: EnumTableId,
+    enum_conversion: Vec<(u8, String)>,
+}
+impl EnumTable {
+    pub(crate) fn get_id(&self) -> super::EnumTableId {
+        self.id
+    }
+    pub(crate) fn convert(&self, enum_value: &String) -> Option<i32> {
+        self.enum_conversion
+            .iter()
+            .find_map(|(item_id, item_value)| {
+                if item_value == enum_value {
+                    Some(i32::from(*item_id))
+                } else {
+                    None
+                }
+            })
+    }
+}
+#[derive(Debug, Clone)]
+pub(crate) struct IntEnumMapping {
+    id: EnumTableId,
+    ref_id: EnumTableId,
+    look_up_table: Vec<(i32, String)>,
+}
+impl IntEnumMapping {
+    pub(crate) fn get_id(&self) -> super::EnumTableId {
+        self.id
+    }
+    pub(crate) fn get_ref_id(&self) -> super::EnumTableId {
+        self.ref_id
+    }
+    pub(crate) fn get_look_up_table(&self) -> &Vec<(i32, String)> {
+        &self.look_up_table
+    }
+}
+#[derive(Debug, Clone)]
+pub(crate) struct EnumIntMapping {
+    id: EnumTableId,
+    ref_id: EnumTableId,
+    look_up_table: Vec<(String, i32)>,
+}
+impl EnumIntMapping {
+    pub(crate) fn get_id(&self) -> super::EnumTableId {
+        self.id
+    }
+    pub(crate) fn get_ref_id(&self) -> super::EnumTableId {
+        self.ref_id
+    }
+    pub(crate) fn get_look_up_table(&self) -> &Vec<(String, i32)> {
+        &self.look_up_table
     }
 }
 
@@ -288,7 +386,7 @@ impl Field {
 enum FieldType {
     Number,
     Boolean,
-    Enum(Vec<String>),
+    Enum(EnumTableId),
 }
 impl FieldType {}
 
