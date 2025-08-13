@@ -8,5 +8,6 @@ mod layers {
         pub(super) struct LogicStep {}
     }
     pub(super) mod second_layer;
+    pub(crate) mod id_helpers;
     pub mod third_layer;
 }

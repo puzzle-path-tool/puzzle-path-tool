@@ -2,7 +2,8 @@ use std::fmt::Debug;
 
 use itertools::Itertools;
 
-use crate::layers::second_layer::{tables::Field, EnumTableId, FieldId, PathString, StepId, TableId};
+use crate::layers::second_layer::tables::Field;
+use crate::layers::id_helpers::{EnumTableId, FieldId, PathString, StepId, TableId, WrappedId};
 
 #[derive(Debug, Clone)]
 pub(crate) struct LogicStep {
@@ -177,7 +178,7 @@ pub(crate) enum BooleanOutput {
         field_id: usize,
     },
     MappingStandIn {
-        stand_in_id: usize,
+        stand_in_id: WrappedId,
     },
 }
 
@@ -229,7 +230,7 @@ pub(crate) enum NumberOutput {
         field_id: usize,
     },
     MappingStandIn {
-        stand_in_id: usize,
+        stand_in_id: WrappedId,
     },
 }
 
@@ -259,14 +260,14 @@ pub(crate) enum EnumOutput {
         field_id: usize,
     },
     MappingStandIn {
-        stand_in_id: usize,
+        stand_in_id: WrappedId,
     },
 }
 
 #[derive(Debug, Clone)]
 pub(crate) enum ObjectOutput {
     MappingStandIn {
-        stand_in_id: usize,
+        stand_in_id: WrappedId,
         partial: Option<PathString>,
         item_type: BuildObjectFields,
     },
@@ -288,12 +289,12 @@ pub(crate) enum ObjectOutputField {
 pub(crate) enum SetOutput {
     MappedSet {
         set: Box<SetOutput>,
-        stand_in_id: usize,
+        stand_in_id: WrappedId,
         mapping: Output,
     },
     FilteredSet {
         set: Box<SetOutput>,
-        stand_in_id: usize,
+        stand_in_id: WrappedId,
         filter: BooleanOutput,
     },
     SetObject {
@@ -309,7 +310,7 @@ pub(crate) enum SetOutput {
         operator: MultiSetOperator,
     },
     MappingStandIn {
-        stand_in_id: usize,
+        stand_in_id: WrappedId,
         item_type: BuildObjectFields,
         set_in_set_depth: i32,
     },
