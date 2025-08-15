@@ -67,7 +67,7 @@ pub struct EnumTableId {
 
 static COUNTER_ENUM: atomic::AtomicUsize = atomic::AtomicUsize::new(1);
 impl EnumTableId {
-    fn new() -> EnumTableId {
+    pub(crate) fn new() -> EnumTableId {
         EnumTableId {
             value: COUNTER_ENUM.fetch_add(1, atomic::Ordering::Relaxed),
         }
