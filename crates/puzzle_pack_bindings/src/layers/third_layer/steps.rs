@@ -1,14 +1,24 @@
 use itertools::Itertools;
 
 use crate::layers::{
-    id_helpers::{
-        EnumTableId as LookUpTableId, FieldId, IdSupplier, PathString, StepId, TableId, WrappedId
+    id_helpers::{EnumTableId as LookUpTableId, FieldId, IdSupplier, PathString, StepId, TableId},
+    second_layer::{
+        steps::{
+            BoolCombinator as SecondLayerBoolComb, BooleanOutput as SecondLayerBoolean,
+            BuildObjectFields as SecondLayerObjectFields, EnumOutput as SecondLayerEnum,
+            LogicStep as SecondLayerLogicStep, MathOperator as SecondLayerMathOp,
+            MultiSetOperator as SecondLayerMultiSetOp, NumberComparor as SecondLayerNumberComp,
+            NumberOutput as SecondLayerNumber, ObjectOutput as SecondLayerObject,
+            Output as SecondLayerOutput, PrimitiveOutput as SecondLayerPrimitive,
+            SetComparor as SecondLayerSetComp, SetObject as SecondLayerSetObject,
+            SetOutput as SecondLayerSet, StepObject as SecondLayerStepObject,
+            TwoSetOperator as SecondLayerTwoSetOp,
+        },
+        tables::TableBundle as SecondLayerTables,
     },
-    second_layer::{steps::{
-        BoolCombinator as SecondLayerBoolComb, BooleanOutput as SecondLayerBoolean, BuildObjectFields as SecondLayerObjectFields, EnumOutput as SecondLayerEnum, LogicStep as SecondLayerLogicStep, MathOperator as SecondLayerMathOp, MultiSetOperator as SecondLayerMultiSetOp, NumberComparor as SecondLayerNumberComp, NumberOutput as SecondLayerNumber, ObjectOutput as SecondLayerObject, Output as SecondLayerOutput, PrimitiveOutput as SecondLayerPrimitive, SetComparor as SecondLayerSetComp, SetObject as SecondLayerSetObject, SetOutput as SecondLayerSet, StepObject as SecondLayerStepObject, TwoSetOperator as SecondLayerTwoSetOp
-    }, tables::TableBundle as SecondLayerTables}
 };
 
+#[derive(Debug, Clone)]
 pub struct LogicStep {
     id: StepId,
     match_statement: ValueOperation,
@@ -16,7 +26,7 @@ pub struct LogicStep {
     step_sets: Vec<SetObject>,
 }
 impl LogicStep {
-    fn from_second_layer(
+    pub(crate) fn from_second_layer(
         logic_step: &SecondLayerLogicStep,
         tables: &SecondLayerTables,
     ) -> LogicStep {
@@ -69,12 +79,10 @@ impl StepObject {
                 in_pool: *in_pool,
                 emmit_or_consum: *emmit_or_consum,
             },
-            SecondLayerStepObject::BuildObject { id, fields } => {
-                StepObject::BuildObject {
-                    id: *id,
-                    fields: BuildObjectFields::from_second_layer(fields),
-                }
-            }
+            SecondLayerStepObject::BuildObject { id, fields } => StepObject::BuildObject {
+                id: *id,
+                fields: BuildObjectFields::from_second_layer(fields),
+            },
         }
     }
 }
@@ -152,6 +160,9 @@ impl ValueOperation {
         tables: &SecondLayerTables,
     ) -> ValueOperation {
         match bool_output {
+            SecondLayerBoolean::Boolean { value } => ValueOperation::FixedValue {
+                value: i32::from(*value),
+            },
             SecondLayerBoolean::BoolCombination {
                 first,
                 second,
@@ -195,28 +206,22 @@ impl ValueOperation {
                 operator: match operator {
                     SecondLayerSetComp::Equal => ValueTwoSetOperator::Equal,
                     SecondLayerSetComp::SubsetOf => ValueTwoSetOperator::SubsetOf,
-                    SecondLayerSetComp::TrueSubsetOf => {
-                        ValueTwoSetOperator::TrueSubsetOf
-                    }
+                    SecondLayerSetComp::TrueSubsetOf => ValueTwoSetOperator::TrueSubsetOf,
                     SecondLayerSetComp::SupersetOf => ValueTwoSetOperator::SupersetOf,
-                    SecondLayerSetComp::TrueSupersetOf => {
-                        ValueTwoSetOperator::TrueSupersetOf
-                    }
+                    SecondLayerSetComp::TrueSupersetOf => ValueTwoSetOperator::TrueSupersetOf,
                 },
             },
             SecondLayerBoolean::ElementOfSet { element, set } => {
                 let stand_in_id = map_id_supplier.next();
                 let mapping = match element.as_ref() {
-                    SecondLayerOutput::Object(output) => {
-                        ValueOperation::object_element_of_set(
-                            output,
-                            set,
-                            stand_in_id,
-                            step,
-                            map_id_supplier,
-                            tables,
-                        )
-                    }
+                    SecondLayerOutput::Object(output) => ValueOperation::object_element_of_set(
+                        output,
+                        set,
+                        stand_in_id,
+                        step,
+                        map_id_supplier,
+                        tables,
+                    ),
                     SecondLayerOutput::Set(output) => ValueOperation::TwoSetOp {
                         first: Box::new(SetOperation::MappingStandIn {
                             mapping_id: stand_in_id,
@@ -229,20 +234,18 @@ impl ValueOperation {
                         )),
                         operator: ValueTwoSetOperator::Equal,
                     },
-                    SecondLayerOutput::Primitive(primitive_output) => {
-                        ValueOperation::TwoValueOp {
-                            first: Box::new(ValueOperation::MappedValue {
-                                mapping_id: stand_in_id,
-                            }),
-                            second: Box::new(ValueOperation::from_second_layer_output(
-                                primitive_output,
-                                step,
-                                map_id_supplier,
-                                tables,
-                            )),
-                            operator: TwoValueOperator::Equal,
-                        }
-                    }
+                    SecondLayerOutput::Primitive(primitive_output) => ValueOperation::TwoValueOp {
+                        first: Box::new(ValueOperation::MappedValue {
+                            mapping_id: stand_in_id,
+                        }),
+                        second: Box::new(ValueOperation::from_second_layer_output(
+                            primitive_output,
+                            step,
+                            map_id_supplier,
+                            tables,
+                        )),
+                        operator: TwoValueOperator::Equal,
+                    },
                 };
                 ValueOperation::TwoValueOp {
                     first: Box::new(ValueOperation::SetSize {
@@ -286,12 +289,8 @@ impl ValueOperation {
                     SecondLayerNumberComp::Unequal => TwoValueOperator::Unequal,
                     SecondLayerNumberComp::Smaller => TwoValueOperator::Smaller,
                     SecondLayerNumberComp::Bigger => TwoValueOperator::Bigger,
-                    SecondLayerNumberComp::SmallerEqual => {
-                        TwoValueOperator::SmallerEqual
-                    }
-                    SecondLayerNumberComp::BiggerEqual => {
-                        TwoValueOperator::BiggerEqual
-                    }
+                    SecondLayerNumberComp::SmallerEqual => TwoValueOperator::SmallerEqual,
+                    SecondLayerNumberComp::BiggerEqual => TwoValueOperator::BiggerEqual,
                 },
             },
             SecondLayerBoolean::EnumComparison {
@@ -338,11 +337,9 @@ impl ValueOperation {
                     tables,
                 )
             }
-            SecondLayerBoolean::MappingStandIn { stand_in_id } => {
-                ValueOperation::MappedValue {
-                    mapping_id: map_id_supplier.convert(*stand_in_id),
-                }
-            }
+            SecondLayerBoolean::MappingStandIn { stand_in_id } => ValueOperation::MappedValue {
+                mapping_id: map_id_supplier.convert(*stand_in_id),
+            },
         }
     }
     fn from_second_layer_number_output(
@@ -364,9 +361,7 @@ impl ValueOperation {
                 )),
                 look_up_table: *mapping_table,
             },
-            SecondLayerNumber::Number { value } => {
-                ValueOperation::FixedValue { value: *value }
-            }
+            SecondLayerNumber::Number { value } => ValueOperation::FixedValue { value: *value },
             SecondLayerNumber::MathOperation {
                 first,
                 second,
@@ -411,11 +406,9 @@ impl ValueOperation {
                     tables,
                 )
             }
-            SecondLayerNumber::MappingStandIn { stand_in_id } => {
-                ValueOperation::MappedValue {
-                    mapping_id: map_id_supplier.convert(*stand_in_id),
-                }
-            }
+            SecondLayerNumber::MappingStandIn { stand_in_id } => ValueOperation::MappedValue {
+                mapping_id: map_id_supplier.convert(*stand_in_id),
+            },
         }
     }
     fn from_second_layer_enum_output(
@@ -458,11 +451,9 @@ impl ValueOperation {
                     tables,
                 )
             }
-            SecondLayerEnum::MappingStandIn { stand_in_id } => {
-                ValueOperation::MappedValue {
-                    mapping_id: map_id_supplier.convert(*stand_in_id),
-                }
-            }
+            SecondLayerEnum::MappingStandIn { stand_in_id } => ValueOperation::MappedValue {
+                mapping_id: map_id_supplier.convert(*stand_in_id),
+            },
         }
     }
     fn object_element_of_set(
@@ -1232,14 +1223,12 @@ impl ValueOperation {
         tables: &SecondLayerTables,
     ) -> ValueOperation {
         match output {
-            SecondLayerPrimitive::Number(output) => {
-                Self::from_second_layer_number_output(
-                    output.as_ref(),
-                    step,
-                    map_id_supplier,
-                    tables,
-                )
-            }
+            SecondLayerPrimitive::Number(output) => Self::from_second_layer_number_output(
+                output.as_ref(),
+                step,
+                map_id_supplier,
+                tables,
+            ),
             SecondLayerPrimitive::Boolean(output) => {
                 Self::from_second_layer_bool_output(output.as_ref(), step, map_id_supplier, tables)
             }
@@ -1396,33 +1385,23 @@ impl SetOperation {
                     SecondLayerTwoSetOp::Union => SetTwoSetOperator::Union,
                     SecondLayerTwoSetOp::Intersect => SetTwoSetOperator::Intersect,
                     SecondLayerTwoSetOp::Without => SetTwoSetOperator::Without,
-                    SecondLayerTwoSetOp::SubtractedFrom => {
-                        SetTwoSetOperator::SubtractedFrom
-                    }
-                    SecondLayerTwoSetOp::DisjointWith => {
-                        SetTwoSetOperator::DisjointWith
-                    }
-                    SecondLayerTwoSetOp::DisjunctiveUnion => {
-                        SetTwoSetOperator::DisjunctiveUnion
-                    }
+                    SecondLayerTwoSetOp::SubtractedFrom => SetTwoSetOperator::SubtractedFrom,
+                    SecondLayerTwoSetOp::DisjointWith => SetTwoSetOperator::DisjointWith,
+                    SecondLayerTwoSetOp::DisjunctiveUnion => SetTwoSetOperator::DisjunctiveUnion,
                 },
             },
-            SecondLayerSet::MultiSetOperation { set, operator } => {
-                Self::MultiSetOp {
-                    set: Box::new(Self::from_second_layer(
-                        set.as_ref(),
-                        step,
-                        map_id_supplier,
-                        tables,
-                    )),
-                    operator: match operator {
-                        SecondLayerMultiSetOp::Union => MultiSetOperator::Union,
-                        SecondLayerMultiSetOp::Intersect => {
-                            MultiSetOperator::Intersect
-                        }
-                    },
-                }
-            }
+            SecondLayerSet::MultiSetOperation { set, operator } => Self::MultiSetOp {
+                set: Box::new(Self::from_second_layer(
+                    set.as_ref(),
+                    step,
+                    map_id_supplier,
+                    tables,
+                )),
+                operator: match operator {
+                    SecondLayerMultiSetOp::Union => MultiSetOperator::Union,
+                    SecondLayerMultiSetOp::Intersect => MultiSetOperator::Intersect,
+                },
+            },
             SecondLayerSet::MappingStandIn {
                 stand_in_id,
                 item_type: _,
@@ -1451,88 +1430,81 @@ impl SetMapping {
         tables: &SecondLayerTables,
     ) -> SetMapping {
         match mapping {
-            SecondLayerOutput::Object(output) => {
-                SetMapping::FixedObject(match output.as_ref() {
-                    SecondLayerObject::MappingStandIn {
-                        stand_in_id,
-                        partial,
-                        item_type,
-                    } => item_type
-                        .object_fields(partial)
-                        .iter()
-                        .map(|(field_id, _)| match field_id {
-                            FieldId::Primitive(primitive_id) => (
-                                *field_id,
-                                SetMappingValue::Value(ValueOperation::MappedObjectFieldValue {
-                                    mapping_id: map_id_supplier.convert(*stand_in_id),
-                                    field_id: *primitive_id,
-                                }),
-                            ),
-                            FieldId::Array(table_id) => (
-                                *field_id,
-                                SetMappingValue::Set(SetOperation::MappingStandInFieldSet {
-                                    mapping_id: map_id_supplier.convert(*stand_in_id),
-                                    field_id: *table_id,
-                                }),
-                            ),
-                        })
-                        .collect(),
-                    SecondLayerObject::StepObject { object_id, partial } => {
-                        if let Some(step_object) = step.get_setp_object_by_id(*object_id) {
-                            step_object
-                                .get_object_fields(partial, tables)
-                                .iter()
-                                .map(|(field_id, _)| match field_id {
-                                    FieldId::Primitive(primitive_id) => (
-                                        *field_id,
-                                        SetMappingValue::Value(ValueOperation::FieldValue {
-                                            object_id: *object_id,
-                                            field_id: *primitive_id,
-                                        }),
-                                    ),
-                                    FieldId::Array(table_id) => (
-                                        *field_id,
-                                        SetMappingValue::Set(SetOperation::FieldSet {
-                                            object_id: *object_id,
-                                            field_id: *table_id,
-                                        }),
-                                    ),
-                                })
-                                .collect()
-                        } else {
-                            panic!()
-                        }
+            SecondLayerOutput::Object(output) => SetMapping::FixedObject(match output.as_ref() {
+                SecondLayerObject::MappingStandIn {
+                    stand_in_id,
+                    partial,
+                    item_type,
+                } => item_type
+                    .object_fields(partial)
+                    .iter()
+                    .map(|(field_id, _)| match field_id {
+                        FieldId::Primitive(primitive_id) => (
+                            *field_id,
+                            SetMappingValue::Value(ValueOperation::MappedObjectFieldValue {
+                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                field_id: *primitive_id,
+                            }),
+                        ),
+                        FieldId::Array(table_id) => (
+                            *field_id,
+                            SetMappingValue::Set(SetOperation::MappingStandInFieldSet {
+                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                field_id: *table_id,
+                            }),
+                        ),
+                    })
+                    .collect(),
+                SecondLayerObject::StepObject { object_id, partial } => {
+                    if let Some(step_object) = step.get_setp_object_by_id(*object_id) {
+                        step_object
+                            .get_object_fields(partial, tables)
+                            .iter()
+                            .map(|(field_id, _)| match field_id {
+                                FieldId::Primitive(primitive_id) => (
+                                    *field_id,
+                                    SetMappingValue::Value(ValueOperation::FieldValue {
+                                        object_id: *object_id,
+                                        field_id: *primitive_id,
+                                    }),
+                                ),
+                                FieldId::Array(table_id) => (
+                                    *field_id,
+                                    SetMappingValue::Set(SetOperation::FieldSet {
+                                        object_id: *object_id,
+                                        field_id: *table_id,
+                                    }),
+                                ),
+                            })
+                            .collect()
+                    } else {
+                        panic!()
                     }
-                    SecondLayerObject::FixedObject { fields } => fields
-                        .iter()
-                        .map(|(_, field_id, output)| {
-                            match SetMapping::from_second_layer_output(
-                                output,
-                                step,
-                                map_id_supplier,
-                                tables,
-                            ) {
-                                SetMapping::SingleValue(set_mapping_value) => {
-                                    if let Some(field_id) = field_id {
-                                        vec![(*field_id, set_mapping_value)]
-                                    } else {
-                                        panic!()
-                                    }
+                }
+                SecondLayerObject::FixedObject { fields } => fields
+                    .iter()
+                    .map(|(_, field_id, output)| {
+                        match SetMapping::from_second_layer_output(
+                            output,
+                            step,
+                            map_id_supplier,
+                            tables,
+                        ) {
+                            SetMapping::SingleValue(set_mapping_value) => {
+                                if let Some(field_id) = field_id {
+                                    vec![(*field_id, set_mapping_value)]
+                                } else {
+                                    panic!()
                                 }
-                                SetMapping::FixedObject(items) => items,
                             }
-                        })
-                        .concat(),
-                })
-            }
-            SecondLayerOutput::Set(output) => {
-                SetMapping::SingleValue(SetMappingValue::Set(SetOperation::from_second_layer(
-                    output.as_ref(),
-                    step,
-                    map_id_supplier,
-                    tables,
-                )))
-            }
+                            SetMapping::FixedObject(items) => items,
+                        }
+                    })
+                    .concat(),
+            }),
+            SecondLayerOutput::Set(output) => SetMapping::SingleValue(SetMappingValue::Set(
+                SetOperation::from_second_layer(output.as_ref(), step, map_id_supplier, tables),
+            )),
             SecondLayerOutput::Primitive(output) => {
                 SetMapping::SingleValue(SetMappingValue::Value(
                     ValueOperation::from_second_layer_output(output, step, map_id_supplier, tables),

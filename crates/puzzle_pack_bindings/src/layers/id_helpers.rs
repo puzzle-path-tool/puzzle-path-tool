@@ -21,8 +21,8 @@ pub struct StepId {
 }
 
 impl StepId {
-    fn new() -> TableId {
-        TableId {
+    pub(crate) fn new() -> StepId {
+        StepId {
             value: COUNTER_STEP.fetch_add(1, atomic::Ordering::Relaxed),
         }
     }
@@ -73,6 +73,7 @@ impl EnumTableId {
         }
     }
 }
+
 #[derive(Debug)]
 pub(crate) struct IdSupplier {
     current: usize,
@@ -105,6 +106,9 @@ impl IdSupplier {
     }
     pub(crate) fn new_wrapped_id(&mut self) -> WrappedId {
         WrappedId { id: self.next() }
+    }
+    pub(crate) fn close_and_get_size(self) -> usize {
+        self.current
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

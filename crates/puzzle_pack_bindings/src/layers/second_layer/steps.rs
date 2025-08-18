@@ -2,8 +2,35 @@ use std::fmt::Debug;
 
 use itertools::Itertools;
 
-use crate::layers::second_layer::tables::Field;
 use crate::layers::id_helpers::{EnumTableId, FieldId, PathString, StepId, TableId, WrappedId};
+use crate::layers::second_layer::tables::{Field, TableBundle};
+
+pub(crate) mod test {
+    use super::*;
+
+    pub(crate) fn build_example_step(tables: &TableBundle) -> LogicStep {
+        LogicStep {
+            name: format!("ExampleStep"),
+            id: StepId::new(),
+            description: format!("ExampleStepDescritpion"),
+            step_objects: vec![],
+            step_sets: vec![],
+            match_statement: BooleanOutput::BoolCombination {
+                first: Box::new(BooleanOutput::NumberComparison {
+                    first: Box::new(NumberOutput::Number { value: 5 }),
+                    second: Box::new(NumberOutput::MathOperation {
+                        first: Box::new(NumberOutput::Number { value: 6 }),
+                        second: Box::new(NumberOutput::Number { value: 3 }),
+                        operator: MathOperator::Div,
+                    }),
+                    operator: NumberComparor::Unequal,
+                }),
+                second: Box::new(BooleanOutput::Boolean { value: true }),
+                operator: BoolCombinator::And,
+            },
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct LogicStep {
@@ -15,6 +42,9 @@ pub(crate) struct LogicStep {
     match_statement: BooleanOutput,
 }
 impl LogicStep {
+    /*pub(crate) fn new(name: String, description: String, tables: &TableBundle) -> LogicStep {
+        LogicStep { name, id: StepId::new(), description, step_objects: vec![], step_sets: vec![], match_statement: BooleanOutput::Boolean { value: true } }
+    }*/
     pub(crate) fn get_id(&self) -> StepId {
         self.id
     }
@@ -92,6 +122,24 @@ pub(crate) struct BuildObjectFields {
     array_fields: Vec<(TableId, BuildObjectFields)>,
 }
 impl BuildObjectFields {
+    /*pub(crate) fn new(value_fields: TODO_ObjectFieldTypeStandIn, tables: TableBundle) -> BuildObjectFields {
+        let (fields, arrays) = value_fields
+        .iter()
+        .fold((vec![], vec![]), |(mut field_acc, mut array_acc), (field_name, field_type)|{
+            let (field, arrays) = Field::new(field_name, PathString::new(), TableId::new(), &mut IdSupplier::new(), field_type, tables.get_enum_tables());
+            field_acc.push(field);
+            let arrays = arrays.iter().map(Self::from_array_table).collect();
+            array_acc.append(arrays);
+            (field_acc, array_acc)
+        });
+        BuildObjectFields { value_fields: fields, array_fields: arrays }
+    }
+    fn from_array_table(array: &ArrayTable) -> (TableId, BuildObjectFields){
+        (array.get_id(), BuildObjectFields{
+            value_fields: vec![array.get_field().to_owned()],
+            array_fields: todo!(),
+        })
+    }*/
     pub(crate) fn flat_type(
         &self,
     ) -> (
@@ -144,6 +192,9 @@ impl SetObject {
 
 #[derive(Debug, Clone)]
 pub(crate) enum BooleanOutput {
+    Boolean {
+        value: bool,
+    },
     BoolCombination {
         first: Box<BooleanOutput>,
         second: Box<BooleanOutput>,
@@ -212,7 +263,7 @@ pub(crate) enum NumberComparor {
 pub(crate) enum NumberOutput {
     Mapping {
         mapped_enum: Box<EnumOutput>,
-        mapping_table: EnumTableId, 
+        mapping_table: EnumTableId,
     },
     Number {
         value: i32,
