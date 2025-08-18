@@ -13,19 +13,69 @@ pub(crate) mod test {
             name: format!("ExampleStep"),
             id: StepId::new(),
             description: format!("ExampleStepDescritpion"),
-            step_objects: vec![],
-            step_sets: vec![],
+            step_objects: {
+                let mut items = vec![];
+                if let Some(deduction) = tables.get_deduction_tables().first() {
+                    items.push(StepObject::DeductionObject {
+                        id: 0,
+                        table: deduction.get_id(),
+                        in_pool: true,
+                        emmit_or_consum: true,
+                    });
+                    items.push(StepObject::DeductionObject {
+                        id: 1,
+                        table: deduction.get_id(),
+                        in_pool: false,
+                        emmit_or_consum: true,
+                    });
+                }
+                items
+            },
+            step_sets: {
+                let mut items = vec![];
+                if let Some(deduction) = tables.get_deduction_tables().first() {
+                    items.push(SetObject::SetOfObjects(StepObject::DeductionObject {
+                        id: 2,
+                        table: deduction.get_id(),
+                        in_pool: true,
+                        emmit_or_consum: true,
+                    }));
+                }
+                items
+            },
             match_statement: BooleanOutput::BoolCombination {
                 first: Box::new(BooleanOutput::NumberComparison {
                     first: Box::new(NumberOutput::Number { value: 5 }),
                     second: Box::new(NumberOutput::MathOperation {
                         first: Box::new(NumberOutput::Number { value: 6 }),
-                        second: Box::new(NumberOutput::Number { value: 3 }),
+                        second: Box::new(NumberOutput::SetSize {
+                            set: Box::new(SetOutput::SetObject { set_object_id: 2 }),
+                        }),
                         operator: MathOperator::Div,
                     }),
                     operator: NumberComparor::Unequal,
                 }),
-                second: Box::new(BooleanOutput::Boolean { value: true }),
+                second: Box::new(BooleanOutput::BoolCombination {
+                    first: Box::new(BooleanOutput::ObjectComparison {
+                        first: Box::new(ObjectOutput::StepObject {
+                            object_id: 0,
+                            partial: None,
+                        }),
+                        second: Box::new(ObjectOutput::StepObject {
+                            object_id: 1,
+                            partial: None,
+                        }),
+                        equal: true,
+                    }),
+                    second: Box::new(BooleanOutput::ElementOfSet {
+                        element: Box::new(Output::Object(Box::new(ObjectOutput::StepObject {
+                            object_id: 0,
+                            partial: None,
+                        }))),
+                        set: Box::new(SetOutput::SetObject { set_object_id: 2 }),
+                    }),
+                    operator: BoolCombinator::XOr,
+                }),
                 operator: BoolCombinator::And,
             },
         }

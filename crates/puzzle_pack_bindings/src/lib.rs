@@ -18,11 +18,11 @@ mod tests {
     #[test]
     fn it_works() {
         let second_layer_tables = build_second_layer_tables(3);
-        println!("{second_layer_tables:#?}");
+        //println!("{second_layer_tables:#?}");
         let second_layer_step = build_second_layer_step(&second_layer_tables);
         println!("{second_layer_step:#?}");
         let third_layer_tables = build_third_layer_tables(&second_layer_tables);
-        println!("{third_layer_tables:#?}");
+        //println!("{third_layer_tables:#?}");
         let third_layer_step = build_third_layer_step(&second_layer_step, &second_layer_tables);
         println!("{third_layer_step:#?}");
     }
