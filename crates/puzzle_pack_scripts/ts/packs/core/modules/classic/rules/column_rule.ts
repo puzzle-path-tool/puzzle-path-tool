@@ -20,9 +20,10 @@ const to_full_set = classic_mod.step({
     logic: (matcher, emitter) => {
         const column1 = matcher.pool.getOne(column_rule);
 
-        emitter.emitOne(full_set, [
-            { cells: column1.cells, values: column1.values },
-        ]);
+        emitter.emitOne(full_set, {
+            cells: column1.cells,
+            values: column1.values,
+        });
     },
 });
 

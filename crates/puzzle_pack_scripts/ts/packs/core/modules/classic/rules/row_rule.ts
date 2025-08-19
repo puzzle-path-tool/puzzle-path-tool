@@ -1,4 +1,4 @@
-import { obj, set } from "api/api";
+import { int, obj, set } from "api/api";
 import { classic_mod } from "../../classic_mod";
 import { position } from "../../utils/position";
 import { full_set } from "../deductions";
@@ -7,8 +7,8 @@ export const row_rule = classic_mod.rule({
     name: "row_rule",
     create: () => {
         const row_rule = obj.decl({
-            cells: set.decl(position.decl()),
             values: set.decl(int.decl()),
+            cells: set.decl(position.decl()),
         });
         return { decl: row_rule };
     },

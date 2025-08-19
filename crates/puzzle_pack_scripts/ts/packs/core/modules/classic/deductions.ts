@@ -65,12 +65,12 @@ const non_repeat_set_from_full_set = classic_mod.step({
 });
 
 const allowed_values_from_full_set = classic_mod.step({
-    name: "non_repeat_set_from_full_set",
+    name: "allowed_values_from_full_set",
     logic: (matcher, emitter) => {
         const full_set1 = matcher.pool.getOne(full_set);
 
-        emitter.emitOne(
-            non_repeat_set,
+        emitter.emitOneOf(
+            allowed_values,
             set.op.map(full_set1.cells, (x) => {
                 return { values: full_set1.values, cell: x };
             }),
@@ -118,12 +118,14 @@ const cell_value_from_required = classic_mod.step({
     logic: (matcher, emitter) => {
         const required_value1 = matcher.pool.getOne(required_value);
 
-        matcher.where(int.op.cmp(set.op.size(required_value1.cell), "==", 1));
+        matcher.where(int.op.cmp(set.op.size(required_value1.cells), "==", 1));
 
         const position = matcher.getOne(cell_value.t.cell);
-        matcher.require(set.op.element_of(position, "element of", required_value1.cells));
+        matcher.require(
+            set.op.element_of(position, "element of", required_value1.cells),
+        );
 
-        emitter.emitOne(required_value, {
+        emitter.emitOne(cell_value, {
             value: required_value1.value,
             cell: position,
         });
@@ -137,7 +139,7 @@ const cell_value_from_allowed = classic_mod.step({
 
         matcher.where(int.op.cmp(set.op.size(allowed_values1.values), "==", 1));
 
-        emitter.emitOne(allowed_values, {
+        emitter.emitOne(cell_value, {
             value: int.op.fold("+", allowed_values1.values),
             cell: allowed_values1.cell,
         });

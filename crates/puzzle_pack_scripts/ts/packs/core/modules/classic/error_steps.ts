@@ -94,10 +94,11 @@ const no_repeat_in_non_repeat = classic_mod.step({
         );
         matcher.require(
             int.op.cmp(
-                set.op.join(
-                    required_value1.cells,
-                    "intersect",
-                    required_value2.cells,
+                set.op.size(
+                    set.op.intersect([
+                        required_value1.cells,
+                        required_value2.cells,
+                    ]),
                 ),
                 "==",
                 0,
@@ -111,7 +112,7 @@ const no_repeat_in_non_repeat = classic_mod.step({
 const all_values_present = classic_mod.step({
     name: "all_values_present",
     logic: (matcher, emitter) => {
-        const set1 = matcher.pool.getOne(non_repeat_set);
+        const set1 = matcher.pool.getOne(full_set);
 
         const allowed_values_set = matcher.pool.getMany(allowed_values);
 

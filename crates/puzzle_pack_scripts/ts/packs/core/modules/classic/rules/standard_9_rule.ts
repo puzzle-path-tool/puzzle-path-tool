@@ -1,13 +1,12 @@
 import { classic_mod } from "../../classic_mod";
 import { box_rule } from "./box_rule";
 import { column_rule } from "./column_rule";
-import { square_bounds, full_set, cell_value } from "../deductions";
+import { square_bounds, cell_value } from "../deductions";
 import { row_rule } from "./row_rule";
 import { int, set } from "api/api";
 
 export const standard_9_rule = classic_mod.rule({
     name: "standard_9_rule",
-    data: {},
     // Field with visual information
 });
 
@@ -49,10 +48,10 @@ const initial_step = classic_mod.step({
             columns.push({ cells: cells, values: values });
         }
 
-        emitter.emitOne(box_rule, boxes);
-        emitter.emitOne(row_rule, rows);
-        emitter.emitOne(column_rule, columns);
-        emitter.emitOne(square_bounds, [{ length: 9 }]);
+        emitter.emitOneFrom(box_rule, boxes);
+        emitter.emitOneFrom(row_rule, rows);
+        emitter.emitOneFrom(column_rule, columns);
+        emitter.emitOne(square_bounds, { length: 9 });
     },
 });
 
@@ -64,12 +63,11 @@ const resolve_step = classic_mod.step({
 
         matcher.require(
             int.op.cmp(
-                set.op.size(set.op.fold("intersect", cell_values)),
+                set.op.size(cell_values),
                 "==",
                 9 * 9,
             ),
         );
-
         emitter.emitRuleResolved(standard_9_rule, standard_9);
     },
 });

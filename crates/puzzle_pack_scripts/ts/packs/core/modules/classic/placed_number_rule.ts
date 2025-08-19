@@ -1,3 +1,4 @@
+import { int, obj } from "api/prelude";
 import { classic_mod } from "../classic_mod";
 import { position } from "../utils/position";
 import { cell_value } from "./deductions";
@@ -19,8 +20,8 @@ const to_full_set = classic_mod.step({
     logic: (matcher, emitter) => {
         const placed_number1 = matcher.pool.getOne(placed_number_rule);
 
-        emitter.emitOne(cell_value, [
+        emitter.emitOne(cell_value,
             { cell: placed_number1.cell, value: placed_number1.value },
-        ]);
+        );
     },
 });

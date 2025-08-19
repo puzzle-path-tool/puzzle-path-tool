@@ -992,6 +992,10 @@ export const bool = apiMod.namespace({
             logic: (a: Var<Bool>, o: BoolLogicOp, b: Var<Bool>): Var<Bool> => {
                 todo();
             },
+            
+            not: (items: Var<Bool>): Var<Bool> => {
+                todo();
+            },
 
             fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
                 todo();
@@ -1166,6 +1170,10 @@ interface MatcherClassData {
     name: string;
 }
 
+interface MatchParams {
+    invalidate?: boolean;
+}
+
 class MatcherClass {
     // private readonly [classData]: MatcherClassData;
     // private constructor(data: RefVarClassData<T>) {
@@ -1177,23 +1185,31 @@ class MatcherClass {
     readonly pool = {
         getOne: <const T extends FieldType>(
             deduction: DeductionLikeVar<T>,
+            params?: MatchParams,
         ): Var<T> => {
-            const item = this.getOne(deduction.t);
+            const item = this.getOne(deduction.t, params);
             this.where(pool.op.one(item, "from", deduction));
             return item;
         },
         getMany: <const T extends FieldType>(
             deduction: DeductionLikeVar<T>,
+            params?: MatchParams,
         ): Var<Set<T>> => {
-            const items = this.getMany(deduction.t);
+            const items = this.getMany(deduction.t, params);
             this.where(pool.op.many(items, "from", deduction));
             return items;
         },
     };
-    getOne<const T extends FieldType>(fieldType: T): Var<T> {
+    getOne<const T extends FieldType>(
+        fieldType: T,
+        params?: MatchParams,
+    ): Var<T> {
         todo();
     }
-    getMany<const T extends FieldType>(fieldType: T): Var<Set<T>> {
+    getMany<const T extends FieldType>(
+        fieldType: T,
+        params?: MatchParams,
+    ): Var<Set<T>> {
         todo();
     }
     debugSymbols<const T extends RecordType>(symbols: T) {}
@@ -1207,6 +1223,11 @@ class EmitterClass {
     emitOne<const T extends FieldType>(
         deduction: DeductionLikeVar<T>,
         value: Var<T>,
+        description?: string,
+    ) {}
+    emitOneFrom<const T extends FieldType>(
+        deduction: DeductionLikeVar<T>,
+        value: Var<Set<T>>,
         description?: string,
     ) {}
     emitError(description?: string) {}

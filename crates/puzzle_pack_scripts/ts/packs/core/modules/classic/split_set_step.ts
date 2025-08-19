@@ -1,3 +1,4 @@
+import { int, obj, set } from "api/prelude";
 import { classic_mod } from "../classic_mod";
 import { allowed_values, full_set, non_repeat_set } from "./deductions";
 
@@ -8,58 +9,59 @@ const split_full_set_step = classic_mod.step({
 
         const allowed_values_set = matcher.pool.getMany(allowed_values);
         matcher.where(
-            set.do(
-                set.op.map(allowed_values_set, (x: TODO) => {
+            set.op.cmp(
+                set.op.map(allowed_values_set, (x) => {
                     return x.cell;
                 }),
                 "subset of",
                 set1.cells,
             ),
         );
-        const values = set.op.union(
-            set.op.map(allowed_values_set, (x: TODO) => {
-                return x.values;
-            }),
+        const values = set.op.fold("union",
+            set.op.map(allowed_values_set, (x) => x.values),
         );
-        matcher.require(int.op.cmp(values.size, "==", allowed_values_set.size));
+        matcher.require(int.op.cmp(set.op.size(values), "==", set.op.size(allowed_values_set)));
 
         const set2 = {
-            cells: set.op.map(allowed_values_set, (x: TODO) => {
+            cells: set.op.map(allowed_values_set, (x) => {
                 return x.cell;
             }),
             values: values,
         };
 
-        emitter.emitOne(full_set, [
+        emitter.emitOne(full_set,
             set2,
+        );
+
+        emitter.emitOne(full_set,
             {
-                cells: set.do(set1.cells, "without", set2.cells),
-                values: set.do(set1.values, "without", set2.values),
+                cells: set.op.join(set1.cells, "without", set2.cells),
+                values: set.op.join(set1.values, "without", set2.values),
             },
-        ]);
+        );
 
         const outer_allowed_values_set = matcher.pool.getMany(
-            allowed_values_set,
+            allowed_values,
             {
                 invalidate: true,
             },
         );
         matcher.require(
-            obj.op.cmp(
-                set.do(set1.cells, "without", set2.cells),
+            set.op.cmp(
+                set.op.join(set1.cells, "without", set2.cells),
                 "==",
-                set.op.map(outer_allowed_values_set, (x: TODO) => {
+                set.op.map(outer_allowed_values_set, (x) => {
                     return x.cell;
                 }),
             ),
         );
 
-        emitter.emitOne(
+        emitter.emitOneFrom(
             allowed_values,
-            set.op.map(outer_allowed_values_set, (i: TODO) => {
+            set.op.map(outer_allowed_values_set, (i) => {
                 return {
-                    values: set.op.map(i.values, (ii: TODO) => {
-                        return set.do(ii, "without", set2.values);
+                    values: set.op.map(i.values, (ii) => {
+                        return set.op.join(ii, "without", set2.values);
                     }),
                     cell: i.cell,
                 };
@@ -75,49 +77,49 @@ const split_non_repeat_set_step = classic_mod.step({
 
         const allowed_values_set = matcher.pool.getMany(allowed_values);
         matcher.require(
-            set.do(
-                set.op.map(allowed_values_set, (x: TODO) => {
+            set.op.cmp(
+                set.op.map(allowed_values_set, (x) => {
                     return x.cell;
                 }),
                 "subset of",
                 set1.cells,
             ),
         );
-        const values = set.op.union(
-            set.op.map(allowed_values_set, (x: TODO) => {
+        const values = set.op.fold("union",
+            set.op.map(allowed_values_set, (x) => {
                 return x.values;
             }),
         );
-        matcher.require(int.op.cmp(values.size, "==", allowed_values_set.size));
+        matcher.require(int.op.cmp(set.op.size(values), "==", set.op.size(allowed_values_set)));
 
         const set2 = {
-            cells: set.op.map(allowed_values_set, (x: TODO) => {
+            cells: set.op.map(allowed_values_set, (x) => {
                 return x.cell;
             }),
             values: values,
         };
 
-        emitter.emitOne(full_set, [set2]);
+        emitter.emitOne(full_set, set2);
 
         const outer_allowed_values_set = matcher.pool.getMany(allowed_values, {
             invalidate: true,
         });
         matcher.where(
             obj.op.cmp(
-                set.do(set1.cells, "without", set2.cells),
+                set.op.join(set1.cells, "without", set2.cells),
                 "==",
-                set.op.map(outer_allowed_values_set, (x: TODO) => {
+                set.op.map(outer_allowed_values_set, (x) => {
                     return x.cell;
                 }),
             ),
         );
 
-        emitter.emitOne(
+        emitter.emitOneFrom(
             allowed_values,
-            set.op.map(outer_allowed_values_set, (i: TODO) => {
+            set.op.map(outer_allowed_values_set, (i) => {
                 return {
-                    values: set.op.map(i.values, (ii: TODO) => {
-                        return set.do(ii, "without", set2.values);
+                    values: set.op.map(i.values, (ii) => {
+                        return set.op.join(ii, "without", set2.values);
                     }),
                     cell: i.cell,
                 };
