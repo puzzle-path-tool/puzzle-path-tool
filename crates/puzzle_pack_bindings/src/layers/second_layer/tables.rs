@@ -1,0 +1,540 @@
+use itertools::Itertools;
+
+use crate::layers::id_helpers::{
+    EnumTableId, FieldId, PathString, TableId as DeductionId, TableId as ArrayId, TableId, IdSupplier as FieldIdSupplier
+};
+
+#[derive(Debug, Clone)]
+pub(crate) struct TableBundle {
+    deduction_tables: Vec<DeductionTable>,
+    array_tables: Vec<ArrayTable>,
+
+    enum_tables: Vec<EnumTable>,
+    enum_mappings: (Vec<EnumIntMapping>, Vec<IntEnumMapping>),
+}
+impl TableBundle {
+    pub(crate) fn new(
+        tables: &Vec<(String, String, Vec<(String, TODO_FieldTypeStandIn)>)>,
+        enum_tables: Vec<(
+            String,
+            String,
+            Vec<String>,
+            (Vec<Vec<(String, i32)>>, Vec<Vec<(i32, String)>>),
+        )>,
+    ) -> TableBundle {
+        let (enum_tables, enum_int_mappings, int_enum_mappings) = enum_tables.iter().fold(
+            (vec![], vec![], vec![]),
+            |(mut acc_enum_tables, mut acc_enum_int_mappings, mut acc_int_enum_mappings),
+             (enum_name, enum_description, enum_values, enum_mappings)| {
+                let (current_table, (mut current_enum_int, mut current_int_enum)) = EnumTable::new(
+                    enum_name.to_owned(),
+                    enum_description.to_owned(),
+                    enum_values,
+                    (&enum_mappings.0, &enum_mappings.1),
+                );
+                acc_enum_tables.push(current_table);
+                acc_enum_int_mappings.append(&mut current_enum_int);
+                acc_int_enum_mappings.append(&mut current_int_enum);
+                (
+                    acc_enum_tables,
+                    acc_enum_int_mappings,
+                    acc_int_enum_mappings,
+                )
+            },
+        );
+        let (deduction_tables, array_tables) = tables.iter().fold(
+            (vec![], vec![]),
+            |(mut acc_deductions, mut acc_arrays),
+             (deduction_name, description, deduction_fields)| {
+                let (current_deduction, mut current_arrays) = DeductionTable::new(
+                    deduction_name.to_owned(),
+                    description.to_owned(),
+                    deduction_fields.to_owned(),
+                    &enum_tables,
+                );
+                acc_deductions.push(current_deduction);
+                acc_arrays.append(&mut current_arrays);
+                (acc_deductions, acc_arrays)
+            },
+        );
+        TableBundle {
+            deduction_tables,
+            array_tables,
+            enum_tables,
+            enum_mappings: (enum_int_mappings, int_enum_mappings),
+        }
+    }
+    pub(crate) fn get_deduction_table_by_id(
+        &self,
+        table_id: DeductionId,
+    ) -> Option<&DeductionTable> {
+        self.deduction_tables
+            .iter()
+            .find(|table| table.get_id() == table_id)
+    }
+    pub(crate) fn get_deduction_tables(&self) -> &Vec<DeductionTable> {
+        &self.deduction_tables
+    }
+    pub(crate) fn get_array_table_by_id(&self, table_id: ArrayId) -> Option<&ArrayTable> {
+        self.array_tables
+            .iter()
+            .find(|table| table.get_id() == table_id)
+    }
+    pub(crate) fn get_array_tables(&self) -> &Vec<ArrayTable> {
+        &self.array_tables
+    }
+    pub(crate) fn get_all_array_tables_of_deduction(
+        &self,
+        table_id: DeductionId,
+    ) -> Vec<&ArrayTable> {
+        self.array_tables
+            .iter()
+            .filter(|table| table.get_ref_id() == table_id)
+            .collect()
+    }
+    pub(crate) fn get_enum_by_id(&self, enum_id: EnumTableId) -> Option<&EnumTable> {
+        self.enum_tables.iter().find(|table| table.id == enum_id)
+    }
+    pub(crate) fn get_enum_tables(&self) -> &Vec<EnumTable> {
+        &self.enum_tables
+    }
+    pub(crate) fn get_enum_int_mapping_by_id(
+        &self,
+        enum_id: EnumTableId,
+    ) -> Option<&IntEnumMapping> {
+        self.enum_mappings
+            .1
+            .iter()
+            .find(|table| table.id == enum_id)
+    }
+    pub(crate) fn get_int_enum_mapping_by_id(
+        &self,
+        enum_id: EnumTableId,
+    ) -> Option<&EnumIntMapping> {
+        self.enum_mappings
+            .0
+            .iter()
+            .find(|table| table.id == enum_id)
+    }
+    pub(crate) fn get_enum_mappings(&self) -> (&Vec<EnumIntMapping>, &Vec<IntEnumMapping>) {
+        (&self.enum_mappings.0, &self.enum_mappings.1)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct DeductionTable {
+    id: DeductionId,
+    name: String,
+    description: String,
+    fields: Vec<Field>,
+    length: usize,
+}
+impl DeductionTable {
+    fn new(
+        name: String,
+        description: String,
+        field_types: Vec<(String, TODO_FieldTypeStandIn)>,
+        enum_tables: &Vec<EnumTable>,
+    ) -> (DeductionTable, Vec<ArrayTable>) {
+        let id = DeductionId::new();
+        let mut field_id_supplier = FieldIdSupplier::new();
+        let (fields, array_tables) = field_types
+            .iter()
+            .map(|(name, field_type)| {
+                Field::new(
+                    name,
+                    PathString::new(),
+                    id,
+                    &mut field_id_supplier,
+                    field_type,
+                    enum_tables,
+                )
+            })
+            .fold(
+                (vec![], vec![]),
+                |(mut field_acc, mut array_acc), (field_item, mut array_tables_item)| {
+                    field_acc.push(field_item);
+                    array_acc.append(&mut array_tables_item);
+                    (field_acc, array_acc)
+                },
+            );
+        (
+            DeductionTable {
+                id,
+                name,
+                description,
+                fields,
+                length: field_id_supplier.close_and_get_size(),
+            },
+            array_tables,
+        )
+    }
+    pub(crate) fn get_id(&self) -> DeductionId {
+        self.id
+    }
+    pub(crate) fn get_length(&self) -> usize {
+        self.length
+    }
+    pub(crate) fn get_field_id_by_name(&self, name: &PathString) -> Option<FieldId> {
+        self.fields.iter().find_map(|field_item| {
+            let sub_fields = field_item.flatten();
+            sub_fields.iter().find_map(
+                |(id, field_name)| {
+                    if name == field_name { Some(*id) } else { None }
+                },
+            )
+        })
+    }
+    pub(crate) fn table_fields(
+        &self,
+        tables: &TableBundle,
+        partial: &Option<PathString>,
+    ) -> Vec<(FieldId, PathString)> {
+        let mut fields = self.fields.iter().map(|item| item.flatten()).concat();
+        fields.append(
+            &mut tables
+                .get_all_array_tables_of_deduction(self.get_id())
+                .iter()
+                .map(|array_table| (FieldId::Array(array_table.get_id()), array_table.get_name()))
+                .collect(),
+        );
+        if let Some(partial) = partial {
+            fields
+                .iter()
+                .filter_map(|(field_id, name)| {
+                    if let Some(new_name) = name.out_of(partial) {
+                        Some((*field_id, new_name))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        } else {
+            fields
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct ArrayTable {
+    id: ArrayId,
+    ref_id: TableId,
+    ref_name: PathString,
+    field: Field,
+    length: usize,
+}
+impl ArrayTable {
+    fn new(
+        name: &String,
+        ref_name: PathString,
+        ref_id: TableId,
+        field_type: &TODO_FlatFieldTypeStandIn,
+        enum_tables: &Vec<EnumTable>,
+    ) -> (ArrayId, Vec<ArrayTable>) {
+        let id = ArrayId::new();
+        let mut field_id_supplier = FieldIdSupplier::new();
+        let (field, mut array_tables) = Field::new(
+            name,
+            PathString::new(),
+            id,
+            &mut field_id_supplier,
+            &TODO_FieldTypeStandIn::Flat(field_type.clone()),
+            enum_tables,
+        );
+        let array_table = ArrayTable {
+            id,
+            ref_id,
+            ref_name,
+            field,
+            length: field_id_supplier.close_and_get_size(),
+        };
+        let table_id = array_table.get_id();
+        array_tables.push(array_table);
+        (table_id, array_tables)
+    }
+    pub(crate) fn get_id(&self) -> ArrayId {
+        self.id
+    }
+    pub(crate) fn get_ref_id(&self) -> TableId {
+        self.ref_id
+    }
+    pub(crate) fn get_length(&self) -> usize {
+        self.length
+    }
+    pub(crate) fn get_name(&self) -> PathString {
+        let mut name = self.ref_name.clone();
+        name.push(self.field.get_name().to_string());
+        name
+    }
+    pub(crate) fn get_field(&self) -> &Field {
+        &self.field
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct EnumTable {
+    name: String,
+    description: String,
+    id: EnumTableId,
+    indexed_values: Vec<(u8, String)>,
+}
+impl EnumTable {
+    pub(crate) fn new(
+        name: String,
+        description: String,
+        values: &Vec<String>,
+        look_up_tables: (&Vec<Vec<(String, i32)>>, &Vec<Vec<(i32, String)>>),
+    ) -> (EnumTable, (Vec<EnumIntMapping>, Vec<IntEnumMapping>)) {
+        let mut i: u8 = 0;
+        let id = EnumTableId::new();
+        let table = EnumTable {
+            name,
+            description,
+            id,
+            indexed_values: values
+                .iter()
+                .map(|value| {
+                    let indexed_value = (i, value.to_owned());
+                    i += 1;
+                    indexed_value
+                })
+                .collect(),
+        };
+        let mappings = (
+            look_up_tables
+                .0
+                .iter()
+                .map(|look_up_table| EnumIntMapping::new(id, look_up_table.to_owned()))
+                .collect(),
+            look_up_tables
+                .1
+                .iter()
+                .map(|look_up_table| IntEnumMapping::new(id, look_up_table.to_owned()))
+                .collect(),
+        );
+        (table, mappings)
+    }
+    pub(crate) fn get_id(&self) -> EnumTableId {
+        self.id
+    }
+    pub(crate) fn get_name(&self) -> &String {
+        &self.name
+    }
+    pub(crate) fn convert(&self, enum_value: &String) -> Option<i32> {
+        self.indexed_values
+            .iter()
+            .find_map(|(item_id, item_value)| {
+                if item_value == enum_value {
+                    Some(i32::from(*item_id))
+                } else {
+                    None
+                }
+            })
+    }
+}
+#[derive(Debug, Clone)]
+pub(crate) struct IntEnumMapping {
+    id: EnumTableId,
+    ref_id: EnumTableId,
+    look_up_table: Vec<(i32, String)>,
+}
+impl IntEnumMapping {
+    fn new(ref_id: EnumTableId, look_up_table: Vec<(i32, String)>) -> IntEnumMapping {
+        IntEnumMapping {
+            id: EnumTableId::new(),
+            ref_id,
+            look_up_table,
+        }
+    }
+    pub(crate) fn get_id(&self) -> EnumTableId {
+        self.id
+    }
+    pub(crate) fn get_ref_id(&self) -> EnumTableId {
+        self.ref_id
+    }
+    pub(crate) fn get_look_up_table(&self) -> &Vec<(i32, String)> {
+        &self.look_up_table
+    }
+}
+#[derive(Debug, Clone)]
+pub(crate) struct EnumIntMapping {
+    id: EnumTableId,
+    ref_id: EnumTableId,
+    look_up_table: Vec<(String, i32)>,
+}
+impl EnumIntMapping {
+    fn new(ref_id: EnumTableId, look_up_table: Vec<(String, i32)>) -> EnumIntMapping {
+        EnumIntMapping {
+            id: EnumTableId::new(),
+            ref_id,
+            look_up_table,
+        }
+    }
+    pub(crate) fn get_id(&self) -> EnumTableId {
+        self.id
+    }
+    pub(crate) fn get_ref_id(&self) -> EnumTableId {
+        self.ref_id
+    }
+    pub(crate) fn get_look_up_table(&self) -> &Vec<(String, i32)> {
+        &self.look_up_table
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum Field {
+    Primitive {
+        id: usize,
+        name: String,
+        field_type: FieldType,
+    },
+    Object {
+        name: String,
+        fields: Vec<Field>,
+    },
+    Array {
+        name: String,
+        id: ArrayId,
+    },
+}
+impl Field {
+    pub(crate) fn new(
+        name: &String,
+        mut ref_name: PathString,
+        ref_id: TableId,
+        id_supplier: &mut FieldIdSupplier,
+        field_type: &TODO_FieldTypeStandIn,
+        enum_tables: &Vec<EnumTable>,
+    ) -> (Field, Vec<ArrayTable>) {
+        match field_type {
+            TODO_FieldTypeStandIn::Array(flat_field_type) => {
+                let (array_id, array_tables) =
+                    ArrayTable::new(name, ref_name, ref_id, flat_field_type, enum_tables);
+                (
+                    Field::Array {
+                        id: array_id,
+                        name: name.clone(),
+                    },
+                    array_tables,
+                )
+            }
+            TODO_FieldTypeStandIn::Flat(flat_field_type) => {
+                match flat_field_type {
+                    TODO_FlatFieldTypeStandIn::Object(items) => {
+                        ref_name.push(name.to_string());
+                        let (fields, array_tables) = items
+                        .iter()
+                        .map(|(field_name, field_type)| {
+                            Field::new(field_name, ref_name.clone(), ref_id, id_supplier, field_type, enum_tables)
+                        })
+                        .fold(
+                            (vec![], vec![]),
+                            |(mut field_acc, mut array_acc),
+                             (field_item, mut array_tables_item)| {
+                                field_acc.push(field_item);
+                                array_acc.append(&mut array_tables_item);
+                                (field_acc, array_acc)
+                            },
+                        );
+                        (
+                            Field::Object {
+                                name: name.clone(),
+                                fields,
+                            },
+                            array_tables,
+                        )
+                    }
+                    TODO_FlatFieldTypeStandIn::Primitive(field_type) => (
+                        Field::Primitive {
+                            id: id_supplier.next(),
+                            name: name.clone(),
+                            field_type: match field_type {
+                                TODO_PrimitiveFieldType::Number => FieldType::Number,
+                                TODO_PrimitiveFieldType::Boolean => FieldType::Boolean,
+                                TODO_PrimitiveFieldType::Enum(enum_name) => {
+                                    if let Some(enum_table) = enum_tables
+                                        .iter()
+                                        .find(|table| table.get_name() == enum_name)
+                                    {
+                                        FieldType::Enum(enum_table.get_id())
+                                    } else {
+                                        panic!("No EnumTable with that name")
+                                    }
+                                }
+                            },
+                        },
+                        vec![],
+                    ),
+                }
+            }
+        }
+    }
+    pub(crate) fn flatten(&self) -> Vec<(FieldId, PathString)> {
+        self.build_flat_type(PathString::new())
+    }
+    fn build_flat_type(&self, path: PathString) -> Vec<(FieldId, PathString)> {
+        match self {
+            Field::Primitive {
+                id,
+                name,
+                field_type: _,
+            } => vec![(FieldId::Primitive(*id), {
+                let mut path = path;
+                path.push(name.to_string());
+                path
+            })],
+            Field::Object { name, fields } => {
+                let mut path = path.clone();
+                path.push(name.to_string());
+                fields
+                    .iter()
+                    .map(|item| item.build_flat_type(path.clone()))
+                    .concat()
+            }
+            Field::Array { id, name } => vec![(FieldId::Array(*id), {
+                let mut path = path;
+                path.push(name.to_string());
+                path
+            })],
+        }
+    }
+    fn get_name(&self) -> &String {
+        match self {
+            Field::Primitive {
+                id: _,
+                name,
+                field_type: _,
+            }
+            | Field::Object { name, fields: _ }
+            | Field::Array { name, id: _ } => name,
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+enum FieldType {
+    Number,
+    Boolean,
+    Enum(EnumTableId),
+}
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum TODO_FieldTypeStandIn {
+    Array(TODO_FlatFieldTypeStandIn),
+    Flat(TODO_FlatFieldTypeStandIn),
+}
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum TODO_FlatFieldTypeStandIn {
+    Object(TODO_ObjectFieldTypeStandIn),
+    Primitive(TODO_PrimitiveFieldType),
+}
+
+pub type TODO_ObjectFieldTypeStandIn = Vec<(String, TODO_FieldTypeStandIn)>;
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum TODO_PrimitiveFieldType {
+    Number,
+    Boolean,
+    Enum(String),
+}
