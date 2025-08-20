@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use linkme::distributed_slice;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::value};
 use ts_rs::TS;
 
 use crate::ts_api::TYPES;
@@ -19,13 +21,31 @@ pub struct Identifier {
 static INDENTIFIER_TYPE: fn() -> String = Identifier::decl;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(rename = "VariableIdentifierPuzzptApi")]
+#[serde(transparent)]
+pub struct VariableIdentifier {
+    id: i32,
+}
+
+#[distributed_slice(TYPES)]
+static VARIABLE_INDENTIFIER_TYPE: fn() -> String = VariableIdentifier::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "tag", content = "value")]
 #[serde(rename = "VariablePuzzptApi")]
 pub enum Variable {
-    #[serde(rename = "Const")]
-    Const(i32),
+    #[serde(rename = "Int")]
+    Int(i32),
+    #[serde(rename = "Bool")]
+    Bool(bool),
+    #[serde(rename = "Enum")]
+    Enum { values: Vec<String>, value: String },
+    #[serde(rename = "Set")]
+    Set(Box<Variable>),
+    #[serde(rename = "Obj")]
+    Obj(Box<HashMap<String, Variable>>),
     #[serde(rename = "Ref")]
-    Ref(Identifier),
+    Ref(VariableIdentifier),
 }
 
 #[distributed_slice(TYPES)]
