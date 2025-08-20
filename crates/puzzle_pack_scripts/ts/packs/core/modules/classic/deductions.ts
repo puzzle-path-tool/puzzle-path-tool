@@ -69,7 +69,7 @@ const allowed_values_from_full_set = classic_mod.step({
     logic: (matcher, emitter) => {
         const full_set1 = matcher.pool.getOne(full_set);
 
-        emitter.emitOneOf(
+        emitter.emitOneFrom(
             allowed_values,
             set.op.map(full_set1.cells, (x) => {
                 return { values: full_set1.values, cell: x };

@@ -129,7 +129,7 @@ const all_values_present = classic_mod.step({
             set.op.cmp(
                 set1.values,
                 "subset of",
-                set.op.union(
+                set.op.fold("union",
                     set.op.map(allowed_values_set, (x) => {
                         return x.values;
                     }),

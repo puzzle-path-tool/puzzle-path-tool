@@ -55,10 +55,10 @@ const combine_allowed = classic_mod.step({
 
         emitter.emitOneFrom(allowed_values, [
             {
-                values: set.op.intersect([
+                values: set.op.intersect(
                     allowed_values1.values,
                     allowed_values2.values,
-                ]),
+                ),
                 cell: allowed_values1.cell,
             },
         ]);
@@ -81,12 +81,12 @@ const combine_allowed_matching = classic_mod.step({
             ),
         );
         const values_set = set.op.map(allowed_values_set, (x) => x.values);
-        const values_intersect = set.op.intersect(values_set);
+        const values_intersect = set.op.fold("intersect", values_set);
         matcher.require(
-            set.op.cmp(set.op.union(values_set), "!=", values_intersect),
+            set.op.cmp(set.op.fold("union", values_set), "!=", values_intersect),
         );
 
-        emitter.emitOne(
+        emitter.emitOneFrom(
             allowed_values,
             set.op.map(allowed_values_set, (x) => {
                 return {

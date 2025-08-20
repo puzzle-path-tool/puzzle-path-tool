@@ -12,41 +12,39 @@ const required_from_full_set = classic_mod.step({
     logic: (matcher, emitter) => {
         const set1 = matcher.pool.getOne(full_set);
 
-        const cell_set = matcher.pool.getMany(allowed_values.cells);
+        const allowed_values_set1 = matcher.pool.getMany(allowed_values);
+        const cell_set = set.op.map(allowed_values_set1, (x) => x.cell);
         matcher.where(set.op.cmp(cell_set, "true subset of", set1.cells));
-        const value = matcher.getOne(int);
-        matcher.where(
-            quantor.all((matcher) => {
-                const allowed_values1 = matcher.pool.getOne(allowed_values);
-                matcher.require(
-                    set.op.element_of(allowed_values1.cell, "element of", cell_set),
-                );
-                matcher.require(
-                    set.op.element_of(allowed_values1.values, "contains", value),
-                );
-            }),
-        );
-        matcher.require(
-            quantor.all((matcher) => {
-                const allowed_values1 = matcher.pool.getOne(allowed_values);
-                matcher.where(
-                    set.op.element_of(
-                        allowed_values1.cell,
-                        "element of",
-                        set.do(set1.cells, "without", cell_set),
-                    ),
-                );
-                matcher.require(
-                    set.op.contains(allowed_values1.values, "contains not", value),
-                ); //todo
-            }),
+        const shared_values = set.op.fold(
+            "intersect",
+            set.op.map(allowed_values_set1, (x) => x.values),
         );
 
-        emitter.emitOne(required_value,
-            {
-                cells: cell_set,
-                value: value,
-            },
+        const allowed_values_set2 = matcher.pool.getMany(allowed_values);
+        matcher.where(
+            set.op.cmp(
+                set.op.map(allowed_values_set2, (x) => x.cell),
+                "==",
+                set.op.join(set1.cells, "without", cell_set),
+            ),
+        );
+        const values = set.op.join(
+            shared_values,
+            "without",
+            set.op.fold(
+                "union",
+                set.op.map(allowed_values_set2, (x) => x.values),
+            ),
+        );
+
+        emitter.emitOneFrom(
+            required_value,
+            set.op.map(values, (value) => {
+                return {
+                    cells: cell_set,
+                    value: value,
+                };
+            }),
         );
     },
 });
@@ -73,12 +71,14 @@ const required_in_non_repeat_set = classic_mod.step({
             ),
         );
 
-        emitter.emitOne(
+        emitter.emitOneFrom(
             allowed_values,
             set.op.map(allowed_values_set, (x) => {
                 return {
                     cell: x.cell,
-                    values: set.op.disjunctive_union(x.values, "without", required_value1.value),
+                    values: set.op.join(x.values, "without", [
+                        required_value1.value,
+                    ]),
                 };
             }),
         );
@@ -89,16 +89,35 @@ const required_set_to_allowed = classic_mod.step({
     name: "required_set_to_allowed",
     logic: (matcher, emitter) => {
         const required_value_set = matcher.pool.getMany(required_value);
-        const cells = set.op.union(
+        matcher.where(
+            int.op.cmp(
+                set.op.size(required_value_set),
+                "==",
+                set.op.size(
+                    set.op.union(
+                        set.op.map(required_value_set, (x) => {
+                            return x.value;
+                        }),
+                    ),
+                ),
+            ),
+        );
+
+        const cells = set.op.fold(
+            "union",
             set.op.map(required_value_set, (x) => {
                 return x.cells;
             }),
         );
         matcher.require(
-            int.op.cmp(set.op.size(required_value_set), "==", set.op.size(cells)),
+            int.op.cmp(
+                set.op.size(required_value_set),
+                "==",
+                set.op.size(cells),
+            ),
         );
 
-        emitter.emitOne(
+        emitter.emitOneFrom(
             allowed_values,
             set.op.map(cells, (i) => {
                 return {

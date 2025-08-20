@@ -13,7 +13,7 @@ const split_full_set_step = classic_mod.step({
                 set.op.map(allowed_values_set, (x) => {
                     return x.cell;
                 }),
-                "subset of",
+                "true subset of",
                 set1.cells,
             ),
         );
@@ -60,9 +60,7 @@ const split_full_set_step = classic_mod.step({
             allowed_values,
             set.op.map(outer_allowed_values_set, (i) => {
                 return {
-                    values: set.op.map(i.values, (ii) => {
-                        return set.op.join(ii, "without", set2.values);
-                    }),
+                    values: set.op.join(i.values, "without", set2.values),
                     cell: i.cell,
                 };
             }),
@@ -81,7 +79,7 @@ const split_non_repeat_set_step = classic_mod.step({
                 set.op.map(allowed_values_set, (x) => {
                     return x.cell;
                 }),
-                "subset of",
+                "true subset of",
                 set1.cells,
             ),
         );
@@ -118,9 +116,7 @@ const split_non_repeat_set_step = classic_mod.step({
             allowed_values,
             set.op.map(outer_allowed_values_set, (i) => {
                 return {
-                    values: set.op.map(i.values, (ii) => {
-                        return set.op.join(ii, "without", set2.values);
-                    }),
+                    values: set.op.join(i.values, "without", set2.values),
                     cell: i.cell,
                 };
             }),

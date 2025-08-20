@@ -1,4 +1,4 @@
-import { int, set } from "api/prelude";
+import { int, obj, quantor, set } from "api/prelude";
 import { classic_mod } from "../classic_mod";
 import {
     allowed_values,
@@ -12,30 +12,16 @@ const matching_from_full_set = classic_mod.step({
     logic: (matcher, emitter) => {
         const set1 = matcher.pool.getOne(full_set);
         const set2 = matcher.pool.getOne(full_set);
-        matcher.require(set.op.cmp(set1, "!=", set2));
+        matcher.require(obj.op.cmp(set1, "!=", set2));
 
-        const set1w2 = set.op.disjunctive_union(
-            set1.cells,
-            "without",
-            set2.cells,
-        );
-        const set2w1 = set.op.disjunctive_union(
-            set2.cells,
-            "without",
-            set1.cells,
-        );
+        const set1w2 = set.op.join(set1.cells, "without", set2.cells);
+        const set2w1 = set.op.join(set2.cells, "without", set1.cells);
 
         matcher.where(int.op.cmp(set.op.size(set1w2), "==", 1));
         matcher.where(int.op.cmp(set.op.size(set2w1), "==", 1));
 
-        const cell1 = matcher.pool.getOne(allowed_values.cell);
-        matcher.require(set.op.element_of(cell1, "element of", set1w2));
-
-        const cell2 = matcher.pool.getOne(allowed_values.cell);
-        matcher.require(set.op.element_of(cell1, "element of", set2w1));
-
         emitter.emitOne(matching_cells, {
-            cells: [cell1, cell2],
+            cells: set.op.join(set1w2, "union", set2w1),
         });
     },
 });
@@ -71,9 +57,14 @@ const increase_matching_from_full_set = classic_mod.step({
 
         const non_repeat_set_set = matcher.pool.getMany(non_repeat_set);
         matcher.where(
-            quantor.all((matcher) => {
+            quantor.op.all((matcher) => {
                 const current_non_repeat_set =
                     matcher.pool.getOne(non_repeat_set);
+                set.op.element_of(
+                    current_non_repeat_set,
+                    "element of",
+                    non_repeat_set_set,
+                );
                 matcher.require(
                     int.op.cmp(
                         set.op.size(
@@ -89,10 +80,10 @@ const increase_matching_from_full_set = classic_mod.step({
             }),
         );
 
-        const cells1 = set.op.disjunctive_union(
+        const cells1 = set.op.join(
             set1.cells,
             "without",
-            set.op.union(
+            set.op.fold("union",
                 set.op.map(non_repeat_set_set, (x) => {
                     return x.cells;
                 }),
