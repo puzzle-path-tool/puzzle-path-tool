@@ -187,6 +187,11 @@ console.log(BWrapper.unwrap(b));
 // #endregion
 // #region [[Namespace]]
 
+interface Info {
+    name?: string;
+    doc?: string;
+}
+
 interface InfoParams {
     doc: string;
 }
@@ -483,8 +488,11 @@ export type Set<T extends FieldType> = SetClass<T>;
 // #endregion
 // #region [[Decl Value]]
 
+// type DeclData<T extends FieldType> =
+
 interface DeclClassData<T extends FieldType> {
     fieldType: T;
+    info?: Info;
 }
 class DeclClass<T extends FieldType> {
     private readonly [classData]: DeclClassData<T>;
@@ -993,6 +1001,10 @@ export const bool = apiMod.namespace({
                 todo();
             },
             
+            not: (items: Var<Bool>): Var<Bool> => {
+                todo();
+            },
+
             not: (items: Var<Bool>): Var<Bool> => {
                 todo();
             },
