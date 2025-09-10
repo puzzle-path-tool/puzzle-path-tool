@@ -1,28 +1,53 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
 
 use crate::layers::id_helpers::{
-    EnumTableId, FieldId, PathString, TableId as DeductionId, TableId as ArrayId, TableId, IdSupplier as FieldIdSupplier
+    EnumTableId, FieldId, IdSupplier as FieldIdSupplier, PathString, TableId as DeductionId,
+    TableId as ArrayId, TableId,
 };
+use crate::ts_api::exports::{
+    Deduction as FirstLayerDeduction, //DeductionData as FirstLayerDeductionData,
+    FieldType as FirstLayerFieldtype,
+    Rule as FirstLayerRule,
+};
+type Name = String;
+type Description = String;
 
 #[derive(Debug, Clone)]
 pub(crate) struct TableBundle {
     deduction_tables: Vec<DeductionTable>,
     array_tables: Vec<ArrayTable>,
-
-    enum_tables: Vec<EnumTable>,
-    enum_mappings: (Vec<EnumIntMapping>, Vec<IntEnumMapping>),
+    /*enum_tables: Vec<EnumTable>,
+    enum_mappings: (Vec<EnumIntMapping>, Vec<IntEnumMapping>), */
 }
 impl TableBundle {
-    pub(crate) fn new(
-        tables: &Vec<(String, String, Vec<(String, TODO_FieldTypeStandIn)>)>,
-        enum_tables: Vec<(
-            String,
-            String,
+    pub(crate) fn from_first_layer(
+        rules: &Vec<FirstLayerRule>,
+        deductions: &Vec<FirstLayerDeduction>,
+    ) -> TableBundle {
+        let mut tables: Vec<(&Name, &Description, &HashMap<Name, FirstLayerFieldtype>)> = rules
+            .iter()
+            .map(|rule| (rule.get_name(), rule.get_description(), rule.get_data()))
+            .collect();
+        tables.append(
+            &mut deductions
+                .iter()
+                .map(|rule| (rule.get_name(), rule.get_description(), rule.get_data()))
+                .collect(),
+        );
+        Self::new(tables)
+    }
+    fn new(
+        tables: Vec<(&Name, &Description, &HashMap<Name, FirstLayerFieldtype>)>,
+        /*enum_tables: Vec<(
+            Name,
+            Description,
             Vec<String>,
             (Vec<Vec<(String, i32)>>, Vec<Vec<(i32, String)>>),
-        )>,
+        )>,*/
     ) -> TableBundle {
-        let (enum_tables, enum_int_mappings, int_enum_mappings) = enum_tables.iter().fold(
+        /*let (enum_tables, enum_int_mappings, int_enum_mappings) = enum_tables.iter().fold(
             (vec![], vec![], vec![]),
             |(mut acc_enum_tables, mut acc_enum_int_mappings, mut acc_int_enum_mappings),
              (enum_name, enum_description, enum_values, enum_mappings)| {
@@ -41,16 +66,15 @@ impl TableBundle {
                     acc_int_enum_mappings,
                 )
             },
-        );
+        );*/
         let (deduction_tables, array_tables) = tables.iter().fold(
             (vec![], vec![]),
             |(mut acc_deductions, mut acc_arrays),
              (deduction_name, description, deduction_fields)| {
                 let (current_deduction, mut current_arrays) = DeductionTable::new(
-                    deduction_name.to_owned(),
-                    description.to_owned(),
-                    deduction_fields.to_owned(),
-                    &enum_tables,
+                    deduction_name.to_owned().clone(),
+                    description.to_owned().clone(),
+                    deduction_fields,
                 );
                 acc_deductions.push(current_deduction);
                 acc_arrays.append(&mut current_arrays);
@@ -60,8 +84,8 @@ impl TableBundle {
         TableBundle {
             deduction_tables,
             array_tables,
-            enum_tables,
-            enum_mappings: (enum_int_mappings, int_enum_mappings),
+            /*enum_tables,
+            enum_mappings: (enum_int_mappings, int_enum_mappings),*/
         }
     }
     pub(crate) fn get_deduction_table_by_id(
@@ -92,33 +116,38 @@ impl TableBundle {
             .filter(|table| table.get_ref_id() == table_id)
             .collect()
     }
-    pub(crate) fn get_enum_by_id(&self, enum_id: EnumTableId) -> Option<&EnumTable> {
+    /*pub(crate) fn get_enum_by_id(&self, enum_id: EnumTableId) -> Option<&EnumTable> {
         self.enum_tables.iter().find(|table| table.id == enum_id)
     }
     pub(crate) fn get_enum_tables(&self) -> &Vec<EnumTable> {
-        &self.enum_tables
+        //&self.enum_tables
+        todo!()
     }
     pub(crate) fn get_enum_int_mapping_by_id(
         &self,
         enum_id: EnumTableId,
     ) -> Option<&IntEnumMapping> {
-        self.enum_mappings
-            .1
-            .iter()
-            .find(|table| table.id == enum_id)
+        /*self.enum_mappings
+        .1
+        .iter()
+        .find(|table| table.id == enum_id)*/
+        todo!()
     }
     pub(crate) fn get_int_enum_mapping_by_id(
         &self,
         enum_id: EnumTableId,
     ) -> Option<&EnumIntMapping> {
+        /*
         self.enum_mappings
             .0
             .iter()
-            .find(|table| table.id == enum_id)
+            .find(|table| table.id == enum_id) */
+        todo!()
     }
     pub(crate) fn get_enum_mappings(&self) -> (&Vec<EnumIntMapping>, &Vec<IntEnumMapping>) {
-        (&self.enum_mappings.0, &self.enum_mappings.1)
-    }
+        //(&self.enum_mappings.0, &self.enum_mappings.1)
+        todo!()
+    }*/
 }
 
 #[derive(Debug, Clone)]
@@ -133,12 +162,12 @@ impl DeductionTable {
     fn new(
         name: String,
         description: String,
-        field_types: Vec<(String, TODO_FieldTypeStandIn)>,
-        enum_tables: &Vec<EnumTable>,
+        deduction_data: &HashMap<String, FirstLayerFieldtype>,
+        /*enum_tables: &Vec<EnumTable>,*/
     ) -> (DeductionTable, Vec<ArrayTable>) {
         let id = DeductionId::new();
         let mut field_id_supplier = FieldIdSupplier::new();
-        let (fields, array_tables) = field_types
+        let (fields, array_tables) = deduction_data
             .iter()
             .map(|(name, field_type)| {
                 Field::new(
@@ -147,7 +176,7 @@ impl DeductionTable {
                     id,
                     &mut field_id_supplier,
                     field_type,
-                    enum_tables,
+                    //enum_tables,
                 )
             })
             .fold(
@@ -228,8 +257,8 @@ impl ArrayTable {
         name: &String,
         ref_name: PathString,
         ref_id: TableId,
-        field_type: &TODO_FlatFieldTypeStandIn,
-        enum_tables: &Vec<EnumTable>,
+        field_type: &FirstLayerFieldtype,
+        //enum_tables: &Vec<EnumTable>,
     ) -> (ArrayId, Vec<ArrayTable>) {
         let id = ArrayId::new();
         let mut field_id_supplier = FieldIdSupplier::new();
@@ -238,8 +267,8 @@ impl ArrayTable {
             PathString::new(),
             id,
             &mut field_id_supplier,
-            &TODO_FieldTypeStandIn::Flat(field_type.clone()),
-            enum_tables,
+            field_type,
+            //enum_tables,
         );
         let array_table = ArrayTable {
             id,
@@ -271,7 +300,7 @@ impl ArrayTable {
     }
 }
 
-#[derive(Debug, Clone)]
+/*#[derive(Debug, Clone)]
 pub(crate) struct EnumTable {
     name: String,
     description: String,
@@ -379,7 +408,7 @@ impl EnumIntMapping {
     pub(crate) fn get_look_up_table(&self) -> &Vec<(String, i32)> {
         &self.look_up_table
     }
-}
+}*/
 
 #[derive(Debug, Clone)]
 pub(crate) enum Field {
@@ -403,13 +432,13 @@ impl Field {
         mut ref_name: PathString,
         ref_id: TableId,
         id_supplier: &mut FieldIdSupplier,
-        field_type: &TODO_FieldTypeStandIn,
-        enum_tables: &Vec<EnumTable>,
+        field_type: &FirstLayerFieldtype,
+        //enum_tables: &Vec<EnumTable>,
     ) -> (Field, Vec<ArrayTable>) {
         match field_type {
-            TODO_FieldTypeStandIn::Array(flat_field_type) => {
+            FirstLayerFieldtype::Set(set_field_type) => {
                 let (array_id, array_tables) =
-                    ArrayTable::new(name, ref_name, ref_id, flat_field_type, enum_tables);
+                    ArrayTable::new(name, ref_name, ref_id, set_field_type.as_ref());
                 (
                     Field::Array {
                         id: array_id,
@@ -418,55 +447,60 @@ impl Field {
                     array_tables,
                 )
             }
-            TODO_FieldTypeStandIn::Flat(flat_field_type) => {
-                match flat_field_type {
-                    TODO_FlatFieldTypeStandIn::Object(items) => {
-                        ref_name.push(name.to_string());
-                        let (fields, array_tables) = items
-                        .iter()
-                        .map(|(field_name, field_type)| {
-                            Field::new(field_name, ref_name.clone(), ref_id, id_supplier, field_type, enum_tables)
-                        })
-                        .fold(
-                            (vec![], vec![]),
-                            |(mut field_acc, mut array_acc),
-                             (field_item, mut array_tables_item)| {
-                                field_acc.push(field_item);
-                                array_acc.append(&mut array_tables_item);
-                                (field_acc, array_acc)
-                            },
-                        );
-                        (
-                            Field::Object {
-                                name: name.clone(),
-                                fields,
-                            },
-                            array_tables,
+            FirstLayerFieldtype::Object(items) => {
+                ref_name.push(name.to_string());
+                let (fields, array_tables) = items
+                    .iter()
+                    .map(|(field_name, field_type)| {
+                        Field::new(
+                            field_name,
+                            ref_name.clone(),
+                            ref_id,
+                            id_supplier,
+                            field_type,
+                            //enum_tables,
                         )
-                    }
-                    TODO_FlatFieldTypeStandIn::Primitive(field_type) => (
-                        Field::Primitive {
-                            id: id_supplier.next(),
-                            name: name.clone(),
-                            field_type: match field_type {
-                                TODO_PrimitiveFieldType::Number => FieldType::Number,
-                                TODO_PrimitiveFieldType::Boolean => FieldType::Boolean,
-                                TODO_PrimitiveFieldType::Enum(enum_name) => {
-                                    if let Some(enum_table) = enum_tables
-                                        .iter()
-                                        .find(|table| table.get_name() == enum_name)
-                                    {
-                                        FieldType::Enum(enum_table.get_id())
-                                    } else {
-                                        panic!("No EnumTable with that name")
-                                    }
-                                }
-                            },
+                    })
+                    .fold(
+                        (vec![], vec![]),
+                        |(mut field_acc, mut array_acc), (field_item, mut array_tables_item)| {
+                            field_acc.push(field_item);
+                            array_acc.append(&mut array_tables_item);
+                            (field_acc, array_acc)
                         },
-                        vec![],
-                    ),
-                }
+                    );
+                (
+                    Field::Object {
+                        name: name.clone(),
+                        fields,
+                    },
+                    array_tables,
+                )
             }
+            FirstLayerFieldtype::Boolean => (
+                Field::Primitive {
+                    id: id_supplier.next(),
+                    name: name.clone(),
+                    field_type: FieldType::Boolean
+                },
+                vec![],
+            ),
+            FirstLayerFieldtype::Number => (
+                Field::Primitive {
+                    id: id_supplier.next(),
+                    name: name.clone(),
+                    field_type: FieldType::Number
+                },
+                vec![],
+            ),
+            FirstLayerFieldtype::Enum(values) => (
+                Field::Primitive {
+                    id: id_supplier.next(),
+                    name: name.clone(),
+                    field_type: FieldType::Enum(values.clone())
+                },
+                vec![],
+            ),
         }
     }
     pub(crate) fn flatten(&self) -> Vec<(FieldId, PathString)> {
@@ -515,27 +549,5 @@ impl Field {
 enum FieldType {
     Number,
     Boolean,
-    Enum(EnumTableId),
+    Enum(Vec<String>),
 }
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub enum TODO_FieldTypeStandIn {
-    Array(TODO_FlatFieldTypeStandIn),
-    Flat(TODO_FlatFieldTypeStandIn),
-}
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub enum TODO_FlatFieldTypeStandIn {
-    Object(TODO_ObjectFieldTypeStandIn),
-    Primitive(TODO_PrimitiveFieldType),
-}
-
-pub type TODO_ObjectFieldTypeStandIn = Vec<(String, TODO_FieldTypeStandIn)>;
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub enum TODO_PrimitiveFieldType {
-    Number,
-    Boolean,
-    Enum(String),
-}
-

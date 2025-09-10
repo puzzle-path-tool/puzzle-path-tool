@@ -16,13 +16,25 @@ pub struct Deduction {
     data: DeductionData
 }
 
+impl Deduction {
+    pub fn get_name(&self) -> &String {
+        self.name.get_name()
+    }
+    pub fn get_description(&self) -> &String {
+        todo!()
+    }
+    pub fn get_data(&self) -> &HashMap<String, FieldType> {
+        &self.data.data
+    }
+}
+
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 pub struct DeductionData {
     data: HashMap<String, FieldType>
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-enum FieldType {
+pub enum FieldType {
     Number,
     Boolean,
     Enum(Vec<String>),
@@ -54,6 +66,18 @@ static RULE_TYPE: fn() -> String = Rule::decl;
 impl PuzzptApiExport for Rule {
     fn tag_value() -> &'static str {
         "RulePuzzptApi"
+    }
+}
+
+impl Rule {
+    pub fn get_name(&self) -> &String {
+        self.name.get_name()
+    }
+    pub fn get_description(&self) -> &String {
+        todo!()
+    }
+    pub fn get_data(&self) -> &HashMap<String, FieldType> {
+        &self.data.data
     }
 }
 

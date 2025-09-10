@@ -20,6 +20,12 @@ pub struct Identifier {
 #[distributed_slice(TYPES)]
 static INDENTIFIER_TYPE: fn() -> String = Identifier::decl;
 
+impl Identifier {
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
+}
+
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(rename = "VariableIdentifierPuzzptApi")]
 #[serde(transparent)]

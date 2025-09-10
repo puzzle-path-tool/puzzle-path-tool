@@ -7,7 +7,7 @@ pub mod tables {
         id_helpers::{EnumTableId as LookUpTableId, TableId as ArrayId, TableId as DeductionId},
         second_layer::tables::{
             ArrayTable as SecondLayerArray, DeductionTable as SecondLayerDeduction,
-            EnumIntMapping as SecondLayerEnumToInt, IntEnumMapping as SecondLayerIntToEnum,
+            //EnumIntMapping as SecondLayerEnumToInt, IntEnumMapping as SecondLayerIntToEnum,
             TableBundle as SecondLayerTables,
         },
     };
@@ -17,7 +17,7 @@ pub mod tables {
         deduction_tables: Vec<DeductionTable>,
         array_tables: Vec<ArrayTable>,
 
-        lookup_tables: Vec<LookUpTable>,
+        //lookup_tables: Vec<LookUpTable>,
     }
     impl TableBundle {
         pub(crate) fn from_second_layer(tables: &SecondLayerTables) -> TableBundle {
@@ -31,7 +31,7 @@ pub mod tables {
                 .iter()
                 .map(|array_table| ArrayTable::from_second_layer(array_table))
                 .collect();
-            let mut lookup_tables: Vec<LookUpTable> = tables
+            /*let mut lookup_tables: Vec<LookUpTable> = tables
                 .get_enum_mappings()
                 .0
                 .iter()
@@ -44,11 +44,11 @@ pub mod tables {
                     .iter()
                     .map(|table| LookUpTable::from_second_layer_int_enum_mapping(table, tables))
                     .collect(),
-            );
+            );*/
             TableBundle {
                 deduction_tables,
                 array_tables,
-                lookup_tables,
+                //lookup_tables,
             }
         }
     }
@@ -85,6 +85,7 @@ pub mod tables {
         }
     }
 
+    /* 
     #[derive(Debug, Clone)]
     pub struct LookUpTable {
         pub(crate) id: LookUpTableId,
@@ -144,5 +145,6 @@ pub mod tables {
                 .find(|(key, _)| *key == value)
                 .and_then(|(_, converted)| Some(*converted))
         }
-    }
+    }*/
 }
+
