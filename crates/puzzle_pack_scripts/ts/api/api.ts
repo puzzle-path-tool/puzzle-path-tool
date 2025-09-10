@@ -1360,8 +1360,8 @@ class DeductionClass<
             export_tag: "DeductionPuzzptApi",
             name: ModClass.toExportIdentifier(data.module, data.name),
             data: {
-                fieldType: 
-            }
+                fieldType: todo(),
+            },
         };
     }
     static unwrap<TType extends FieldType, TOp extends RecordType | undefined>(
