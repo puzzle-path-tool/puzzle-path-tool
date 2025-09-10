@@ -1,5 +1,7 @@
 // #region [[Definitions]]
 
+import { DeductionPuzzptApi, IdentifierPuzzptApi } from "./puzzpt_bindings";
+
 const classData = Symbol("classData");
 const puzzptExport = Symbol.for("puzzpt_export");
 
@@ -610,6 +612,18 @@ class ModClass {
     private constructor(data: ModClassData) {
         this[classData] = data;
     }
+    static toExportIdentifier(value: Mod, name: string): IdentifierPuzzptApi {
+        const data = ModClass.unwrap(value);
+
+        return {
+            pack: PackClass.unwrap(data.pack).name,
+            module: [
+                ...data.parents.map((p) => ModClass.unwrap(p).name),
+                data.name,
+            ],
+            name: name,
+        };
+    }
     static unwrap(value: Mod): ModClassData {
         return value[classData];
     }
@@ -1000,7 +1014,7 @@ export const bool = apiMod.namespace({
             logic: (a: Var<Bool>, o: BoolLogicOp, b: Var<Bool>): Var<Bool> => {
                 todo();
             },
-            
+
             not: (items: Var<Bool>): Var<Bool> => {
                 todo();
             },
@@ -1333,9 +1347,22 @@ class DeductionClass<
     TOp extends RecordType | undefined,
 > {
     private readonly [classData]: DeductionClassData<TType, TOp>;
-    private readonly [puzzptExport]: TODO;
+    private readonly [puzzptExport]: DeductionPuzzptApi;
     private constructor(data: DeductionClassData<TType, TOp>) {
         this[classData] = data;
+        this[puzzptExport] = DeductionClass.createApiExport(data);
+    }
+    static createApiExport<
+        TType extends FieldType,
+        TOp extends RecordType | undefined,
+    >(data: DeductionClassData<TType, TOp>): DeductionPuzzptApi {
+        return {
+            export_tag: "DeductionPuzzptApi",
+            name: ModClass.toExportIdentifier(data.module, data.name),
+            data: {
+                fieldType: 
+            }
+        };
     }
     static unwrap<TType extends FieldType, TOp extends RecordType | undefined>(
         value: Deduction<TType, TOp>,

@@ -13,21 +13,7 @@ use crate::ts_api::{PuzzptApiExport, TYPES};
 pub struct Deduction {
     #[serde(rename = "name")]
     name: Identifier,
-    data: DeductionData
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-pub struct DeductionData {
-    data: HashMap<String, FieldType>
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-enum FieldType {
-    Number,
-    Boolean,
-    Enum(Vec<String>),
-    Set(Box<FieldType>),
-    Object(HashMap<String, FieldType>)
+    data: DeductionData,
 }
 
 #[distributed_slice(TYPES)]
@@ -40,12 +26,42 @@ impl PuzzptApiExport for Deduction {
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(rename = "DeductionDataPuzzptApi")]
+pub struct DeductionData {
+    #[serde(rename = "fieldType")]
+    field_type: FieldType,
+}
+
+#[distributed_slice(TYPES)]
+static DEDUCTION_DATA_TYPE: fn() -> String = DeductionData::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "FieldTypePuzzptApi")]
+enum FieldType {
+    #[serde(rename = "Int")]
+    Int,
+    #[serde(rename = "Bool")]
+    Bool,
+    #[serde(rename = "Enum")]
+    Enum(Vec<String>),
+    #[serde(rename = "Set")]
+    Set(Box<FieldType>),
+    #[serde(rename = "Obj")]
+    Obj(HashMap<String, FieldType>),
+}
+
+#[distributed_slice(TYPES)]
+static FIELD_TYPE_TYPE: fn() -> String = FieldType::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "export_tag")]
 #[serde(rename = "RulePuzzptApi")]
 pub struct Rule {
     #[serde(rename = "name")]
     name: Identifier,
-    data: DeductionData
+    #[serde(rename = "data")]
+    data: DeductionData,
 }
 
 #[distributed_slice(TYPES)]
