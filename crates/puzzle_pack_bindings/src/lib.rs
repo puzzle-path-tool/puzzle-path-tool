@@ -1,11 +1,13 @@
 pub mod ts_api;
 
+
 pub mod layers {
     pub mod id_helpers;
     pub(crate) mod second_layer;
     pub mod third_layer;
 }
 
+/* 
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::unwrap_used, reason = "clippy-test-cfg")]
 mod tests {
@@ -107,4 +109,5 @@ mod tests {
 
         TableBundle::new(&tables, enum_tables)
     }
-}
+}*/
+

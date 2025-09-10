@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use itertools::Itertools;
 
 use crate::layers::id_helpers::{
@@ -26,20 +24,20 @@ impl TableBundle {
         rules: &Vec<FirstLayerRule>,
         deductions: &Vec<FirstLayerDeduction>,
     ) -> TableBundle {
-        let mut tables: Vec<(&Name, &Description, &HashMap<Name, FirstLayerFieldtype>)> = rules
+        let mut tables: Vec<(&Name, &Description, &FirstLayerFieldtype)> = rules
             .iter()
-            .map(|rule| (rule.get_name(), rule.get_description(), rule.get_data()))
+            .map(|rule| (rule.name(), rule.description(), rule.data()))
             .collect();
         tables.append(
             &mut deductions
                 .iter()
-                .map(|rule| (rule.get_name(), rule.get_description(), rule.get_data()))
+                .map(|rule| (rule.name(), rule.description(), rule.data()))
                 .collect(),
         );
         Self::new(tables)
     }
     fn new(
-        tables: Vec<(&Name, &Description, &HashMap<Name, FirstLayerFieldtype>)>,
+        tables: Vec<(&Name, &Description, &FirstLayerFieldtype)>,
         /*enum_tables: Vec<(
             Name,
             Description,
@@ -155,38 +153,26 @@ pub(crate) struct DeductionTable {
     id: DeductionId,
     name: String,
     description: String,
-    fields: Vec<Field>,
+    fields: Field,
     length: usize,
 }
 impl DeductionTable {
     fn new(
         name: String,
         description: String,
-        deduction_data: &HashMap<String, FirstLayerFieldtype>,
+        deduction_data: &FirstLayerFieldtype,
         /*enum_tables: &Vec<EnumTable>,*/
     ) -> (DeductionTable, Vec<ArrayTable>) {
         let id = DeductionId::new();
         let mut field_id_supplier = FieldIdSupplier::new();
-        let (fields, array_tables) = deduction_data
-            .iter()
-            .map(|(name, field_type)| {
-                Field::new(
-                    name,
-                    PathString::new(),
-                    id,
-                    &mut field_id_supplier,
-                    field_type,
-                    //enum_tables,
-                )
-            })
-            .fold(
-                (vec![], vec![]),
-                |(mut field_acc, mut array_acc), (field_item, mut array_tables_item)| {
-                    field_acc.push(field_item);
-                    array_acc.append(&mut array_tables_item);
-                    (field_acc, array_acc)
-                },
-            );
+        let (fields, array_tables) = Field::new(
+            &name,
+            PathString::new(),
+            id,
+            &mut field_id_supplier,
+            deduction_data,
+            //enum_tables,
+        );
         (
             DeductionTable {
                 id,
@@ -205,21 +191,19 @@ impl DeductionTable {
         self.length
     }
     pub(crate) fn get_field_id_by_name(&self, name: &PathString) -> Option<FieldId> {
-        self.fields.iter().find_map(|field_item| {
-            let sub_fields = field_item.flatten();
-            sub_fields.iter().find_map(
-                |(id, field_name)| {
-                    if name == field_name { Some(*id) } else { None }
-                },
-            )
-        })
+        let sub_fields = self.fields.flatten();
+        sub_fields.iter().find_map(
+            |(id, field_name)| {
+                if name == field_name { Some(*id) } else { None }
+            },
+        )
     }
     pub(crate) fn table_fields(
         &self,
         tables: &TableBundle,
         partial: &Option<PathString>,
     ) -> Vec<(FieldId, PathString)> {
-        let mut fields = self.fields.iter().map(|item| item.flatten()).concat();
+        let mut fields = self.fields.flatten();
         fields.append(
             &mut tables
                 .get_all_array_tables_of_deduction(self.get_id())
@@ -447,7 +431,7 @@ impl Field {
                     array_tables,
                 )
             }
-            FirstLayerFieldtype::Object(items) => {
+            FirstLayerFieldtype::Obj(items) => {
                 ref_name.push(name.to_string());
                 let (fields, array_tables) = items
                     .iter()
@@ -477,19 +461,19 @@ impl Field {
                     array_tables,
                 )
             }
-            FirstLayerFieldtype::Boolean => (
+            FirstLayerFieldtype::Bool => (
                 Field::Primitive {
                     id: id_supplier.next(),
                     name: name.clone(),
-                    field_type: FieldType::Boolean
+                    field_type: FieldType::Boolean,
                 },
                 vec![],
             ),
-            FirstLayerFieldtype::Number => (
+            FirstLayerFieldtype::Int => (
                 Field::Primitive {
                     id: id_supplier.next(),
                     name: name.clone(),
-                    field_type: FieldType::Number
+                    field_type: FieldType::Number,
                 },
                 vec![],
             ),
@@ -497,7 +481,7 @@ impl Field {
                 Field::Primitive {
                     id: id_supplier.next(),
                     name: name.clone(),
-                    field_type: FieldType::Enum(values.clone())
+                    field_type: FieldType::Enum(values.clone()),
                 },
                 vec![],
             ),

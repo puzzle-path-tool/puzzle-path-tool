@@ -13,33 +13,20 @@ use crate::ts_api::{PuzzptApiExport, TYPES};
 pub struct Deduction {
     #[serde(rename = "name")]
     name: Identifier,
-    data: DeductionData
+    #[serde(rename = "data")]
+    data: DeductionData,
 }
 
 impl Deduction {
-    pub fn get_name(&self) -> &String {
+    pub fn name(&self) -> &String {
         self.name.get_name()
     }
-    pub fn get_description(&self) -> &String {
+    pub fn description(&self) -> &String {
         todo!()
     }
-    pub fn get_data(&self) -> &HashMap<String, FieldType> {
-        &self.data.data
+    pub fn data(&self) -> &FieldType {
+        &self.data.field_type
     }
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-pub struct DeductionData {
-    data: HashMap<String, FieldType>
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-pub enum FieldType {
-    Number,
-    Boolean,
-    Enum(Vec<String>),
-    Set(Box<FieldType>),
-    Object(HashMap<String, FieldType>)
 }
 
 #[distributed_slice(TYPES)]
@@ -52,12 +39,54 @@ impl PuzzptApiExport for Deduction {
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(rename = "DeductionDataPuzzptApi")]
+pub struct DeductionData {
+    #[serde(rename = "fieldType")]
+    field_type: FieldType,
+}
+
+#[distributed_slice(TYPES)]
+static DEDUCTION_DATA_TYPE: fn() -> String = DeductionData::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "FieldTypePuzzptApi")]
+pub enum FieldType {
+    #[serde(rename = "Int")]
+    Int,
+    #[serde(rename = "Bool")]
+    Bool,
+    #[serde(rename = "Enum")]
+    Enum(Vec<String>),
+    #[serde(rename = "Set")]
+    Set(Box<FieldType>),
+    #[serde(rename = "Obj")]
+    Obj(HashMap<String, FieldType>),
+}
+
+#[distributed_slice(TYPES)]
+static FIELD_TYPE_TYPE: fn() -> String = FieldType::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "export_tag")]
 #[serde(rename = "RulePuzzptApi")]
 pub struct Rule {
     #[serde(rename = "name")]
     name: Identifier,
-    data: DeductionData
+    #[serde(rename = "data")]
+    data: DeductionData,
+}
+
+impl Rule {
+    pub fn name(&self) -> &String {
+        self.name.get_name()
+    }
+    pub fn description(&self) -> &String {
+        todo!()
+    }
+    pub fn data(&self) -> &FieldType {
+        &self.data.field_type
+    }
 }
 
 #[distributed_slice(TYPES)]
@@ -66,18 +95,6 @@ static RULE_TYPE: fn() -> String = Rule::decl;
 impl PuzzptApiExport for Rule {
     fn tag_value() -> &'static str {
         "RulePuzzptApi"
-    }
-}
-
-impl Rule {
-    pub fn get_name(&self) -> &String {
-        self.name.get_name()
-    }
-    pub fn get_description(&self) -> &String {
-        todo!()
-    }
-    pub fn get_data(&self) -> &HashMap<String, FieldType> {
-        &self.data.data
     }
 }
 

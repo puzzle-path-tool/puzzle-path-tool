@@ -16,6 +16,7 @@ use crate::layers::{
         },
         tables::TableBundle as SecondLayerTables,
     },
+    third_layer::convert_enum,
 };
 
 #[derive(Debug, Clone)]
@@ -140,7 +141,9 @@ pub struct BuildObjectArrayField {
     ref_ids: Vec<TableId>,
 }
 impl BuildObjectArrayField {
-    pub fn get_id(&self) -> TableId {self.id}
+    pub fn get_id(&self) -> TableId {
+        self.id
+    }
     pub fn get_field_size(&self) -> usize {
         self.field_size
     }
@@ -481,18 +484,15 @@ impl ValueOperation {
                 )),
                 look_up_table: *mapping_table,
             },
-            SecondLayerEnum::Enum { value, enum_id } => {
-                if let Some(value) = tables
-                    .get_enum_by_id(*enum_id)
-                    .and_then(|enum_table| enum_table.convert(value))
-                {
-                    ValueOperation::FixedValue {
-                        value: i32::from(value),
+            SecondLayerEnum::Enum { value, values } => ValueOperation::FixedValue {
+                value: {
+                    if let Some(value) = convert_enum(value, values) {
+                        value
+                    } else {
+                        panic!()
                     }
-                } else {
-                    panic!("Enumtable or conversion not found")
-                }
-            }
+                },
+            },
             SecondLayerEnum::ObjectFieldEnum { object, field_id } => {
                 ValueOperation::field_value_from_second_layer(
                     object,

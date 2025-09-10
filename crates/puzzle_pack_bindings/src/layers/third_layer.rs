@@ -6,7 +6,8 @@ pub mod tables {
     use crate::layers::{
         id_helpers::{EnumTableId as LookUpTableId, TableId as ArrayId, TableId as DeductionId},
         second_layer::tables::{
-            ArrayTable as SecondLayerArray, DeductionTable as SecondLayerDeduction,
+            ArrayTable as SecondLayerArray,
+            DeductionTable as SecondLayerDeduction,
             //EnumIntMapping as SecondLayerEnumToInt, IntEnumMapping as SecondLayerIntToEnum,
             TableBundle as SecondLayerTables,
         },
@@ -16,7 +17,6 @@ pub mod tables {
     pub(crate) struct TableBundle {
         deduction_tables: Vec<DeductionTable>,
         array_tables: Vec<ArrayTable>,
-
         //lookup_tables: Vec<LookUpTable>,
     }
     impl TableBundle {
@@ -85,7 +85,7 @@ pub mod tables {
         }
     }
 
-    /* 
+    /*
     #[derive(Debug, Clone)]
     pub struct LookUpTable {
         pub(crate) id: LookUpTableId,
@@ -148,3 +148,11 @@ pub mod tables {
     }*/
 }
 
+fn convert_enum(value: &String, values: &Vec<String>) -> Option<i32> {
+    let mut values = values.clone();
+    values.sort();
+    values
+        .iter()
+        .position(|current| current == value)
+        .and_then(|value| i32::try_from(value).ok())
+}

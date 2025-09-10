@@ -361,7 +361,7 @@ pub(crate) enum EnumOutput {
         mapping_table: EnumTableId,
     },
     Enum {
-        enum_id: EnumTableId,
+        values: Vec<String>,
         value: String,
     },
     ObjectFieldEnum {
