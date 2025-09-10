@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use linkme::distributed_slice;
-use serde::{Deserialize, Serialize, de::value};
+use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::ts_api::TYPES;

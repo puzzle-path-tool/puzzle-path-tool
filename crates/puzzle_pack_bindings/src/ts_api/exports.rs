@@ -9,6 +9,7 @@ use crate::ts_api::{PuzzptApiExport, TYPES};
 #[serde(tag = "export_tag")]
 #[serde(rename = "DeductionPuzzptApi")]
 pub struct Deduction {
+    #[serde(rename = "name")]
     name: Identifier,
 }
 
@@ -25,6 +26,7 @@ impl PuzzptApiExport for Deduction {
 #[serde(tag = "export_tag")]
 #[serde(rename = "RulePuzzptApi")]
 pub struct Rule {
+    #[serde(rename = "name")]
     name: Identifier,
 }
 
@@ -41,6 +43,7 @@ impl PuzzptApiExport for Rule {
 #[serde(tag = "export_tag")]
 #[serde(rename = "LogicStepPuzzptApi")]
 pub struct LogicStep {
+    #[serde(rename = "name")]
     name: Identifier,
 }
 
@@ -57,7 +60,12 @@ impl PuzzptApiExport for LogicStep {
 #[serde(tag = "export_tag")]
 #[serde(rename = "PackPuzzptApi")]
 pub struct Pack {
+    #[serde(rename = "name")]
     name: String,
+    #[serde(rename = "authors")]
+    authors: Vec<String>,
+    #[serde(rename = "description")]
+    description: String,
 }
 
 #[distributed_slice(TYPES)]
