@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use linkme::distributed_slice;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -11,6 +13,21 @@ use crate::ts_api::{PuzzptApiExport, TYPES};
 pub struct Deduction {
     #[serde(rename = "name")]
     name: Identifier,
+    data: DeductionData
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+pub struct DeductionData {
+    data: HashMap<String, FieldType>
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+enum FieldType {
+    Number,
+    Boolean,
+    Enum(Vec<String>),
+    Set(Box<FieldType>),
+    Object(HashMap<String, FieldType>)
 }
 
 #[distributed_slice(TYPES)]
@@ -28,6 +45,7 @@ impl PuzzptApiExport for Deduction {
 pub struct Rule {
     #[serde(rename = "name")]
     name: Identifier,
+    data: DeductionData
 }
 
 #[distributed_slice(TYPES)]

@@ -35,18 +35,30 @@ static VARIABLE_INDENTIFIER_TYPE: fn() -> String = VariableIdentifier::decl;
 #[serde(rename = "VariablePuzzptApi")]
 pub enum Variable {
     #[serde(rename = "Int")]
-    Int(i32),
+    Int(VarValue<i32>),
     #[serde(rename = "Bool")]
-    Bool(bool),
+    Bool(VarValue<bool>),
     #[serde(rename = "Enum")]
-    Enum { values: Vec<String>, value: String },
+    Enum(VarValue<EnumType>),
     #[serde(rename = "Set")]
     Set(Box<Variable>),
     #[serde(rename = "Obj")]
     Obj(Box<HashMap<String, Variable>>),
-    #[serde(rename = "Ref")]
-    Ref(VariableIdentifier),
 }
 
 #[distributed_slice(TYPES)]
 static VARIABLE_TYPE: fn() -> String = Variable::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "VarValuePuzzptApi")]
+pub enum VarValue<T> {
+    Const(T),
+    Ref(VariableIdentifier),
+}
+
+#[distributed_slice(TYPES)]
+static VAR_VALUE_TYPE: fn() -> String = VarValue::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+pub struct EnumType { values: Vec<String>, value: String }
