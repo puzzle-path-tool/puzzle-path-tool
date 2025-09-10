@@ -50,10 +50,22 @@ impl LogicStep {
                 .collect(),
         }
     }
+    pub fn get_id(&self) -> StepId {
+        self.id
+    }
+    pub fn get_match_statement(&self) -> &ValueOperation {
+        &self.match_statement
+    }
+    pub fn get_step_objects(&self) -> &Vec<StepObject> {
+        &self.step_objects
+    }
+    pub fn get_step_sets(&self) -> &Vec<SetObject> {
+        &self.step_sets
+    }
 }
 
 #[derive(Debug, Clone)]
-enum StepObject {
+pub enum StepObject {
     DeductionObject {
         id: usize,
         table: TableId,
@@ -87,17 +99,56 @@ impl StepObject {
     }
 }
 #[derive(Debug, Clone)]
-struct BuildObjectFields {
-    value_fields: Vec<(FieldId, PathString)>,
-    array_fields: Vec<(TableId, Vec<(FieldId, PathString)>)>,
+pub struct BuildObjectFields {
+    field_size: usize,                        //Vec<(FieldId, PathString)>,
+    array_fields: Vec<BuildObjectArrayField>, //Vec<(FieldId, PathString)>)>,
 }
 impl BuildObjectFields {
     fn from_second_layer(fields: &SecondLayerObjectFields) -> BuildObjectFields {
         let (value_fields, array_fields) = fields.flat_type();
+        let value_fields = Self::get_highest_id(&value_fields);
+        let array_fields = array_fields
+            .iter()
+            .map(|(id, ref_ids, fields)| BuildObjectArrayField {
+                id: *id,
+                field_size: Self::get_highest_id(fields),
+                ref_ids: ref_ids.clone(),
+            })
+            .collect();
         BuildObjectFields {
-            value_fields,
+            field_size: value_fields,
             array_fields,
         }
+    }
+    fn get_highest_id(fields: &Vec<(FieldId, PathString)>) -> usize {
+        fields.iter().fold(0, |acc, (field_id, _)| match field_id {
+            FieldId::Primitive(id) => std::cmp::max(*id, acc),
+            FieldId::Array(_) => acc,
+        })
+    }
+    pub fn get_field_size(&self) -> usize {
+        self.field_size
+    }
+    pub fn get_array_fields(&self) -> &Vec<BuildObjectArrayField> {
+        &self.array_fields
+    }
+}
+#[derive(Debug, Clone)]
+pub struct BuildObjectArrayField {
+    id: TableId,
+    field_size: usize,
+    ref_ids: Vec<TableId>,
+}
+impl BuildObjectArrayField {
+    pub fn get_id(&self) -> TableId {self.id}
+    pub fn get_field_size(&self) -> usize {
+        self.field_size
+    }
+    pub fn get_ref_ids(&self) -> &Vec<TableId> {
+        &self.ref_ids
+    }
+    pub fn get_array_depth(&self) -> usize {
+        self.ref_ids.len()
     }
 }
 #[derive(Debug, Clone)]
@@ -119,7 +170,7 @@ impl SetObject {
 }
 
 #[derive(Debug, Clone)]
-enum ValueOperation {
+pub enum ValueOperation {
     TwoValueOp {
         first: Box<ValueOperation>,
         second: Box<ValueOperation>,
@@ -1250,7 +1301,7 @@ impl ValueOperation {
     }
 }
 #[derive(Debug, Clone, Copy)]
-enum TwoValueOperator {
+pub enum TwoValueOperator {
     And,
     Or,
     XOr,
@@ -1269,7 +1320,7 @@ enum TwoValueOperator {
     Expon,
 }
 #[derive(Debug, Clone, Copy)]
-enum ValueTwoSetOperator {
+pub enum ValueTwoSetOperator {
     Equal,
     SubsetOf,
     TrueSubsetOf,
@@ -1278,7 +1329,7 @@ enum ValueTwoSetOperator {
 }
 
 #[derive(Debug, Clone)]
-enum SetOperation {
+pub enum SetOperation {
     MappedSet {
         set: Box<SetOperation>,
         mapping_id: usize,
@@ -1514,7 +1565,7 @@ impl SetMapping {
     }
 }
 #[derive(Debug, Clone, Copy)]
-enum SetTwoSetOperator {
+pub enum SetTwoSetOperator {
     Union,
     Intersect,
     Without,
@@ -1523,7 +1574,7 @@ enum SetTwoSetOperator {
     DisjunctiveUnion,
 }
 #[derive(Debug, Clone, Copy)]
-enum MultiSetOperator {
+pub enum MultiSetOperator {
     Union,
     Intersect,
 }

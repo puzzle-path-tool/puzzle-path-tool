@@ -6,13 +6,13 @@ use crate::layers::id_helpers::{EnumTableId, FieldId, PathString, StepId, TableI
 use crate::layers::second_layer::tables::{Field, TableBundle};
 
 pub(crate) mod test {
-    use super::*;
+    use super::{BoolCombinator, BooleanOutput, LogicStep, MathOperator, NumberComparor, NumberOutput, ObjectOutput, Output, SetObject, SetOutput, StepId, StepObject, TableBundle};
 
     pub(crate) fn build_example_step(tables: &TableBundle) -> LogicStep {
         LogicStep {
-            name: format!("ExampleStep"),
+            name: "ExampleStep".to_string(),
             id: StepId::new(),
-            description: format!("ExampleStepDescritpion"),
+            description: "ExampleStepDescritpion".to_string(),
             step_objects: {
                 let mut items = vec![];
                 if let Some(deduction) = tables.get_deduction_tables().first() {
@@ -194,7 +194,7 @@ impl BuildObjectFields {
         &self,
     ) -> (
         Vec<(FieldId, PathString)>,
-        Vec<(TableId, Vec<(FieldId, PathString)>)>,
+        Vec<(TableId, Vec<TableId>, Vec<(FieldId, PathString)>)>,
     ) {
         let fields = self.value_fields.iter().map(|item| item.flatten()).concat();
         let arrays = self
@@ -202,8 +202,16 @@ impl BuildObjectFields {
             .iter()
             .fold(vec![], |mut acc, (table_id, fields)| {
                 let (current_fields, mut additonal_arrays) = fields.flat_type();
-                acc.push((*table_id, current_fields));
-                acc.append(&mut additonal_arrays);
+                acc.push((*table_id, vec![], current_fields));
+                acc.append(
+                    &mut additonal_arrays
+                        .iter_mut()
+                        .map(|(array_id, ref_ids, fields)| {
+                            ref_ids.push(*table_id);
+                            (*array_id, ref_ids.clone(), fields.clone())
+                        })
+                        .collect(),
+                );
                 acc
             });
         (fields, arrays)

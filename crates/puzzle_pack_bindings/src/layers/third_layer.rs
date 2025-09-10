@@ -1,6 +1,8 @@
-pub(crate) mod steps;
+pub mod steps;
 
-pub(crate) mod tables {
+pub mod tables {
+    use serde::de::value;
+
     use crate::layers::{
         id_helpers::{EnumTableId as LookUpTableId, TableId as ArrayId, TableId as DeductionId},
         second_layer::tables::{
@@ -135,6 +137,12 @@ pub(crate) mod tables {
             } else {
                 panic!()
             }
+        }
+        pub fn convert(&self, value: i32) -> Option<i32> {
+            self.look_up_table
+                .iter()
+                .find(|(key, _)| *key == value)
+                .and_then(|(_, converted)| Some(*converted))
         }
     }
 }

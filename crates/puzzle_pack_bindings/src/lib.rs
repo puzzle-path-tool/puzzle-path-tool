@@ -1,8 +1,7 @@
 pub mod ts_api;
 
-mod layers {
-    pub(crate) mod first_layer {}
-    pub(crate) mod id_helpers;
+pub mod layers {
+    pub mod id_helpers;
     pub(crate) mod second_layer;
     pub mod third_layer;
 }
@@ -14,7 +13,6 @@ mod tests {
     use crate::layers::second_layer::tables::TableBundle as SecondLayerTableBundle;
     use crate::layers::third_layer::steps::LogicStep as ThirdLayerLogicStep;
     use crate::layers::third_layer::tables::TableBundle as ThirdLayerTableBundle;
-
     #[test]
     fn it_works() {
         let second_layer_tables = build_second_layer_tables(3);
