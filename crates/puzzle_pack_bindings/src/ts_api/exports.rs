@@ -98,12 +98,17 @@ impl PuzzptApiExport for Rule {
     }
 }
 
+//Todo: Serde
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "export_tag")]
 #[serde(rename = "LogicStepPuzzptApi")]
 pub struct LogicStep {
     #[serde(rename = "name")]
     name: Identifier,
+    variables: Vec<RegisterVariable>,
+    requirements: Vec<matching::MatchExpression>,
+    where_clauses: Vec<matching::MatchExpression>,
+    emissions: Vec<EmitExpression>
 }
 
 #[distributed_slice(TYPES)]
@@ -113,6 +118,22 @@ impl PuzzptApiExport for LogicStep {
     fn tag_value() -> &'static str {
         "LogicStepPuzzptApi"
     }
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+pub struct RegisterVariable {
+    id: i32,
+    field_type: FieldType,
+    
+}
+
+mod matching;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+pub struct EmitExpression {
+    id: i32,
+    field_type: FieldType,
+    
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
