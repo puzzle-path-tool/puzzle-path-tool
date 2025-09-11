@@ -97,8 +97,6 @@ static MATCH_CONSTANT_TYPE: fn() -> String = MatchConstant::decl;
 #[serde(tag = "tag", content = "value")]
 #[serde(rename = "MatchOperationPuzzptApi")]
 pub enum MatchOperation {
-    #[serde(rename = "Enum")]
-    Enum(EnumOperation),
     #[serde(rename = "Bool")]
     Bool(BoolOperation),
     #[serde(rename = "Int")]
@@ -120,23 +118,146 @@ static MATCH_OPERATION_TYPE: fn() -> String = MatchOperation::decl;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "tag", content = "value")]
-#[serde(rename = "EnumOperationPuzzptApi")]
-pub enum EnumOperation {
-    Placeholder,
-}
-
-#[distributed_slice(TYPES)]
-static ENUM_OPERATION_TYPE: fn() -> String = EnumOperation::decl;
-
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-#[serde(tag = "tag", content = "value")]
 #[serde(rename = "BoolOperationPuzzptApi")]
 pub enum BoolOperation {
-    Placeholder,
+    #[serde(rename = "Cmp")]
+    Cmp {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+        #[serde(rename = "o")]
+        o: BoolCmpOp,
+        #[serde(rename = "b")]
+        b: MatchExpression,
+    },
+    #[serde(rename = "Logic")]
+    Logic {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+        #[serde(rename = "o")]
+        o: BoolLogicOp,
+        #[serde(rename = "b")]
+        b: MatchExpression,
+    },
+    #[serde(rename = "Not")]
+    Not {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+    },
+    #[serde(rename = "Fold")]
+    Fold {
+        #[serde(rename = "o")]
+        o: BoolFoldOp,
+        #[serde(rename = "a")]
+        a: MatchExpression,
+    },
+    #[serde(rename = "All")]
+    All {
+        #[serde(rename = "o")]
+        o: BoolAllOp,
+        #[serde(rename = "a")]
+        a: MatchExpression,
+    },
+    #[serde(rename = "None")]
+    None {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
+    #[serde(rename = "And")]
+    And {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
+    #[serde(rename = "Or")]
+    Or {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
 }
 
 #[distributed_slice(TYPES)]
 static BOOL_OPERATION_TYPE: fn() -> String = BoolOperation::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "BoolCmpOpPuzzptApi")]
+pub enum BoolCmpOp {
+    #[serde(rename = "==")]
+    Equals,
+    #[serde(rename = "!=")]
+    NotEquals,
+}
+
+#[distributed_slice(TYPES)]
+static BOOL_CMP_OP_TYPE: fn() -> String = BoolCmpOp::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "BoolLogicOpPuzzptApi")]
+pub enum BoolLogicOp {
+    #[serde(rename = "or")]
+    Or,
+    #[serde(rename = "and")]
+    And,
+    #[serde(rename = "xor")]
+    Xor,
+    #[serde(rename = "nor")]
+    Nor,
+    #[serde(rename = "nand")]
+    Nand,
+    #[serde(rename = "xnor")]
+    Xnor,
+}
+
+#[distributed_slice(TYPES)]
+static BOOL_LOGIC_OP_TYPE: fn() -> String = BoolLogicOp::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "BoolFoldOpPuzzptApi")]
+pub enum BoolFoldOp {
+    #[serde(rename = "==")]
+    Equals,
+    #[serde(rename = "!=")]
+    NotEquals,
+    #[serde(rename = "or")]
+    Or,
+    #[serde(rename = "and")]
+    And,
+    #[serde(rename = "xor")]
+    Xor,
+    #[serde(rename = "nor")]
+    Nor,
+    #[serde(rename = "nand")]
+    Nand,
+    #[serde(rename = "xnor")]
+    Xnor,
+    #[serde(rename = "all")]
+    All,
+    #[serde(rename = "any")]
+    Any,
+    #[serde(rename = "none")]
+    None,
+}
+
+#[distributed_slice(TYPES)]
+static BOOL_FOLD_OP_TYPE: fn() -> String = BoolFoldOp::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "BoolAllOpPuzzptApi")]
+pub enum BoolAllOp {
+    #[serde(rename = "==")]
+    Equal,
+    #[serde(rename = "!=")]
+    NotEqual,
+    #[serde(rename = "true")]
+    True,
+    #[serde(rename = "false")]
+    False,
+}
+
+#[distributed_slice(TYPES)]
+static BOOL_ALL_OP_TYPE: fn() -> String = BoolAllOp::decl;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "tag", content = "value")]
@@ -296,11 +417,164 @@ static INT_ALL_OP_TYPE: fn() -> String = IntAllOp::decl;
 #[serde(tag = "tag", content = "value")]
 #[serde(rename = "SetOperationPuzzptApi")]
 pub enum SetOperation {
-    Placeholder,
+    #[serde(rename = "Cmp")]
+    Cmp {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+        #[serde(rename = "o")]
+        o: SetCmpOp,
+        #[serde(rename = "b")]
+        b: MatchExpression,
+    },
+    #[serde(rename = "ElementOf")]
+    ElementOf {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+        #[serde(rename = "b")]
+        b: MatchExpression,
+    },
+    #[serde(rename = "Contains")]
+    Contains {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+        #[serde(rename = "b")]
+        b: MatchExpression,
+    },
+    #[serde(rename = "Join")]
+    Join {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+        #[serde(rename = "o")]
+        o: SetJoinOp,
+        #[serde(rename = "b")]
+        b: MatchExpression,
+    },
+    #[serde(rename = "Fold")]
+    Fold {
+        #[serde(rename = "o")]
+        o: SetFoldOp,
+        #[serde(rename = "items")]
+        items: MatchExpression,
+    },
+    #[serde(rename = "Union")]
+    Union {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
+    #[serde(rename = "Intersect")]
+    Intersect {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
+    #[serde(rename = "DisjunctiveUnion")]
+    DisjunctiveUnion {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
+    #[serde(rename = "All")]
+    All {
+        #[serde(rename = "o")]
+        o: SetAllOp,
+        #[serde(rename = "items")]
+        items: MatchExpression,
+    },
+    #[serde(rename = "AllDisjoint")]
+    AllDisjoint {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
+    #[serde(rename = "Size")]
+    Size {
+        #[serde(rename = "item")]
+        item: MatchExpression,
+    },
+    #[serde(rename = "Map")]
+    Map {
+        #[serde(rename = "item")]
+        item: MatchExpression,
+        #[serde(rename = "f")]
+        f: (), //TODO
+    },
 }
 
 #[distributed_slice(TYPES)]
 static SET_OPERATION_TYPE: fn() -> String = SetOperation::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "SetCmpOpPuzzptApi")]
+pub enum SetCmpOp {
+    #[serde(rename = "==")]
+    Equals,
+    #[serde(rename = "!=")]
+    NotEquals,
+    #[serde(rename = "subset of")]
+    SubsetOf,
+    #[serde(rename = "superset of")]
+    SupersetOf,
+    #[serde(rename = "true subset of")]
+    TrueSubsetOf,
+    #[serde(rename = "true superset of")]
+    TrueSupersetOf,
+    #[serde(rename = "disjoint with")]
+    DisjointWith,
+}
+
+#[distributed_slice(TYPES)]
+static SET_CMP_OP_TYPE: fn() -> String = SetCmpOp::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "SetJoinOpPuzzptApi")]
+pub enum SetJoinOp {
+    #[serde(rename = "union")]
+    Union,
+    #[serde(rename = "intersect")]
+    Intersect,
+    #[serde(rename = "without")]
+    Without,
+    #[serde(rename = "subtracted from")]
+    SubtractedFrom,
+    #[serde(rename = "disjunctive union")]
+    DisjunctiveUnion,
+}
+
+#[distributed_slice(TYPES)]
+static SET_JOIN_OP_TYPE: fn() -> String = SetJoinOp::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "SetFoldOpPuzzptApi")]
+pub enum SetFoldOp {
+    #[serde(rename = "==")]
+    Equal,
+    #[serde(rename = "!=")]
+    NotEqual,
+    #[serde(rename = "union")]
+    Union,
+    #[serde(rename = "intersect")]
+    Intersect,
+    #[serde(rename = "disjunctive union")]
+    DisjunctiveUnion,
+}
+
+#[distributed_slice(TYPES)]
+static SET_FOLD_OP_TYPE: fn() -> String = SetFoldOp::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "SetAllOpPuzzptApi")]
+pub enum SetAllOp {
+    #[serde(rename = "==")]
+    Equal,
+    #[serde(rename = "!=")]
+    NotEqual,
+    #[serde(rename = "disjoint")]
+    Disjoint,
+}
+
+#[distributed_slice(TYPES)]
+static SET_ALL_OP_TYPE: fn() -> String = SetAllOp::decl;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "tag", content = "value")]
@@ -367,7 +641,28 @@ static OBJ_ALL_OP_TYPE: fn() -> String = ObjAllOp::decl;
 #[serde(tag = "tag", content = "value")]
 #[serde(rename = "TableOperationPuzzptApi")]
 pub enum TableOperation {
-    Placeholder,
+    #[serde(rename = "Forwards")]
+    Forwards {
+        #[serde(rename = "fieldTypeA")]
+        field_type_a: FieldType,
+        #[serde(rename = "fieldTypeB")]
+        field_type_b: FieldType,
+        #[serde(rename = "mapping")]
+        mapping: Vec<()>, //TODO
+        #[serde(rename = "item")]
+        item: MatchExpression,
+    },
+    #[serde(rename = "Backwards")]
+    Backwards {
+        #[serde(rename = "fieldTypeA")]
+        field_type_a: FieldType,
+        #[serde(rename = "fieldTypeB")]
+        field_type_b: FieldType,
+        #[serde(rename = "mapping")]
+        mapping: Vec<()>, //TODO
+        #[serde(rename = "item")]
+        item: MatchExpression,
+    },
 }
 
 #[distributed_slice(TYPES)]
