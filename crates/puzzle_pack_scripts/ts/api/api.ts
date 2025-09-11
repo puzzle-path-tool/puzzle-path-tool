@@ -810,7 +810,7 @@ f11(
 // #endregion
 // #region [Int Op]
 
-type IntCmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<" | "**";
+type IntCmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<";
 type IntMathOp = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
 type IntFoldOp = "+" | "*" | "min" | "max";
 type IntAllOp =
