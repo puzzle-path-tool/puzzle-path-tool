@@ -4,7 +4,50 @@ use linkme::distributed_slice;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::ts_api::TYPES;
+use crate::ts_api::{TYPES, identifier::Identifier};
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(rename = "RegisterVariablePuzzptApi")]
+pub struct RegisterVariable {
+    #[serde(rename = "id")]
+    id: i32,
+    #[serde(rename = "fieldType")]
+    field_type: FieldType,
+}
+
+#[distributed_slice(TYPES)]
+static REGISTER_VARIABLE_TYPE: fn() -> String = RegisterVariable::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(rename = "EmitExpressionPuzzptApi")]
+pub struct EmitExpression {
+    #[serde(rename = "deduction")]
+    deduction: Identifier,
+    #[serde(rename = "expression")]
+    expression: MatchExpression,
+}
+
+#[distributed_slice(TYPES)]
+static EMIT_EXPRESSION_TYPE: fn() -> String = EmitExpression::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "FieldTypePuzzptApi")]
+pub enum FieldType {
+    #[serde(rename = "Int")]
+    Int,
+    #[serde(rename = "Bool")]
+    Bool,
+    #[serde(rename = "Enum")]
+    Enum(Vec<String>),
+    #[serde(rename = "Set")]
+    Set(Box<FieldType>),
+    #[serde(rename = "Obj")]
+    Obj(HashMap<String, FieldType>),
+}
+
+#[distributed_slice(TYPES)]
+static FIELD_TYPE_TYPE: fn() -> String = FieldType::decl;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(rename = "MatchExpressionPuzzptApi")]
@@ -101,30 +144,61 @@ static BOOL_OPERATION_TYPE: fn() -> String = BoolOperation::decl;
 pub enum IntOperation {
     #[serde(rename = "Cmp")]
     Cmp {
+        #[serde(rename = "a")]
         a: MatchExpression,
+        #[serde(rename = "o")]
         o: IntCmpOp,
+        #[serde(rename = "b")]
         b: MatchExpression,
     },
     #[serde(rename = "Math")]
     Math {
+        #[serde(rename = "a")]
         a: MatchExpression,
+        #[serde(rename = "o")]
         o: IntMathOp,
+        #[serde(rename = "b")]
         b: MatchExpression,
     },
     #[serde(rename = "Fold")]
-    Fold { o: IntFoldOp, a: MatchExpression },
+    Fold {
+        #[serde(rename = "o")]
+        o: IntFoldOp,
+        #[serde(rename = "a")]
+        a: MatchExpression,
+    },
     #[serde(rename = "Sum")]
-    Sum { items: Vec<MatchExpression> },
+    Sum {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
     #[serde(rename = "Product")]
-    Product { items: Vec<MatchExpression> },
+    Product {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
     #[serde(rename = "Min")]
-    Min { items: Vec<MatchExpression> },
+    Min {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
     #[serde(rename = "Max")]
-    Max { items: Vec<MatchExpression> },
+    Max {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
     #[serde(rename = "All")]
-    All { o: IntAllOp, items: MatchExpression },
+    All {
+        #[serde(rename = "o")]
+        o: IntAllOp,
+        #[serde(rename = "items")]
+        items: MatchExpression,
+    },
     #[serde(rename = "IsPrime")]
-    IsPrime { items: Vec<MatchExpression> },
+    IsPrime {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
 }
 
 #[distributed_slice(TYPES)]
@@ -232,11 +306,62 @@ static SET_OPERATION_TYPE: fn() -> String = SetOperation::decl;
 #[serde(tag = "tag", content = "value")]
 #[serde(rename = "ObjOperationPuzzptApi")]
 pub enum ObjOperation {
-    Placeholder,
+    #[serde(rename = "Cmp")]
+    Cmp {
+        #[serde(rename = "a")]
+        a: MatchExpression,
+        #[serde(rename = "o")]
+        o: ObjCmpOp,
+        #[serde(rename = "b")]
+        b: MatchExpression,
+    },
+    #[serde(rename = "All")]
+    All {
+        #[serde(rename = "o")]
+        o: ObjAllOp,
+        #[serde(rename = "items")]
+        items: MatchExpression,
+    },
+    #[serde(rename = "Equal")]
+    Equal {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
+    #[serde(rename = "NoneEqual")]
+    NoneEqual {
+        #[serde(rename = "items")]
+        items: Vec<MatchExpression>,
+    },
 }
 
 #[distributed_slice(TYPES)]
 static OBJ_OPERATION_TYPE: fn() -> String = ObjOperation::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "ObjCmpOpPuzzptApi")]
+pub enum ObjCmpOp {
+    #[serde(rename = "==")]
+    Equals,
+    #[serde(rename = "!=")]
+    NotEquals,
+}
+
+#[distributed_slice(TYPES)]
+static OBJ_CMP_OP_TYPE: fn() -> String = ObjCmpOp::decl;
+
+#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
+#[serde(tag = "tag", content = "value")]
+#[serde(rename = "ObjAllOpPuzzptApi")]
+pub enum ObjAllOp {
+    #[serde(rename = "==")]
+    Equals,
+    #[serde(rename = "!=")]
+    NotEquals,
+}
+
+#[distributed_slice(TYPES)]
+static OBJ_ALL_OP_TYPE: fn() -> String = ObjAllOp::decl;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "tag", content = "value")]
@@ -252,7 +377,24 @@ static TABLE_OPERATION_TYPE: fn() -> String = TableOperation::decl;
 #[serde(tag = "tag", content = "value")]
 #[serde(rename = "QuantorOperationPuzzptApi")]
 pub enum QuantorOperation {
-    Placeholder,
+    #[serde(rename = "All")]
+    All {
+        #[serde(rename = "variables")]
+        variables: Vec<RegisterVariable>,
+        #[serde(rename = "requirements")]
+        requirements: Vec<MatchExpression>,
+        #[serde(rename = "where_clauses")]
+        where_clauses: Vec<MatchExpression>,
+    },
+    #[serde(rename = "Exists")]
+    Exists {
+        #[serde(rename = "variables")]
+        variables: Vec<RegisterVariable>,
+        #[serde(rename = "requirements")]
+        requirements: Vec<MatchExpression>,
+        #[serde(rename = "where_clauses")]
+        where_clauses: Vec<MatchExpression>,
+    },
 }
 
 #[distributed_slice(TYPES)]
@@ -262,9 +404,21 @@ static QUANTOR_OPERATION_TYPE: fn() -> String = QuantorOperation::decl;
 #[serde(tag = "tag", content = "value")]
 #[serde(rename = "PoolOperationPuzzptApi")]
 pub enum PoolOperation {
-    Placeholder,
+    #[serde(rename = "One")]
+    One {
+        #[serde(rename = "item")]
+        item: MatchExpression,
+        #[serde(rename = "deduction")]
+        deduction: Identifier,
+    },
+    #[serde(rename = "Many")]
+    Many {
+        #[serde(rename = "items")]
+        items: MatchExpression,
+        #[serde(rename = "deduction")]
+        deduction: Identifier,
+    },
 }
 
 #[distributed_slice(TYPES)]
 static POOL_OPERATION_TYPE: fn() -> String = PoolOperation::decl;
-

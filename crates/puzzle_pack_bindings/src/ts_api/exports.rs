@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-
 use linkme::distributed_slice;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::ts_api::variable::Identifier;
+use crate::ts_api::exports::matching::{EmitExpression, FieldType, RegisterVariable};
+use crate::ts_api::identifier::Identifier;
 use crate::ts_api::{PuzzptApiExport, TYPES};
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
@@ -18,12 +17,15 @@ pub struct Deduction {
 }
 
 impl Deduction {
+    #[must_use]
     pub fn name(&self) -> &String {
-        self.name.get_name()
+        self.name.name()
     }
+    #[must_use]
     pub fn description(&self) -> &String {
         todo!()
     }
+    #[must_use]
     pub fn data(&self) -> &FieldType {
         &self.data.field_type
     }
@@ -49,25 +51,6 @@ pub struct DeductionData {
 static DEDUCTION_DATA_TYPE: fn() -> String = DeductionData::decl;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-#[serde(tag = "tag", content = "value")]
-#[serde(rename = "FieldTypePuzzptApi")]
-pub enum FieldType {
-    #[serde(rename = "Int")]
-    Int,
-    #[serde(rename = "Bool")]
-    Bool,
-    #[serde(rename = "Enum")]
-    Enum(Vec<String>),
-    #[serde(rename = "Set")]
-    Set(Box<FieldType>),
-    #[serde(rename = "Obj")]
-    Obj(HashMap<String, FieldType>),
-}
-
-#[distributed_slice(TYPES)]
-static FIELD_TYPE_TYPE: fn() -> String = FieldType::decl;
-
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "export_tag")]
 #[serde(rename = "RulePuzzptApi")]
 pub struct Rule {
@@ -78,12 +61,15 @@ pub struct Rule {
 }
 
 impl Rule {
+    #[must_use]
     pub fn name(&self) -> &String {
-        self.name.get_name()
+        self.name.name()
     }
+    #[must_use]
     pub fn description(&self) -> &String {
         todo!()
     }
+    #[must_use]
     pub fn data(&self) -> &FieldType {
         &self.data.field_type
     }
@@ -105,10 +91,14 @@ impl PuzzptApiExport for Rule {
 pub struct LogicStep {
     #[serde(rename = "name")]
     name: Identifier,
+    #[serde(rename = "variables")]
     variables: Vec<RegisterVariable>,
+    #[serde(rename = "requirements")]
     requirements: Vec<matching::MatchExpression>,
+    #[serde(rename = "whereClauses")]
     where_clauses: Vec<matching::MatchExpression>,
-    emissions: Vec<EmitExpression>
+    #[serde(rename = "emissions")]
+    emissions: Vec<EmitExpression>,
 }
 
 #[distributed_slice(TYPES)]
@@ -120,21 +110,7 @@ impl PuzzptApiExport for LogicStep {
     }
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-pub struct RegisterVariable {
-    id: i32,
-    field_type: FieldType,
-    
-}
-
 mod matching;
-
-#[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
-pub struct EmitExpression {
-    id: i32,
-    field_type: FieldType,
-    
-}
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "export_tag")]
