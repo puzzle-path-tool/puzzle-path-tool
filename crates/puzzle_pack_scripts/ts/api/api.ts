@@ -1019,10 +1019,6 @@ export const bool = apiMod.namespace({
                 todo();
             },
 
-            not: (items: Var<Bool>): Var<Bool> => {
-                todo();
-            },
-
             fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
                 todo();
             },
