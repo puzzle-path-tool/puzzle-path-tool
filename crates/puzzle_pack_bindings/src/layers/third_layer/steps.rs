@@ -392,7 +392,7 @@ impl ValueOperation {
                 )
             }
             SecondLayerBoolean::MappingStandIn { stand_in_id } => ValueOperation::MappedValue {
-                mapping_id: map_id_supplier.convert(*stand_in_id),
+                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
             },
         }
     }
@@ -461,7 +461,7 @@ impl ValueOperation {
                 )
             }
             SecondLayerNumber::MappingStandIn { stand_in_id } => ValueOperation::MappedValue {
-                mapping_id: map_id_supplier.convert(*stand_in_id),
+                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
             },
         }
     }
@@ -503,7 +503,7 @@ impl ValueOperation {
                 )
             }
             SecondLayerEnum::MappingStandIn { stand_in_id } => ValueOperation::MappedValue {
-                mapping_id: map_id_supplier.convert(*stand_in_id),
+                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
             },
         }
     }
@@ -536,7 +536,7 @@ impl ValueOperation {
                             if let (Some(second_value), _) = mapped_field {
                                 ValueOperation::TwoValueOp {
                                     first: Box::new(ValueOperation::MappedObjectFieldValue {
-                                        mapping_id: map_id_supplier.convert(*stand_in_id),
+                                        mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                                         field_id: *field_id,
                                     }),
                                     second: Box::new(second_value),
@@ -550,7 +550,7 @@ impl ValueOperation {
                             if let (_, Some(second_set)) = mapped_field {
                                 ValueOperation::TwoSetOp {
                                     first: Box::new(SetOperation::MappingStandInFieldSet {
-                                        mapping_id: map_id_supplier.convert(*stand_in_id),
+                                        mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                                         field_id: *table_id,
                                     }),
                                     second: Box::new(second_set),
@@ -712,7 +712,8 @@ impl ValueOperation {
                                 if let (Some(second_value), _) = field {
                                     ValueOperation::TwoValueOp {
                                         first: Box::new(ValueOperation::MappedObjectFieldValue {
-                                            mapping_id: map_id_supplier.convert(*stand_in_id),
+                                            mapping_id: map_id_supplier
+                                                .convert_wrapped(*stand_in_id),
                                             field_id: *field_id,
                                         }),
                                         second: Box::new(second_value),
@@ -726,7 +727,8 @@ impl ValueOperation {
                                 if let (_, Some(second_set)) = field {
                                     ValueOperation::TwoSetOp {
                                         first: Box::new(SetOperation::MappingStandInFieldSet {
-                                            mapping_id: map_id_supplier.convert(*stand_in_id),
+                                            mapping_id: map_id_supplier
+                                                .convert_wrapped(*stand_in_id),
                                             field_id: *table_id,
                                         }),
                                         second: Box::new(second_set),
@@ -875,7 +877,7 @@ impl ValueOperation {
                 partial: _,
                 item_type: _,
             } => ValueOperation::MappedObjectFieldValue {
-                mapping_id: map_id_supplier.convert(*stand_in_id),
+                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                 field_id: *field_id,
             },
             SecondLayerObject::StepObject {
@@ -1165,7 +1167,7 @@ impl ValueOperation {
                     match field_id {
                         FieldId::Primitive(field_id) => (
                             Some(ValueOperation::MappedObjectFieldValue {
-                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                                 field_id: *field_id,
                             }),
                             None,
@@ -1173,7 +1175,7 @@ impl ValueOperation {
                         FieldId::Array(table_id) => (
                             None,
                             Some(SetOperation::MappingStandInFieldSet {
-                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                                 field_id: *table_id,
                             }),
                         ),
@@ -1379,7 +1381,7 @@ impl SetOperation {
                     map_id_supplier,
                     tables,
                 )),
-                mapping_id: map_id_supplier.convert(*stand_in_id),
+                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                 mapping: Box::new(SetMapping::from_second_layer_output(
                     mapping,
                     step,
@@ -1399,7 +1401,7 @@ impl SetOperation {
                     map_id_supplier,
                     tables,
                 )),
-                mapping_id: map_id_supplier.convert(*stand_in_id),
+                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                 mapping: {
                     Box::new(SetMapping::SingleValue(SetMappingValue::Value(
                         ValueOperation::from_second_layer_bool_output(
@@ -1458,7 +1460,7 @@ impl SetOperation {
                 item_type: _,
                 set_in_set_depth: _,
             } => Self::MappingStandIn {
-                mapping_id: map_id_supplier.convert(*stand_in_id),
+                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
             },
         }
     }
@@ -1493,14 +1495,14 @@ impl SetMapping {
                         FieldId::Primitive(primitive_id) => (
                             *field_id,
                             SetMappingValue::Value(ValueOperation::MappedObjectFieldValue {
-                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                                 field_id: *primitive_id,
                             }),
                         ),
                         FieldId::Array(table_id) => (
                             *field_id,
                             SetMappingValue::Set(SetOperation::MappingStandInFieldSet {
-                                mapping_id: map_id_supplier.convert(*stand_in_id),
+                                mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
                                 field_id: *table_id,
                             }),
                         ),

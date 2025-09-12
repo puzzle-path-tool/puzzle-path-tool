@@ -24,7 +24,7 @@ impl TableBundle {
         rules: &Vec<FirstLayerRule>,
         deductions: &Vec<FirstLayerDeduction>,
     ) -> TableBundle {
-        let mut tables: Vec<(&Name, &Description, &FirstLayerFieldtype)> = rules
+        let mut tables: Vec<(Name, &Description, &FirstLayerFieldtype)> = rules
             .iter()
             .map(|rule| (rule.name(), rule.description(), rule.data()))
             .collect();
@@ -37,7 +37,7 @@ impl TableBundle {
         Self::new(tables)
     }
     fn new(
-        tables: Vec<(&Name, &Description, &FirstLayerFieldtype)>,
+        tables: Vec<(Name, &Description, &FirstLayerFieldtype)>,
         /*enum_tables: Vec<(
             Name,
             Description,

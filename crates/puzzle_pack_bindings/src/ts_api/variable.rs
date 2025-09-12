@@ -21,8 +21,8 @@ pub struct Identifier {
 static INDENTIFIER_TYPE: fn() -> String = Identifier::decl;
 
 impl Identifier {
-    pub fn get_name(&self) -> &String {
-        &self.name
+    pub fn get_name(&self) -> String {
+        format!("{}_{}_{}", self.pack, self.module.join("-"), self.name)
     }
 }
 
