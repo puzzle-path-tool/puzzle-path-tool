@@ -4,7 +4,7 @@ use serde_json::Value;
 
 pub mod examples;
 pub mod exports;
-pub mod variable;
+pub mod identifier;
 
 #[distributed_slice]
 static TYPES: [fn() -> String];

@@ -810,7 +810,7 @@ f11(
 // #endregion
 // #region [Int Op]
 
-type IntCmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<" | "**";
+type IntCmpOp = "==" | "!=" | ">=" | "<=" | ">" | "<";
 type IntMathOp = "+" | "-" | "*" | "//" | "mod" | "rem" | "**";
 type IntFoldOp = "+" | "*" | "min" | "max";
 type IntAllOp =
@@ -997,7 +997,7 @@ export const set = NamespaceClass.createInternal(
 
 type BoolCmpOp = "==" | "!=";
 type BoolLogicOp = "or" | "and" | "xor" | "nor" | "nand" | "xnor";
-type BoolSetOp = "all" | "any" | "none" | BoolCmpOp | BoolLogicOp;
+type BoolFoldOp = "all" | "any" | "none" | BoolCmpOp | BoolLogicOp;
 type BoolAllOp = "==" | "!=" | "true" | "false";
 
 export const bool = apiMod.namespace({
@@ -1015,15 +1015,11 @@ export const bool = apiMod.namespace({
                 todo();
             },
 
-            not: (items: Var<Bool>): Var<Bool> => {
+            not: (a: Var<Bool>): Var<Bool> => {
                 todo();
             },
 
-            not: (items: Var<Bool>): Var<Bool> => {
-                todo();
-            },
-
-            fold: (o: BoolSetOp, a: Var<Set<Bool>>): Var<Bool> => {
+            fold: (o: BoolFoldOp, a: Var<Set<Bool>>): Var<Bool> => {
                 todo();
             },
 
