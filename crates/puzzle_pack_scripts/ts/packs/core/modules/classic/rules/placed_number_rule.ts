@@ -1,7 +1,7 @@
 import { int, obj } from "api/prelude";
-import { classic_mod } from "../classic_mod";
-import { position } from "../utils/position";
-import { cell_value } from "./deductions";
+import { classic_mod } from "../../classic_mod";
+import { position } from "../../utils/position";
+import { cell_value } from "../deductions";
 
 export const placed_number_rule = classic_mod.rule({
     name: "placed_number_rule",
