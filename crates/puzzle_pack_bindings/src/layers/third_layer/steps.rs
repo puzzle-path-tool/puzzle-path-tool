@@ -1019,6 +1019,28 @@ impl ValueOperation {
                     (None, None)
                 }
             }
+            SecondLayerSet::SetObjectField {
+                object_id,
+                field_id,
+            } => {
+                if let Some(step_object) = step
+                    .get_step_objects()
+                    .iter()
+                    .find(|step_object| step_object.get_id() == *object_id)
+                {
+                    match step_object {
+                        SecondLayerStepObject::BuildObject { id: _, fields } => todo!(),
+                        SecondLayerStepObject::DeductionObject {
+                            id,
+                            table,
+                            in_pool,
+                            emmit_or_consum,
+                        } => todo!(),
+                    }
+                } else {
+                    (None, None)
+                }
+            }
         }
     }
     fn mapped_object_field_by_name(
@@ -1461,6 +1483,13 @@ impl SetOperation {
                 set_in_set_depth: _,
             } => Self::MappingStandIn {
                 mapping_id: map_id_supplier.convert_wrapped(*stand_in_id),
+            },
+            SecondLayerSet::SetObjectField {
+                object_id,
+                field_id,
+            } => Self::FieldSet {
+                object_id: *object_id,
+                field_id: *field_id,
             },
         }
     }

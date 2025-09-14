@@ -431,6 +431,10 @@ pub(crate) enum SetOutput {
     SetObject {
         set_object_id: usize,
     },
+    SetObjectField {
+        object_id: usize,
+        field_id: TableId,
+    },
     TwoSetOperation {
         first: Box<SetOutput>,
         second: Box<SetOutput>,
