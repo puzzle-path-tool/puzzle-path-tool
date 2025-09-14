@@ -6,7 +6,7 @@ use crate::layers::id_helpers::{
 };
 use crate::ts_api::exports::{
     Deduction as FirstLayerDeduction, //DeductionData as FirstLayerDeductionData,
-    FieldType as FirstLayerFieldtype,
+    matching::FieldType as FirstLayerFieldtype,
     Rule as FirstLayerRule,
 };
 type Name = String;

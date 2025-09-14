@@ -18,7 +18,7 @@ pub struct Deduction {
 
 impl Deduction {
     #[must_use]
-    pub fn name(&self) -> &String {
+    pub fn name(&self) -> String {
         self.name.name()
     }
     #[must_use]
@@ -62,7 +62,7 @@ pub struct Rule {
 
 impl Rule {
     #[must_use]
-    pub fn name(&self) -> &String {
+    pub fn name(&self) -> String {
         self.name.name()
     }
     #[must_use]
@@ -110,7 +110,7 @@ impl PuzzptApiExport for LogicStep {
     }
 }
 
-mod matching;
+pub mod matching;
 
 #[derive(Serialize, Deserialize, TS, Debug, Eq, PartialEq, Clone)]
 #[serde(tag = "export_tag")]

@@ -20,7 +20,7 @@ static INDENTIFIER_TYPE: fn() -> String = Identifier::decl;
 
 impl Identifier {
     #[must_use]
-    pub fn name(&self) -> &String {
-        &self.name
+    pub fn name(&self) -> String {
+        format!("{}_{}_{}", self.pack, self.module.join("-"), self.name)
     }
 }

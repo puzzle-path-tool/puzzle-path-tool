@@ -4,7 +4,7 @@ use itertools::Itertools;
 
 use crate::layers::id_helpers::{EnumTableId, FieldId, IdSupplier, PathString, StepId, TableId, WrappedId};
 use crate::layers::second_layer::tables::{Field, TableBundle};
-use crate::ts_api::exports::{LogicStep as FirstLayerLogicStep, RegisterVariable as FirstLayerRegisterVariable};
+use crate::ts_api::exports::{LogicStep as FirstLayerLogicStep, matching::RegisterVariable as FirstLayerRegisterVariable};
 
 pub(crate) mod test {
     use super::{
@@ -100,12 +100,12 @@ impl LogicStep {
         logic_step: &FirstLayerLogicStep,
         tables: &TableBundle,
     ) -> LogicStep {
-        let step_objects = logic_step.variables().iter().map(|variable|{
+        /*let step_objects = logic_step.variables().iter().map(|variable|{
             variable.
-        });
+        });*/
 
         LogicStep {
-            name: logic_step.name(),
+            name: todo!(), //logic_step.name(),
             id: StepId::new(),
             description: "Todo".to_string(),
             step_objects: vec![],
@@ -152,7 +152,8 @@ pub(crate) enum StepObject {
 }
 impl StepObject {
     fn from_first_layer(object: FirstLayerRegisterVariable, id_supplier: &mut IdSupplier) -> StepObject {
-        Self::BuildObject { id: id_supplier.convert_i32(i32_id), fields: Field::new(name, ref_name, ref_id, id_supplier, field_type) }
+        //Self::BuildObject { id: id_supplier.convert_i32(i32_id), fields: Field::new(name, ref_name, ref_id, id_supplier, field_type) }
+        todo!()
     }
     pub(crate) fn get_object_fields(
         &self,
