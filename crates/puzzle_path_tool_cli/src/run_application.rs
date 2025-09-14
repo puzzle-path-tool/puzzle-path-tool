@@ -203,6 +203,17 @@ impl MainRunner {
         }
     }
 
+    pub(super) fn test_ui() {
+        let (_to_ui_sender, to_ui_receiver) = mpsc::channel::<UICommand>(100);
+        let (from_ui_sender, _from_ui_receiver) = mpsc::channel::<UIMessage>(100);
+
+        let flags = UIFlags {
+            sender: from_ui_sender,
+            reciever: to_ui_receiver,
+        };
+        run_ui::run(flags);
+    }
+
     fn run_ui(mut self) -> MainRunner {
         println!("Run UI with {:?}", self.ui_flags);
         #[cfg(feature = "ui")]
