@@ -606,6 +606,13 @@ pub enum ObjOperation {
         #[serde(rename = "items")]
         items: Vec<MatchExpression>,
     },
+    #[serde(rename = "Field")]
+    Field {
+        #[serde(rename = "item")]
+        item: MatchExpression,
+        #[serde(rename = "fieldName")]
+        field_name: String,
+    },
 }
 
 #[distributed_slice(TYPES)]
