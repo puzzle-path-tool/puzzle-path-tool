@@ -146,7 +146,7 @@ const cell_value_from_allowed = classic_mod.step({
     },
 });
 
-export const square_bounds = classic_mod.deduction({
+/*export const square_bounds = classic_mod.deduction({
     name: "bounds",
     create: () => {
         const square_bounds = obj.decl({
@@ -154,4 +154,4 @@ export const square_bounds = classic_mod.deduction({
         });
         return { decl: square_bounds };
     },
-});
+});*/

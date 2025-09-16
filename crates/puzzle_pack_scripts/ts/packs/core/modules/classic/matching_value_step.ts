@@ -13,6 +13,7 @@ const matching_from_full_set = classic_mod.step({
         const set1 = matcher.pool.getOne(full_set);
         const set2 = matcher.pool.getOne(full_set);
         matcher.require(obj.op.cmp(set1, "!=", set2));
+        matcher.require(obj.op.cmp(set1.values, "!=", set2.values));
 
         const set1w2 = set.op.join(set1.cells, "without", set2.cells);
         const set2w1 = set.op.join(set2.cells, "without", set1.cells);
@@ -83,7 +84,8 @@ const increase_matching_from_full_set = classic_mod.step({
         const cells1 = set.op.join(
             set1.cells,
             "without",
-            set.op.fold("union",
+            set.op.fold(
+                "union",
                 set.op.map(non_repeat_set_set, (x) => {
                     return x.cells;
                 }),

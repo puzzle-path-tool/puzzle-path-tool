@@ -2,11 +2,15 @@ use std::fmt::Debug;
 
 use itertools::Itertools;
 
-use crate::layers::id_helpers::{EnumTableId, FieldId, PathString, StepId, TableId, WrappedId};
+use crate::layers::id_helpers::{EnumTableId, FieldId, IdSupplier, PathString, StepId, TableId, WrappedId};
 use crate::layers::second_layer::tables::{Field, TableBundle};
+use crate::ts_api::exports::{LogicStep as FirstLayerLogicStep, matching::RegisterVariable as FirstLayerRegisterVariable};
 
 pub(crate) mod test {
-    use super::{BoolCombinator, BooleanOutput, LogicStep, MathOperator, NumberComparor, NumberOutput, ObjectOutput, Output, SetObject, SetOutput, StepId, StepObject, TableBundle};
+    use super::{
+        BoolCombinator, BooleanOutput, LogicStep, MathOperator, NumberComparor, NumberOutput,
+        ObjectOutput, Output, SetObject, SetOutput, StepId, StepObject, TableBundle,
+    };
 
     pub(crate) fn build_example_step(tables: &TableBundle) -> LogicStep {
         LogicStep {
@@ -92,9 +96,23 @@ pub(crate) struct LogicStep {
     match_statement: BooleanOutput,
 }
 impl LogicStep {
-    /*pub(crate) fn new(name: String, description: String, tables: &TableBundle) -> LogicStep {
-        LogicStep { name, id: StepId::new(), description, step_objects: vec![], step_sets: vec![], match_statement: BooleanOutput::Boolean { value: true } }
-    }*/
+    pub(crate) fn from_first_layer(
+        logic_step: &FirstLayerLogicStep,
+        tables: &TableBundle,
+    ) -> LogicStep {
+        /*let step_objects = logic_step.variables().iter().map(|variable|{
+            variable.
+        });*/
+
+        LogicStep {
+            name: todo!(), //logic_step.name(),
+            id: StepId::new(),
+            description: "Todo".to_string(),
+            step_objects: vec![],
+            step_sets: vec![],
+            match_statement: BooleanOutput::Boolean { value: true },
+        }
+    }
     pub(crate) fn get_id(&self) -> StepId {
         self.id
     }
@@ -133,6 +151,10 @@ pub(crate) enum StepObject {
     },
 }
 impl StepObject {
+    fn from_first_layer(object: FirstLayerRegisterVariable, id_supplier: &mut IdSupplier) -> StepObject {
+        //Self::BuildObject { id: id_supplier.convert_i32(i32_id), fields: Field::new(name, ref_name, ref_id, id_supplier, field_type) }
+        todo!()
+    }
     pub(crate) fn get_object_fields(
         &self,
         partial: &Option<PathString>,
@@ -168,7 +190,7 @@ impl StepObject {
 }
 #[derive(Debug, Clone)]
 pub(crate) struct BuildObjectFields {
-    value_fields: Vec<Field>,
+    value_field: Field,
     array_fields: Vec<(TableId, BuildObjectFields)>,
 }
 impl BuildObjectFields {
@@ -196,7 +218,7 @@ impl BuildObjectFields {
         Vec<(FieldId, PathString)>,
         Vec<(TableId, Vec<TableId>, Vec<(FieldId, PathString)>)>,
     ) {
-        let fields = self.value_fields.iter().map(|item| item.flatten()).concat();
+        let fields = self.value_field.flatten();
         let arrays = self
             .array_fields
             .iter()
@@ -408,6 +430,10 @@ pub(crate) enum SetOutput {
     },
     SetObject {
         set_object_id: usize,
+    },
+    SetObjectField {
+        object_id: usize,
+        field_id: TableId,
     },
     TwoSetOperation {
         first: Box<SetOutput>,

@@ -8,7 +8,9 @@ use puzzle_pack_bindings::layers::third_layer::tables::*;
 
 pub fn execute_logic_step(step: &LogicStep, pool: &mut TablePool, variation: usize) -> usize {
     let mut temp_pool = TempPool::new(step, pool);
-    if let Some(variation) = executeValueOperation(step.get_match_statement(), pool, &mut temp_pool).try_true(variation, &mut temp_pool) {
+    if let Some(variation) = executeValueOperation(step.get_match_statement(), pool, &mut temp_pool)
+        .try_true(variation, &mut temp_pool)
+    {
         temp_pool.emit_and_consumn(pool);
         variation
     } else {
@@ -56,8 +58,11 @@ fn executeValueOperation(
         ValueOperation::ConvertedValue {
             converted_value,
             look_up_table,
-        } => executeValueOperation(converted_value.as_ref(), pool, temp_pool)
-            .convert(pool.get_conversion_table(*look_up_table)),
+        } => {
+            /*executeValueOperation(converted_value.as_ref(), pool, temp_pool)
+            .convert(pool.get_conversion_table(*look_up_table))*/
+            todo!()
+        }
     }
 }
 
@@ -119,7 +124,7 @@ impl TempPool {
         TempPool {
             objects: step_objects,
             sets: step_sets,
-            validity_handlers: vec![]
+            validity_handlers: vec![],
         }
     }
     fn object_field(&self, object_id: usize, field_id: usize) -> FieldValue {
@@ -199,9 +204,9 @@ impl FieldValue {
             value_range: Some(vec![(value, temp_pool.new_validity())]),
         }
     }
-    fn convert(self, table: &LookUpTable) -> FieldValue {
+    /*fn convert(self, table: &LookUpTable) -> FieldValue {
         todo!()
-    }
+    }*/
     fn two_value_op(
         first: FieldValue,
         second: FieldValue,
@@ -284,7 +289,7 @@ impl TablePool {
     ) {
         todo!()
     }
-    fn get_conversion_table(&self, table_id: EnumTableId) -> &LookUpTable {
+    /*fn get_conversion_table(&self, table_id: EnumTableId) -> &LookUpTable {
         todo!()
-    }
+    }*/
 }

@@ -77,13 +77,15 @@ impl EnumTableId {
 #[derive(Debug)]
 pub(crate) struct IdSupplier {
     current: usize,
-    conversion: Vec<(WrappedId, usize)>,
+    wrapped_conversion: Vec<(WrappedId, usize)>,
+    i32_conversion: Vec<(i32, usize)>,
 }
 impl IdSupplier {
     pub(crate) fn new() -> IdSupplier {
         IdSupplier {
             current: 0,
-            conversion: vec![],
+            wrapped_conversion: vec![],
+            i32_conversion: vec![],
         }
     }
     pub(crate) fn next(&mut self) -> usize {
@@ -91,16 +93,29 @@ impl IdSupplier {
         self.current += 1;
         result
     }
-    pub(crate) fn convert(&mut self, wrapped_id: WrappedId) -> usize {
+    pub(crate) fn convert_wrapped(&mut self, wrapped_id: WrappedId) -> usize {
         if let Some((_, new_id)) = self
-            .conversion
+            .wrapped_conversion
             .iter()
             .find(|(item_wrapped_id, _)| *item_wrapped_id == wrapped_id)
         {
             *new_id
         } else {
             let new_id = self.next();
-            self.conversion.push((wrapped_id, new_id));
+            self.wrapped_conversion.push((wrapped_id, new_id));
+            new_id
+        }
+    }
+    pub(crate) fn convert_i32(&mut self, i32_id: i32) -> usize {
+        if let Some((_, new_id)) = self
+            .i32_conversion
+            .iter()
+            .find(|(item_i32_id, _)| *item_i32_id == i32_id)
+        {
+            *new_id
+        } else {
+            let new_id = self.next();
+            self.i32_conversion.push((i32_id, new_id));
             new_id
         }
     }
