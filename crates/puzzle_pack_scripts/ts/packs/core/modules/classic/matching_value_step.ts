@@ -1,4 +1,4 @@
-import { int, obj, quantor, set } from "api/prelude";
+import { int, obj, quantor, set } from "api/api";
 import { classic_mod } from "../classic_mod";
 import {
     allowed_values,

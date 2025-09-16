@@ -1,4 +1,4 @@
-import { int, obj, set } from "api/prelude";
+import { int, obj, set } from "api/api";
 import { classic_mod } from "../classic_mod";
 import { allowed_values, full_set, non_repeat_set } from "./deductions";
 

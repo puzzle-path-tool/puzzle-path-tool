@@ -1,4 +1,4 @@
-import { bool, int, obj, set } from "api/prelude";
+import { bool, int, obj, set } from "api/api";
 import { classic_mod } from "../classic_mod";
 import { allowed_values, matching_cells, required_value } from "./deductions";
 

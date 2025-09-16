@@ -1,4 +1,4 @@
-import { int, obj } from "api/prelude";
+import { int, obj } from "api/api";
 import { classic_mod } from "../../classic_mod";
 import { position } from "../../utils/position";
 import { cell_value } from "../deductions";
