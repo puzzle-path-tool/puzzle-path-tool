@@ -4,8 +4,9 @@ mod commands;
 #[allow(dead_code)]
 mod run_application;
 
-const TEST_UI: bool = false;
+const TEST_UI: bool = true;
 fn main() {
+    #[cfg(feature = "ui")]
     if TEST_UI {
         run_application::MainRunner::test_ui();
     }
